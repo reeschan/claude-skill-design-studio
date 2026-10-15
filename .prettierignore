@@ -1,0 +1,5 @@
+pnpm-lock.yaml
+# PBI の作業用ファイルと手本の写し
+docs/pbi/
+# 見本の HTML は生成物
+gallery/

@@ -153,18 +153,18 @@
 
 ### 同梱の台帳 (初期の 12 個)
 
-| 段階 | 役割 | 既定 | 候補 | 取得元 |
-|---|---|---|---|---|
-| テーマ | テーマを作る | style-guide | | reeschan/claude-skill-style-guide |
-| ページ | ページを組み立てる | design-studio + frontend-design | | claude-plugins-official の frontend-design |
-| 点検 | アクセシビリティ | fixing-accessibility | accessibility-review | ibelick/ui-skills / design プラグイン |
-| 点検 | 見た目と使いやすさ | design-critique | | design プラグイン |
-| 点検 | ブラウザで確認 | playwright-cli | | microsoft/playwright-cli (前提: `@playwright/cli`) |
-| 点検 | React のコード | react-doctor | | millionco/react-doctor (対象: React プロジェクト) |
-| 仕上げ | 細部の磨き | make-interfaces-feel-better | emil-design-eng | jakubkrehel/make-interfaces-feel-better |
-| 仕上げ | 動き | emil-design-eng | 12-principles-of-animation | emilkowalski/skills / raphaelsalaja/skill |
-| 仕上げ | 文言 | ux-copy | | design プラグイン |
-| 仕上げ | 開発者向け仕様書 | design-handoff | | design プラグイン |
+| 段階   | 役割               | 既定                            | 候補                       | 取得元                                             |
+| ------ | ------------------ | ------------------------------- | -------------------------- | -------------------------------------------------- |
+| テーマ | テーマを作る       | style-guide                     |                            | reeschan/claude-skill-style-guide                  |
+| ページ | ページを組み立てる | design-studio + frontend-design |                            | claude-plugins-official の frontend-design         |
+| 点検   | アクセシビリティ   | fixing-accessibility            | accessibility-review       | ibelick/ui-skills / design プラグイン              |
+| 点検   | 見た目と使いやすさ | design-critique                 |                            | design プラグイン                                  |
+| 点検   | ブラウザで確認     | playwright-cli                  |                            | microsoft/playwright-cli (前提: `@playwright/cli`) |
+| 点検   | React のコード     | react-doctor                    |                            | millionco/react-doctor (対象: React プロジェクト)  |
+| 仕上げ | 細部の磨き         | make-interfaces-feel-better     | emil-design-eng            | jakubkrehel/make-interfaces-feel-better            |
+| 仕上げ | 動き               | emil-design-eng                 | 12-principles-of-animation | emilkowalski/skills / raphaelsalaja/skill          |
+| 仕上げ | 文言               | ux-copy                         |                            | design プラグイン                                  |
+| 仕上げ | 開発者向け仕様書   | design-handoff                  |                            | design プラグイン                                  |
 
 - 「方向性」の段階は design-studio 自身が受け持つ。
 - design プラグインのスキルは、プラグインとして入っているかを見るだけにする。入っていなければ、案内だけをする。
