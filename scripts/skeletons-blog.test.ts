@@ -24,7 +24,7 @@ const MODE: BaseMode = "light";
 // 本番と同じ組み立てで 1 枚のページ HTML を作る
 function render(layout: (typeof LAYOUTS.blog)[number]): string {
   return renderSkeleton({
-    pageType: "blog",
+    family: "blog",
     layout,
     copy: COPY,
     mode: MODE,

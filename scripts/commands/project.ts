@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { CliExit, EXIT_INPUT, usage } from "../../core/cli-exit.ts";
 import { readJsonFile } from "../../core/json-file.ts";
+import { candidateOf, validatePageType } from "../../core/page-type.ts";
 import { listProjectsWithBroken, projectDir, readProject, saveProject } from "../../core/project.ts";
-import { PAGE_TYPES } from "../../core/types.ts";
 import type { PageType, Project } from "../../core/types.ts";
 
 const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
@@ -18,15 +18,35 @@ function readTextFile(path: string, label: string): string {
   }
 }
 
-// --page-type の値を PAGE_TYPES のいずれかにする
-function parsePageType(value: string): PageType {
-  const pageType = PAGE_TYPES.find((candidate) => candidate === value);
-  if (pageType === undefined)
-    throw new CliExit(EXIT_INPUT, { error: "input", message: `不明なページの種類です: ${value}`, pageTypes: PAGE_TYPES });
-  return pageType;
+// --page-name [--family] から画面の種類を作る。
+// 候補の名前なら family は候補のものを使い、自由な名前なら --family が要る
+function parsePageType(name: string, family: string | undefined): PageType {
+  const candidate = candidateOf(name);
+  if (candidate !== undefined) {
+    if (family !== undefined && family !== candidate.family) {
+      throw new CliExit(EXIT_INPUT, {
+        error: "input",
+        message: `候補の名前「${candidate.name}」の骨組みの種類は ${candidate.family} です: ${family}`,
+      });
+    }
+    return candidate;
+  }
+  if (family === undefined) {
+    throw new CliExit(EXIT_INPUT, { error: "input", message: `自由な名前の画面の種類には --family を指定してください: ${name}` });
+  }
+  const parsed = validatePageType({ name, family });
+  // family を渡しているので parsed.family は必ずある (validatePageType は family があるときだけ返す)
+  if (parsed.family === undefined) throw new CliExit(EXIT_INPUT, { error: "input", message: `不明な骨組みの種類です: ${family}` });
+  return { name: parsed.name, family: parsed.family };
 }
 
-type RawSaveArgs = { project: string | undefined; themeCss: string | undefined; pageType: string | undefined; html: string | undefined };
+type RawSaveArgs = {
+  project: string | undefined;
+  themeCss: string | undefined;
+  pageName: string | undefined;
+  family: string | undefined;
+  html: string | undefined;
+};
 type SaveArgs = { project: string; themeCss: string | undefined; page: { pageType: PageType; html: string } | undefined };
 
 // save の --flag を読む。知らない引数・値の欠けは usage
@@ -39,14 +59,16 @@ function readSaveArgs(args: string[]): RawSaveArgs {
       options: {
         project: { type: "string" },
         "theme-css": { type: "string" },
-        "page-type": { type: "string" },
+        "page-name": { type: "string" },
+        family: { type: "string" },
         html: { type: "string" },
       },
     });
     return {
       project: parsed.values.project,
       themeCss: parsed.values["theme-css"],
-      pageType: parsed.values["page-type"],
+      pageName: parsed.values["page-name"],
+      family: parsed.values.family,
       html: parsed.values.html,
     };
   } catch (e) {
@@ -54,13 +76,16 @@ function readSaveArgs(args: string[]): RawSaveArgs {
   }
 }
 
-// --page-type と --html は両方そろっているときだけページにする
+// --page-name と --html は両方そろっているときだけページにする。--family は --page-name といっしょに使う
 function saveArgsOf(raw: RawSaveArgs): SaveArgs {
-  const { project, themeCss, pageType, html } = raw;
+  const { project, themeCss, pageName, family, html } = raw;
   if (project === undefined) throw usage("--project <file> を指定してください");
-  if (pageType === undefined && html === undefined) return { project, themeCss, page: undefined };
-  if (pageType === undefined || html === undefined) throw usage("--page-type と --html は両方いっしょに指定してください");
-  return { project, themeCss, page: { pageType: parsePageType(pageType), html } };
+  if (pageName === undefined && html === undefined) {
+    if (family !== undefined) throw usage("--family は --page-name といっしょに指定してください");
+    return { project, themeCss, page: undefined };
+  }
+  if (pageName === undefined || html === undefined) throw usage("--page-name と --html は両方いっしょに指定してください");
+  return { project, themeCss, page: { pageType: parsePageType(pageName, family), html } };
 }
 
 // save の応答。dir は projectDir で組み立てる

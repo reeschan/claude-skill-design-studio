@@ -551,6 +551,37 @@
         height: 100%;
         border: 0;
       }
+
+      /* 作業台: 左に依頼と案、中央にプレビュー、右に調整の区画を並べる 3 列。
+         幅 1280px 以上で 3 列にし、それより狭いときは右の列を中央の下に回す */
+
+      .wb-grid {
+        display: grid;
+        grid-template-columns: 340px minmax(0, 1fr) 380px;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .wb-col {
+        min-width: 0;
+      }
+
+      @media (max-width: 1279px) {
+        .wb-grid {
+          grid-template-columns: 340px minmax(0, 1fr);
+          /* 左の列の余った高さを 2 行目に回し、右の列をプレビューのすぐ下に寄せる */
+          grid-template-rows: auto 1fr;
+        }
+
+        /* 左の列を 2 行にまたがらせ、右の列をプレビューのすぐ下 (間は gap だけ) に出す */
+        #wb-brief {
+          grid-row: 1 / span 2;
+        }
+
+        #wb-panels {
+          grid-column: 2;
+        }
+      }
     </style>
   </head>
   <body>
@@ -572,7 +603,15 @@
       <section id="catalog" class="screen" aria-label="台帳"></section>
       <section id="gallery" class="screen" aria-label="見本帳" hidden></section>
       <section id="workbench" class="screen" aria-label="作業台" hidden>
-        <p>準備中</p>
+        <h2 class="screen-title">作業台</h2>
+        <p class="screen-lead">依頼から案を出し、見比べて編集し、混ぜた見た目をプレビューで確かめます。</p>
+        <p class="status" id="wb-status"></p>
+        <p class="wb-waiting">作業台を組み立てています…</p>
+        <div class="wb-grid">
+          <div class="wb-col" id="wb-brief"></div>
+          <div class="wb-col" id="wb-stage"></div>
+          <div class="wb-col" id="wb-panels"></div>
+        </div>
       </section>
     </main>
     <script type="module" src="/app/ui-catalog.js"></script>

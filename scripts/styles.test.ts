@@ -4,7 +4,9 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { validateDirection } from "../core/styles.ts";
 import { stripTailwindImport } from "../core/theme-bridge.ts";
+import { LAYOUTS, SKELETON_FAMILIES } from "../core/types.ts";
 import { runCli, tempEnv } from "./test-helper.ts";
 
 const FAKE_GUIDE = fileURLToPath(new URL("../test/fixtures/fake-style-guide", import.meta.url));
@@ -55,6 +57,44 @@ void test("styles は 6 件を決まった並びで返す", () => {
       assert.ok(isRecord(style.layouts), `${String(style.id)} は layouts を持つ`);
       assert.ok(isRecord(style.copy), `${String(style.id)} は copy を持つ`);
       assert.equal(isRecord(style.seed) ? style.seed.id : undefined, style.id, "seed.id は id と同じ");
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("layouts が 3 種類だけの方向性は、足りない骨組みの種類を先頭の配置の型で埋める", () => {
+  const { env, cleanup } = tempEnv();
+  try {
+    const style = stylesOf(env)[0];
+    assert.ok(style !== undefined, "スタイルがある");
+    // 今の data/styles.json の形 (lp・dashboard・blog の 3 種類だけ)
+    const raw = { ...style, layouts: { lp: "split", dashboard: "cards", blog: "magazine" } };
+    const direction = validateDirection(raw);
+    assert.deepEqual(Object.keys(direction.layouts).sort(), [...SKELETON_FAMILIES].sort());
+    assert.equal(direction.layouts.lp, "split");
+    assert.equal(direction.layouts.dashboard, "cards");
+    assert.equal(direction.layouts.blog, "magazine");
+    for (const family of ["pricing", "product", "portfolio", "settings"] as const) {
+      assert.equal(direction.layouts[family], LAYOUTS[family][0], family);
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("theme --direction は layouts のキーがあって値が null なら終了コード 1 (無いキーだけ埋める)", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const style = stylesOf(env)[0];
+    assert.ok(style !== undefined, "スタイルがある");
+    const layouts = isRecord(style.layouts) ? style.layouts : {};
+    for (const family of SKELETON_FAMILIES) {
+      const file = join(dir, "null-layouts.json");
+      writeFileSync(file, JSON.stringify({ ...style, layouts: { ...layouts, [family]: null } }), "utf8");
+      const res = runCli(["theme", "--direction", file], fakeEnv(env));
+      assert.equal(res.code, 1, `${family} が null`);
+      assert.equal(payload(res.json).error, "input", `${family} が null`);
     }
   } finally {
     cleanup();

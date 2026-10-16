@@ -27,7 +27,7 @@ const CSS_FOR_PAGE = "@theme { --color-primary: oklch(0.5 0.15 260); }";
 
 function render(layout: Layouts["dashboard"]): string {
   return renderSkeleton({
-    pageType: "dashboard",
+    family: "dashboard",
     layout,
     copy: COPY,
     mode: MODE,

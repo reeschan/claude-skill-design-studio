@@ -10,15 +10,25 @@ import { LlmError, generateDirections, generatePage, llmAvailable } from "./llm.
 import type { FontPair } from "./llm.ts";
 import { findDisallowedUrls, hasPageCsp } from "./page-html.ts";
 import { loadStyles, validateDirection } from "./styles.ts";
-import type { Direction } from "./types.ts";
+import { SKELETON_FAMILIES } from "./types.ts";
+import type { Brief, Direction } from "./types.ts";
 
 const MOCK = fileURLToPath(new URL("../app/mock-llm.mjs", import.meta.url));
-const DIRECTION_IDS = ["dir-a", "dir-b", "dir-c"];
-const PROMPT = "請求書の SaaS。落ち着いた雰囲気で。";
+const DIRECTION_IDS = ["dir-a", "dir-b", "dir-c", "dir-d"];
+// 偽の LLM が family に答える値 (モックは決めて "pricing" と答える)
+const MOCK_FAMILY = "pricing";
 const CSS_FOR_PAGE = "@theme { --color-brand-accent: oklch(0.7 0.12 30); }";
 const FONTS_URL = "https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap";
 // モックのページが入れている仮のテーマ (差し替えで消えるのを見る)
 const MOCK_THEME = "呼び出し側が差し替える";
+
+// 依頼の 4 項目。空の項目の見方も見たいので、ここではすべて入っている
+const BRIEF: Brief = {
+  what: "請求書の SaaS を作りたい",
+  mood: "落ち着いた和風",
+  audience: "フリーランスの経理担当",
+  mustHave: "PDF 出力",
+};
 
 // フォントの組 (本来はサーバーが style-guide の data/fonts.json から読んで渡す)
 const FONT_PAIRS: FontPair[] = [
@@ -56,9 +66,9 @@ function mockEnv(mode: string): MockEnv {
   return { dir, env, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
 }
 
-type RecordedArgs = { argv: string[]; addDir: string | null; addDirFiles: string[] | null };
+type RecordedArgs = { argv: string[]; addDir: string | null; addDirFiles: string[] | null; prompt: string };
 
-// モックが書いた、受け取った引数の記録を読む
+// モックが書いた、受け取った引数・プロンプトの記録を読む
 function recordedArgs(dir: string): RecordedArgs {
   const raw: unknown = JSON.parse(readFileSync(join(dir, "args.json"), "utf8"));
   if (typeof raw !== "object" || raw === null) throw new Error("引数の記録がオブジェクトではありません");
@@ -71,25 +81,35 @@ function flagValue(argv: string[], flag: string): string | undefined {
   return index === -1 ? undefined : argv[index + 1];
 }
 
+// --json-schema の値 (llm.ts が渡したスキーマ) を読む
+function schemaOf(args: RecordedArgs): unknown {
+  const text = flagValue(args.argv, "--json-schema");
+  if (text === undefined) throw new Error("受け取った引数に --json-schema がありません");
+  return JSON.parse(text);
+}
+
+// unknown を Record として取り出す (オブジェクトでなければ assert.fail で失敗させる)
+function asRecord(value: unknown, label: string): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) assert.fail(`${label} はオブジェクトではありません`);
+  return value as Record<string, unknown>;
+}
+
 // LlmError の code を見る述語
 function llmFailure(code: string): (e: unknown) => boolean {
   return (e: unknown): boolean => e instanceof LlmError && e.code === code;
 }
 
-void test("generateDirections は 3 件を返し、どれも検証を通り、id は dir-a / dir-b / dir-c", async () => {
-  const { dir, env, cleanup } = mockEnv("ok");
+void test("generateDirections は 4 件を返し、どれも検証を通り、id は dir-a〜dir-d (family 無しでは LLM の答え)", async () => {
+  const { env, cleanup } = mockEnv("ok");
   try {
-    const directions = await generateDirections({ prompt: PROMPT, pageType: "lp", fontPairs: FONT_PAIRS }, env);
-    assert.equal(directions.length, 3);
+    const { directions, family } = await generateDirections({ brief: BRIEF, pageType: { name: "プラン比較" }, fontPairs: FONT_PAIRS }, env);
+    assert.equal(family, MOCK_FAMILY, "family 無しでは偽の LLM が答えた family");
+    assert.equal(directions.length, DIRECTION_IDS.length);
     directions.forEach((direction, index) => {
       assert.deepEqual(validateDirection(direction), direction);
       assert.equal(direction.id, DIRECTION_IDS[index]);
       assert.equal(direction.seed.id, direction.id);
     });
-    const args = recordedArgs(dir);
-    assert.ok(args.argv.includes("--json-schema"));
-    assert.equal(flagValue(args.argv, "--tools"), "", "スクリーンショット無しでは --tools は空");
-    assert.equal(flagValue(args.argv, "--add-dir"), undefined, "--add-dir は付かない");
   } finally {
     cleanup();
   }
@@ -98,8 +118,11 @@ void test("generateDirections は 3 件を返し、どれも検証を通り、id
 void test("bad-then-good は、1 回目の不正な出力のあとやり直して成功する", async () => {
   const { dir, env, cleanup } = mockEnv("bad-then-good");
   try {
-    const directions = await generateDirections({ prompt: PROMPT, pageType: "dashboard", fontPairs: FONT_PAIRS }, env);
-    assert.equal(directions.length, 3);
+    const { directions } = await generateDirections(
+      { brief: BRIEF, pageType: { name: "料金ページ", family: "dashboard" }, fontPairs: FONT_PAIRS },
+      env,
+    );
+    assert.equal(directions.length, DIRECTION_IDS.length);
     assert.equal(readFileSync(join(dir, "counter.txt"), "utf8"), "2", "2 回だけ呼ぶ");
   } finally {
     cleanup();
@@ -110,9 +133,80 @@ void test("error モードでは LlmError", async () => {
   const { env, cleanup } = mockEnv("error");
   try {
     await assert.rejects(
-      () => generateDirections({ prompt: PROMPT, pageType: "lp", fontPairs: FONT_PAIRS }, env),
+      () => generateDirections({ brief: BRIEF, pageType: { name: "プラン比較" }, fontPairs: FONT_PAIRS }, env),
       llmFailure("llm-failed"),
     );
+  } finally {
+    cleanup();
+  }
+});
+
+void test("family を渡すと、偽の LLM が pricing と答えても渡した family を返す", async () => {
+  const { env, cleanup } = mockEnv("ok");
+  try {
+    const { family } = await generateDirections(
+      { brief: BRIEF, pageType: { name: "料金ページ", family: "blog" }, fontPairs: FONT_PAIRS },
+      env,
+    );
+    assert.equal(family, "blog");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("案の layouts は骨組みの種類 7 種類すべてを持ち、--json-schema も family とそろえる", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const { directions } = await generateDirections({ brief: BRIEF, pageType: { name: "プラン比較" }, fontPairs: FONT_PAIRS }, env);
+    directions.forEach((direction) => {
+      assert.deepEqual(Object.keys(direction.layouts), [...SKELETON_FAMILIES], "layouts のキーは骨組みの種類 7 種類");
+    });
+    const args = recordedArgs(dir);
+    const schema = asRecord(schemaOf(args), "スキーマ");
+    assert.equal(schema.additionalProperties, false);
+    const properties = asRecord(schema.properties, "スキーマの properties");
+    const familySchema = asRecord(properties.family, "スキーマの properties.family");
+    assert.deepEqual(familySchema.enum, [...SKELETON_FAMILIES], "family は骨組みの種類の enum で必須");
+    assert.ok(Array.isArray(schema.required) && schema.required.includes("family"), "最上位の required に family");
+    const directionsSchema = asRecord(properties.directions, "スキーマの properties.directions");
+    assert.equal(directionsSchema.minItems, DIRECTION_IDS.length, "minItems は 4");
+    assert.equal(directionsSchema.maxItems, DIRECTION_IDS.length, "maxItems は 4");
+    const item = asRecord(directionsSchema.items, "directions の items");
+    const itemProperties = asRecord(item.properties, "directions の items.properties");
+    const layoutsSchema = asRecord(itemProperties.layouts, "directions の items.properties.layouts");
+    assert.deepEqual(layoutsSchema.required, [...SKELETON_FAMILIES], "layouts の required も骨組みの種類 7 種類");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("directions のプロンプトには依頼の 4 項目 (見出し付き) と画面の種類の名前、family への指示が入る", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    await generateDirections({ brief: BRIEF, pageType: { name: "プラン比較" }, fontPairs: FONT_PAIRS }, env);
+    const args = recordedArgs(dir);
+    assert.ok(args.prompt.includes("### 作りたいもの\n請求書の SaaS を作りたい"), "作りたいもの");
+    assert.ok(args.prompt.includes("### 雰囲気\n落ち着いた和風"), "雰囲気");
+    assert.ok(args.prompt.includes("### 使う人\nフリーランスの経理担当"), "使う人");
+    assert.ok(args.prompt.includes("### 入れたい要素\nPDF 出力"), "入れたい要素");
+    assert.ok(args.prompt.includes("プラン比較"), "画面の種類の名前");
+    assert.ok(args.prompt.includes("一番近い骨組みの種類を family"), "family に LLM に答えさせる指示");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("空の依頼の項目は (指定なし) と入れ、family があるときは LLM に family を答えさせない", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const brief: Brief = { what: "請求書の SaaS を作りたい", mood: "", audience: "", mustHave: "" };
+    const { family } = await generateDirections({ brief, pageType: { name: "料金ページ", family: "pricing" }, fontPairs: FONT_PAIRS }, env);
+    assert.equal(family, "pricing", "入力の family をそのまま返す");
+    const args = recordedArgs(dir);
+    assert.ok(args.prompt.includes("### 雰囲気\n(指定なし)"), "雰囲気は (指定なし)");
+    assert.ok(args.prompt.includes("### 使う人\n(指定なし)"), "使う人は (指定なし)");
+    assert.ok(args.prompt.includes("### 入れたい要素\n(指定なし)"), "入れたい要素は (指定なし)");
+    assert.ok(!args.prompt.includes("一番近い骨組みの種類を family"), "family への指示は書かない");
   } finally {
     cleanup();
   }
@@ -121,8 +215,16 @@ void test("error モードでは LlmError", async () => {
 void test("generatePage は検証を通った HTML を返し、テーマは cssForPage に差し替える", async () => {
   const { env, cleanup } = mockEnv("ok");
   try {
-    const input = { prompt: PROMPT, direction: MINIMAL, pageType: "lp" as const, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL };
-    const html = await generatePage(input, env);
+    const html = await generatePage(
+      {
+        brief: BRIEF,
+        direction: MINIMAL,
+        pageType: { name: "プラン比較", family: "pricing" },
+        cssForPage: CSS_FOR_PAGE,
+        fontsUrl: FONTS_URL,
+      },
+      env,
+    );
     assert.deepEqual(findDisallowedUrls(html), []);
     assert.ok(html.includes('id="theme"'), 'id="theme" の style');
     assert.ok(html.includes(`data-theme="${MINIMAL.seed.id}"`), "data-theme");
@@ -134,11 +236,39 @@ void test("generatePage は検証を通った HTML を返し、テーマは cssF
   }
 });
 
+void test("ページのプロンプトには画面の種類の名前と依頼の 4 項目、必ず入れる要素が入る", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    await generatePage(
+      {
+        brief: BRIEF,
+        direction: MINIMAL,
+        pageType: { name: "プラン比較", family: "pricing" },
+        cssForPage: CSS_FOR_PAGE,
+        fontsUrl: FONTS_URL,
+      },
+      env,
+    );
+    const args = recordedArgs(dir);
+    assert.ok(args.prompt.includes("「プラン比較」のページ"), "画面の種類の名前");
+    assert.ok(!args.prompt.includes("「pricing」のページ"), "family はページの名前として使わない");
+    assert.ok(args.prompt.includes("layouts.pricing"), "配置の出発点は layouts.<family> の形");
+    assert.ok(args.prompt.includes("### 作りたいもの\n請求書の SaaS を作りたい"), "依頼の 4 項目");
+    assert.ok(args.prompt.includes("必ずページに入れて"), "入れたい要素があるときの指示");
+    const outsideBrief = args.prompt.slice(args.prompt.indexOf("</user_brief>"));
+    assert.ok(!outsideBrief.includes("PDF 出力"), "入れたい要素の本文は <user_brief> の外に書かない");
+  } finally {
+    cleanup();
+  }
+});
+
 void test("bad-then-good はページでも、1 回目の不正な出力のあとやり直して成功する", async () => {
   const { dir, env, cleanup } = mockEnv("bad-then-good");
   try {
-    const input = { prompt: PROMPT, direction: MINIMAL, pageType: "lp" as const, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL };
-    const html = await generatePage(input, env);
+    const html = await generatePage(
+      { brief: BRIEF, direction: MINIMAL, pageType: { name: "LP", family: "lp" }, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL },
+      env,
+    );
     assert.deepEqual(findDisallowedUrls(html), []);
     assert.equal(readFileSync(join(dir, "counter.txt"), "utf8"), "2", "2 回だけ呼ぶ");
   } finally {
@@ -149,8 +279,14 @@ void test("bad-then-good はページでも、1 回目の不正な出力のあ�
 void test("bad-page は LlmError (code bad-page)", async () => {
   const { env, cleanup } = mockEnv("bad-page");
   try {
-    const input = { prompt: PROMPT, direction: MINIMAL, pageType: "lp" as const, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL };
-    await assert.rejects(() => generatePage(input, env), llmFailure("bad-page"));
+    await assert.rejects(
+      () =>
+        generatePage(
+          { brief: BRIEF, direction: MINIMAL, pageType: { name: "LP", family: "lp" }, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL },
+          env,
+        ),
+      llmFailure("bad-page"),
+    );
   } finally {
     cleanup();
   }
@@ -159,8 +295,14 @@ void test("bad-page は LlmError (code bad-page)", async () => {
 void test("no-csp (CSP の meta の無いページ) は LlmError (code bad-page)", async () => {
   const { env, cleanup } = mockEnv("no-csp");
   try {
-    const input = { prompt: PROMPT, direction: MINIMAL, pageType: "lp" as const, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL };
-    await assert.rejects(() => generatePage(input, env), llmFailure("bad-page"));
+    await assert.rejects(
+      () =>
+        generatePage(
+          { brief: BRIEF, direction: MINIMAL, pageType: { name: "LP", family: "lp" }, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL },
+          env,
+        ),
+      llmFailure("bad-page"),
+    );
   } finally {
     cleanup();
   }
@@ -181,8 +323,11 @@ void test("スクリーンショットを渡すと、コピーした 1 ファイ
   try {
     const shot = join(dir, "mood.png");
     writeFileSync(shot, "not an image", "utf8");
-    const directions = await generateDirections({ prompt: PROMPT, pageType: "lp", screenshotPath: shot, fontPairs: FONT_PAIRS }, env);
-    assert.equal(directions.length, 3);
+    const { directions } = await generateDirections(
+      { brief: BRIEF, pageType: { name: "LP" }, screenshotPath: shot, fontPairs: FONT_PAIRS },
+      env,
+    );
+    assert.equal(directions.length, DIRECTION_IDS.length);
     const args = recordedArgs(dir);
     assert.equal(flagValue(args.argv, "--tools"), "Read");
     const addDir = args.addDir;
