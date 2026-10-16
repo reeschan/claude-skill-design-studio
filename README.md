@@ -24,7 +24,7 @@
 開発用リポジトリを clone してから、自己インストールのスクリプトを実行します。
 
 ```sh
-git clone <リポジトリの URL> ~/dev/claude-skill-design-studio
+git clone https://github.com/reeschan/claude-skill-design-studio.git ~/dev/claude-skill-design-studio
 cd ~/dev/claude-skill-design-studio
 node scripts/install-self.ts
 ```
@@ -82,3 +82,7 @@ pnpm check   # lint・書式・型・テストをまとめて通す
 - `data/`: 台帳 (`catalog.json`) とスタイル (`styles.json`)
 - `gallery/`: 見本ページ
 - `docs/`: 仕様 (`docs/specs/design-studio.md`)・設計判断 (`docs/adr/`)・ページのレシピ (`docs/page-recipe.md`)
+
+## ライセンス
+
+MIT (`LICENSE` を参照)。フォントは各フォントのライセンス (Google Fonts の OFL など) に従います。
