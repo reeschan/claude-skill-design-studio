@@ -1,0 +1,117 @@
+# design-studio のアーキテクチャ図
+# __MONO__ は単色ロゴの色。render.py がライト用 (000000) とダーク用 (ffffff) に置き換えて 2 枚描く
+# 生成: python ~/.claude/skills/arch-diagram/versions/v1.1/scripts/render.py docs/architecture/architecture.d2
+direction: down
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+    pad: 40
+  }
+}
+
+classes: {
+  svc: {
+    shape: rectangle
+    style: {
+      border-radius: 12
+      font-size: 15
+    }
+  }
+  ext: {
+    shape: image
+    width: 64
+    height: 64
+    label.near: outside-bottom-center
+  }
+  zone: {
+    style.border-radius: 16
+  }
+  saas: {
+    style: {
+      border-radius: 16
+      stroke-dash: 3
+    }
+  }
+}
+
+user: 利用者 {
+  class: ext
+  icon: https://icons.terrastruct.com/essentials%2F359-users.svg
+}
+
+pc: あなたの PC (127.0.0.1 だけで動く) {
+  class: zone
+  icon: https://icons.terrastruct.com/tech%2Flaptop.svg
+
+  claude: "Claude Code\nスキル /design-studio" {
+    class: svc
+    icon: https://cdn.simpleicons.org/anthropic/__MONO__
+  }
+
+  browser: ブラウザ {
+    class: zone
+    icon: https://icons.terrastruct.com/tech%2Fbrowser-2.svg
+
+    ui: "画面\n台帳・見本帳・作業台" {
+      class: svc
+      icon: https://cdn.simpleicons.org/html5
+    }
+  }
+
+  app: "ローカルサーバー\napp/server.ts (node:http)" {
+    class: svc
+    icon: https://cdn.simpleicons.org/nodedotjs
+  }
+
+  cli: "CLI\nscripts/studio.ts" {
+    class: svc
+    icon: https://cdn.simpleicons.org/typescript
+  }
+
+  core: "core/\n台帳・方向性・テーマ橋渡し・ページ殻" {
+    class: svc
+    icon: https://cdn.simpleicons.org/typescript
+  }
+
+  skeletons: "骨組み\n画面の種類 × 配置の型 = 9 枚" {
+    class: svc
+    icon: https://cdn.simpleicons.org/tailwindcss
+  }
+
+  store: "保存先\n~/.claude/design-studio\n(プロジェクト・設定)" {
+    shape: cylinder
+  }
+
+  llm: "claude CLI (-p)\n案の生成・ページの生成" {
+    class: svc
+    icon: https://cdn.simpleicons.org/anthropic/__MONO__
+  }
+
+  styleguide: "style-guide CLI\nrender --seed → theme.css" {
+    class: svc
+    icon: https://cdn.simpleicons.org/tailwindcss
+  }
+}
+
+external: 外部 (導入時だけ) {
+  class: saas
+  direction: down
+
+  github: "GitHub\n傘下スキルの取得元" {
+    class: ext
+    icon: https://cdn.simpleicons.org/github/__MONO__
+  }
+}
+
+user -> pc.claude: "一言を渡す"
+user -> pc.browser.ui: "見比べて選ぶ"
+pc.claude -> pc.cli: "サブコマンド (JSON)"
+pc.browser.ui <-> pc.app: "API"
+pc.app -> pc.core
+pc.cli -> pc.core
+pc.core -> pc.skeletons: "テーマを流し込む"
+pc.core -> pc.styleguide: "Seed → CSS"
+pc.core -> pc.llm: "案・ページ"
+pc.core -> pc.store: "保存"
+pc.core -> external.github: "導入 (確認後)" {style.stroke-dash: 4}

@@ -1,8 +1,39 @@
 # claude-skill-design-studio
 
-曖昧な一言 (「なんとなく、落ち着いた感じで」) から、Web ページの見た目を具体化する Claude Code スキルです。
-方向性の案を実際の骨組みで見比べて選び、配色・フォント・配置のテーマを作り、LP・ダッシュボード・ブログ記事のページ (1 ファイルの HTML) まで仕上げます。
+曖昧な一言 (「なんとなく、落ち着いた感じで」) から、Web ページの見た目を具体化する Claude Code スキル兼ローカル Web アプリです。
+方向性の案を 3 つ骨組みで見比べて、選ぶか混ぜて調整し、LLM にページを作らせて保存します。スキルの台帳・見本帳も付いています。
 テンプレートに頼らず、デザイン系のスキルを段階ごとに振り分ける親スキルです。
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/architecture/architecture-dark.svg">
+  <img src="docs/architecture/architecture-light.svg" alt="design-studio のアーキテクチャ図。利用者の一言が Claude Code のスキルと CLI、または画面とローカルサーバーを通って core に渡り、骨組み・style-guide・claude CLI・保存先を使ってページができる。">
+</picture>
+
+図のソースは `docs/architecture/architecture.d2`。構成が変わったら `python ~/.claude/skills/arch-diagram/versions/v1.1/scripts/render.py docs/architecture/architecture.d2` で描き直します。
+
+## 画面
+
+同梱アプリ (`/design-studio app`) の 3 つの画面です。キャプチャのページ作成は、本物の LLM ではなくテスト用の偽 LLM (`app/mock-llm.mjs`) で撮っているため、できたページは仮の文面です。
+
+**台帳**: 傘下スキルを段階・役割ごとに見て、使う/使わないを選びます。
+
+![台帳の画面。段階ごとに傘下スキルのカードが並ぶ](docs/images/catalog.png)
+
+**見本帳**: スタイル 6 種 × 画面の種類 3 つの見本を並べ、大きく開いて見比べます。
+
+![見本帳の画面。スタイル別に LP・ダッシュボード・ブログ記事の見本が並ぶ](docs/images/gallery.png)
+
+**作業台**: 一言から方向性の案を 3 つ出し、骨組みで見比べて選ぶか混ぜます。
+
+![作業台の画面。方向性の案が 3 つの骨組みで並ぶ](docs/images/workbench-directions.png)
+
+**作業台 (ページを作る)**: 決めた方向性で LLM が 1 ファイルのページを作り、別タブで開く・ダウンロードできます。
+
+![作業台でページを作った状態。作ったページがプレビューに出る](docs/images/workbench-page.png)
+
+**見本ページ**: 見本帳の和モダン × LP。外部の画像に頼らず、CSS と SVG だけで描いています。
+
+![和モダンの LP の見本ページ](docs/images/sample-page.png)
 
 ## 特長
 
@@ -73,15 +104,22 @@ pnpm check   # lint・書式・型・テストをまとめて通す
 
 テストでは、style-guide や `claude` CLI は偽物に差し替わるので、本物は要りません。
 
+アプリを手元で動かすには (偽の LLM を使うなら API キーも要りません):
+
+```sh
+fnm exec --using=26 node app/server.ts --port 8790 --no-browser
+# 偽の LLM で動かす: DESIGN_STUDIO_LLM_CMD='["<node の絶対パス>","<リポジトリ>/app/mock-llm.mjs"]'
+```
+
 構成:
 
+- `app/`: ローカルの Web アプリ (サーバーと画面)
 - `core/`: 台帳・導入・方向性・テーマの橋渡し・ページの殻・プロジェクト・LLM 呼び出し (純粋な処理)
 - `skeletons/`: 画面の種類 × 配置の型の骨組み
 - `scripts/`: CLI (`studio.ts` と `scripts/commands/`)、自己インストール (`install-self.ts`)
-- `app/`: ローカルの Web アプリ (サーバーと画面)
 - `data/`: 台帳 (`catalog.json`) とスタイル (`styles.json`)
 - `gallery/`: 見本ページ
-- `docs/`: 仕様 (`docs/specs/design-studio.md`)・設計判断 (`docs/adr/`)・ページのレシピ (`docs/page-recipe.md`)
+- `docs/`: アーキテクチャ図 (`docs/architecture/`)・画面のキャプチャ (`docs/images/`)・仕様 (`docs/specs/design-studio.md`)・設計判断 (`docs/adr/`)・ページのレシピ (`docs/page-recipe.md`)
 
 ## ライセンス
 
