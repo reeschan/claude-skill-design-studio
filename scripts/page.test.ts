@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { escapeHtml, findDisallowedUrls } from "../core/page-html.ts";
+import { PAGE_CSP, escapeHtml, findDisallowedUrls, hasPageCsp } from "../core/page-html.ts";
 import { LAYOUTS, PAGE_TYPES } from "../core/types.ts";
 import type { BaseMode, Copy, PageType } from "../core/types.ts";
 import { SKELETONS, renderSkeleton } from "../skeletons/index.ts";
@@ -226,6 +226,7 @@ void test("check-page は許可外を含むファイルを ok: false、殻どお
     assert.equal(good.ok, true);
     assert.equal(good.themeId, THEME_ID);
     assert.equal(good.hasThemeStyle, true);
+    assert.equal(good.hasCsp, true);
     assert.deepEqual(good.disallowed, []);
 
     const bad = payload(runCli(["check-page", "--html", badPath], env).json);
@@ -235,6 +236,61 @@ void test("check-page は許可外を含むファイルを ok: false、殻どお
     const missing = runCli(["check-page", "--html", join(dir, "nothing.html")], env);
     assert.equal(missing.code, 1);
     assert.equal(payload(missing.json).error, "file");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("PAGE_CSP は参照の値そのまま", () => {
+  assert.equal(
+    PAGE_CSP,
+    "default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'",
+  );
+});
+
+void test("9 つの骨組みは CSP の meta をほかの link・script・style より前に持つ", () => {
+  const meta = `<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`;
+  for (const pageType of PAGE_TYPES) {
+    for (const layout of LAYOUTS[pageType]) {
+      const label = `${pageType}/${layout}`;
+      const html = render(pageType, layout);
+      assert.ok(html.includes(meta), `${label}: 値そのままの CSP の meta`);
+      assert.ok(hasPageCsp(html), `${label}: hasPageCsp`);
+    }
+  }
+});
+
+void test("findDisallowedUrls は mailto: と tel: を返さず、javascript: と http: を返す", () => {
+  assert.deepEqual(findDisallowedUrls('<a href="mailto:a@example.com">メール</a>'), []);
+  assert.deepEqual(findDisallowedUrls('<a href="tel:0312345678">電話</a>'), []);
+  assert.deepEqual(findDisallowedUrls('<a href="javascript:void(0)">x</a>'), ["javascript:void(0)"]);
+  assert.deepEqual(findDisallowedUrls('<a href="http://example.com/x">x</a>'), ["http://example.com/x"]);
+});
+
+void test("check-page は CSP の meta が無い・値が違う・link より後ろのファイルを ok: false にする", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const cspMeta = `<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`;
+    const goodHtml = render("lp", "centered");
+    const missing = goodHtml.replace(cspMeta, "");
+    const wrong = goodHtml.replace(PAGE_CSP, "default-src 'self'");
+    const afterLink = missing.replace(
+      '<link rel="preconnect" href="https://fonts.googleapis.com">',
+      `<link rel="preconnect" href="https://fonts.googleapis.com">\n${cspMeta}`,
+    );
+    const cases = [
+      { label: "csp-missing", html: missing },
+      { label: "csp-wrong", html: wrong },
+      { label: "csp-after-link", html: afterLink },
+    ];
+    for (const c of cases) {
+      const path = join(dir, `${c.label}.html`);
+      writeFileSync(path, c.html, "utf8");
+      assert.equal(hasPageCsp(c.html), false, `${c.label}: hasPageCsp`);
+      const res = payload(runCli(["check-page", "--html", path], env).json);
+      assert.equal(res.ok, false, `${c.label}: ok`);
+      assert.equal(res.hasCsp, false, `${c.label}: hasCsp`);
+    }
   } finally {
     cleanup();
   }

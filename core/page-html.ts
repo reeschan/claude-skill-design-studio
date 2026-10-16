@@ -1,11 +1,13 @@
-// ページ HTML の殻。骨組み・LLM のページ・見本帳で共通の形 (参照: 01M4ZAMCSN57HMR5T5XYTY062V)
+// ページ HTML の殻。骨組み・LLM のページ・見本帳で共通の形 (参照: 01M510GAC7MMH7RB6D594WSPVY)
 import { CliExit, EXIT_INPUT } from "./cli-exit.ts";
 import type { BaseMode } from "./types.ts";
 
 // 外部から読み込んでよいのは、Tailwind のブラウザ版と Google Fonts だけ
 const TAILWIND_BROWSER_URL = "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13";
-const TAILWIND_PREFIX = "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4";
+const TAILWIND_PREFIX = TAILWIND_BROWSER_URL;
 const FONT_ORIGINS = ["https://fonts.googleapis.com", "https://fonts.gstatic.com"] as const;
+// CSP の meta の content。値は参照の ref のとおり。読み込み先はブラウザ側でこれに縛る
+export const PAGE_CSP = `default-src 'none'; script-src ${TAILWIND_BROWSER_URL}; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'`;
 // 相対参照を解決し、同じページ内の参照と外部の URL を区別する土台
 const URL_BASE = "https://page.invalid/";
 
@@ -73,11 +75,12 @@ function decodeCssEscapes(value: string): string {
   });
 }
 
-/** すべての値を WHATWG URL で解決する。読めない値も許可外として残す */
+/** すべての値を WHATWG URL で解決する。読み込みに関わらない data:・mailto:・tel: は許可し、読めない値も許可外として残す */
 function disallowedUrl(value: string): string | null {
   try {
     const url = new URL(value, URL_BASE);
-    if (url.origin === "https://page.invalid" || url.protocol === "data:") return null;
+    if (url.origin === "https://page.invalid" || url.protocol === "data:" || url.protocol === "mailto:" || url.protocol === "tel:")
+      return null;
     if (url.protocol === "https:" && isAllowedUrl(url.href)) return null;
     return url.href;
   } catch {
@@ -126,6 +129,7 @@ function collectUrls(html: string): UrlHit[] {
   return [...hits, ...collectCss(css)].sort((a, b) => a.index - b.index);
 }
 
+// 補助の lint。ブラウザと同じ解釈は完全には再現しない。読み込み先は PAGE_CSP で縛る
 /** src=・href= と CSS の url(・@import に出てくる外部 URL のうち、許可していないものを出てきた順に (重複なく) 返す */
 export function findDisallowedUrls(html: string): string[] {
   const out: string[] = [];
@@ -139,6 +143,40 @@ export function findDisallowedUrls(html: string): string[] {
   return out;
 }
 
+const HEAD_OPEN_RE = /<head\b[^>]*>/i;
+const HEAD_CLOSE_RE = /<\/head\s*>/i;
+// head の中では、CSP の meta はほかの link・script・style より前に置く
+const FIRST_ASSET_RE = /<(?:link|script|style)\b/i;
+const META_TAG_RE = /<meta\b[^>]*>/gi;
+const META_HTTP_EQUIV_RE = /\bhttp-equiv\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
+const META_CONTENT_RE = /\bcontent\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
+
+// タグの中の属性値を取り出す (二重引用符・単引用符・引用なし)
+function attrValue(tag: string, re: RegExp): string | undefined {
+  const match = re.exec(tag);
+  return match?.[1] ?? match?.[2] ?? match?.[3];
+}
+
+// CSP の meta か。http-equiv は大文字小文字を問わず、content は PAGE_CSP と一致すること
+function isCspMeta(tag: string): boolean {
+  return attrValue(tag, META_HTTP_EQUIV_RE)?.toLowerCase() === "content-security-policy" && attrValue(tag, META_CONTENT_RE) === PAGE_CSP;
+}
+
+/** CSP の meta が PAGE_CSP そのままで、<head> の中のほかの link・script・style より前にあるか */
+export function hasPageCsp(html: string): boolean {
+  const head = HEAD_OPEN_RE.exec(html);
+  if (head === null) return false;
+  const inner = html.slice(head.index + head[0].length);
+  const close = HEAD_CLOSE_RE.exec(inner);
+  const inHead = close === null ? inner : inner.slice(0, close.index);
+  const asset = FIRST_ASSET_RE.exec(inHead);
+  const beforeAssets = asset === null ? inHead : inHead.slice(0, asset.index);
+  for (const meta of beforeAssets.matchAll(META_TAG_RE)) {
+    if (isCspMeta(meta[0])) return true;
+  }
+  return false;
+}
+
 /** 骨組み・LLM のページ・見本に共通の 1 ファイルの HTML を作る */
 export function pageHtml(input: PageHtmlInput): string {
   if (END_STYLE_RE.test(input.cssForPage)) {
@@ -149,6 +187,7 @@ export function pageHtml(input: PageHtmlInput): string {
     `<html lang="ja" data-theme="${escapeHtml(input.themeId)}" data-mode="${escapeHtml(input.mode)}">`,
     "<head>",
     '<meta charset="utf-8">',
+    `<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`,
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<title>${escapeHtml(input.title)}</title>`,
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
