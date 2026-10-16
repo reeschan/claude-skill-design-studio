@@ -1,8 +1,9 @@
-// 見本帳のスタイルを返す。PBI-006 以降で中身を入れる
-import { CliExit, EXIT_INPUT } from "../../core/cli-exit.ts";
+// 見本帳のスタイル 6 種を返す
+import { usage } from "../../core/cli-exit.ts";
+import { loadStyles } from "../../core/styles.ts";
 
 export function run(args: string[], env: NodeJS.ProcessEnv): Promise<unknown> {
-  void args;
   void env;
-  throw new CliExit(EXIT_INPUT, { error: "not-implemented", command: "styles" });
+  if (args.length > 0) throw usage(`styles に引数はありません: ${args.join(" ")}`);
+  return Promise.resolve({ styles: loadStyles() });
 }

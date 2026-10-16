@@ -33,18 +33,6 @@ void test("不明なサブコマンドは usage で終了コード 1", () => {
   }
 });
 
-void test("catalog は空の実装で not-implemented と終了コード 1", () => {
-  const { env, cleanup } = tempEnv();
-  try {
-    const res = runCli(["catalog"], env);
-    assert.equal(res.code, 1);
-    assert.equal(payload(res.json).error, "not-implemented");
-    assert.equal(payload(res.json).command, "catalog");
-  } finally {
-    cleanup();
-  }
-});
-
 void test("失敗は標準出力を空にし、JSON を標準エラーに 1 行で出し、runCli の json で読める", () => {
   const { env, cleanup } = tempEnv();
   try {

@@ -1,0 +1,254 @@
+[
+  {
+    "id": "minimal",
+    "name": "ミニマル",
+    "description": "要素の数を絞り、余白をたっぷり取ったスタイル。色と影を抑え、内容そのものに目が向く。",
+    "rationale": "情報の詰め込みを避け、迷わず操作できることを優先する。",
+    "seed": {
+      "id": "minimal",
+      "name": "ミニマル",
+      "tone": "余白の広い、静かで飾らない道具のような印象",
+      "baseMode": "light",
+      "color": {
+        "brandHue": 250,
+        "brandChroma": 0.04,
+        "accentHue": null,
+        "neutralHue": 250,
+        "neutralChroma": 0.005,
+        "contrast": 3
+      },
+      "shape": { "radiusPx": 4, "spacingScale": 1.2, "shadow": "none" },
+      "font": {
+        "mood": "geometric",
+        "heading": "Montserrat",
+        "body": "Noto Sans JP",
+        "mono": "Source Code Pro",
+        "pairId": "montserrat+noto-sans-jp"
+      }
+    },
+    "layouts": { "lp": "centered", "dashboard": "topnav", "blog": "minimal" },
+    "copy": {
+      "brand": "余白",
+      "tagline": "書くことだけが残るノート",
+      "headline": "静けさが、思考を速くする。",
+      "lead": "飾りを削ぎ落とした画面で、書きたいことにだけ集中できます。",
+      "cta": "無料で始める",
+      "items": [
+        { "title": "集中モード", "body": "通知と装飾を消し、書くことだけを残します。" },
+        { "title": "すぐ開く", "body": "大きなノートでも待たせない軽さで動きます。" },
+        { "title": "自動の見出し", "body": "書いた内容から見出しを組み立て、整理を助けます。" },
+        { "title": "書き出し自由", "body": "Markdown とプレーンテキストに対応します。" }
+      ]
+    }
+  },
+  {
+    "id": "wa-modern",
+    "name": "和モダン",
+    "description": "藍や朱の和の色と明朝体を組み合わせたスタイル。余白を静かに取り、落ち着いた佇まいにする。",
+    "rationale": "和の題材でも古臭くならず、現代の道具として使える落ち着きを持たせる。",
+    "seed": {
+      "id": "wa-modern",
+      "name": "和モダン",
+      "tone": "藍と朱、明朝体。落ち着いた和の趣と現代的な読みやすさ",
+      "baseMode": "light",
+      "color": {
+        "brandHue": 255,
+        "brandChroma": 0.12,
+        "accentHue": 40,
+        "neutralHue": 70,
+        "neutralChroma": 0.012,
+        "contrast": 3
+      },
+      "shape": { "radiusPx": 2, "spacingScale": 1.05, "shadow": "soft" },
+      "font": {
+        "mood": "mincho",
+        "heading": "Shippori Mincho",
+        "body": "Shippori Mincho",
+        "mono": "IBM Plex Mono",
+        "pairId": "shippori-mincho+shippori-mincho"
+      }
+    },
+    "layouts": { "lp": "split", "dashboard": "sidebar", "blog": "classic" },
+    "copy": {
+      "brand": "和ごよみ",
+      "tagline": "暮らしに寄り添う暦",
+      "headline": "季節を、手元に。",
+      "lead": "二十四節気と月齢を、静かな和の佇まいで眺められます。",
+      "cta": "暦をひらく",
+      "items": [
+        { "title": "二十四節気", "body": "季節の変わり目を、やわらかい言葉で知らせます。" },
+        { "title": "月齢カレンダー", "body": "今夜の月を、陰影まで丁寧に描きます。" },
+        { "title": "季語メモ", "body": "日々の便りに使える季語を、意味つきで引けます。" },
+        { "title": "行事のしおり", "body": "地域の行事を控えめに記録できます。" }
+      ]
+    }
+  },
+  {
+    "id": "pop",
+    "name": "ポップ",
+    "description": "高彩度の色と大きな角丸、はっきりした影を使ったスタイル。楽しげで目を引く画面になる。",
+    "rationale": "趣味やこども向けの題材でも、元気で親しみやすい印象を出す。",
+    "seed": {
+      "id": "pop",
+      "name": "ポップ",
+      "tone": "明るく元気で、まるい形と鮮やかな色が弾む印象",
+      "baseMode": "light",
+      "color": {
+        "brandHue": 340,
+        "brandChroma": 0.24,
+        "accentHue": 190,
+        "neutralHue": 330,
+        "neutralChroma": 0.02,
+        "contrast": 4
+      },
+      "shape": { "radiusPx": 20, "spacingScale": 1.1, "shadow": "hard" },
+      "font": {
+        "mood": "rounded",
+        "heading": "Mochiy Pop One",
+        "body": "Zen Maru Gothic",
+        "mono": "Space Mono",
+        "pairId": "mochiy-pop-one+zen-maru-gothic"
+      }
+    },
+    "layouts": { "lp": "fullbleed", "dashboard": "cards", "blog": "magazine" },
+    "copy": {
+      "brand": "まつりー",
+      "tagline": "きょうのたのしみを、いっしょに。",
+      "headline": "きょう、なにする？",
+      "lead": "街のイベントを、まるいカードで元気に一覧できます。",
+      "cta": "さがしてみる",
+      "items": [
+        { "title": "週末マーケット", "body": "近所の朝市から大きな蚤の市まで。" },
+        { "title": "ワークショップ", "body": "手を動かす教室を、日付からさがせます。" },
+        { "title": "ライブとお芝居", "body": "小さな会場の公演も見落としません。" },
+        { "title": "こども広場", "body": "家族で出かけられる場所をまとめました。" }
+      ]
+    }
+  },
+  {
+    "id": "corporate",
+    "name": "コーポレート",
+    "description": "青系の配色と整った字組みで、信頼感を出すスタイル。取引先や社内に見せても落ち着いて見える。",
+    "rationale": "B2B の提案や社内資料で、安心して見せられる基準を持つ。",
+    "seed": {
+      "id": "corporate",
+      "name": "コーポレート",
+      "tone": "青を基調に、整った信頼感と落ち着きのある印象",
+      "baseMode": "light",
+      "color": {
+        "brandHue": 258,
+        "brandChroma": 0.14,
+        "accentHue": 150,
+        "neutralHue": 258,
+        "neutralChroma": 0.01,
+        "contrast": 4
+      },
+      "shape": { "radiusPx": 8, "spacingScale": 1, "shadow": "soft" },
+      "font": {
+        "mood": "humanist",
+        "heading": "Zen Kaku Gothic New",
+        "body": "Noto Sans JP",
+        "mono": "JetBrains Mono",
+        "pairId": "zen-kaku-gothic-new+noto-sans-jp"
+      }
+    },
+    "layouts": { "lp": "split", "dashboard": "sidebar", "blog": "classic" },
+    "copy": {
+      "brand": "ソラミチ",
+      "tagline": "物流を、もっと確かに。",
+      "headline": "現場のデータを、経営の判断に。",
+      "lead": "配送の進捗と在庫を 1 つの画面にまとめ、日々の判断を支えます。",
+      "cta": "資料をダウンロード",
+      "items": [
+        { "title": "配送の可視化", "body": "荷物の現在地を、地図と一覧の両方で確認できます。" },
+        { "title": "在庫の最適化", "body": "需要の変化に合わせて、適正な庫数を提案します。" },
+        { "title": "監査に耐える記録", "body": "操作履歴をすべて残し、監査に対応します。" },
+        { "title": "導入支援", "body": "専任の担当が、現場への定着まで伴走します。" }
+      ]
+    }
+  },
+  {
+    "id": "dark-tech",
+    "name": "ダーク/テック",
+    "description": "暗い背景にシアンと紫のアクセントを効かせたスタイル。開発者向けの道具らしい精緻な印象。",
+    "rationale": "長時間見ても疲れにくく、技術の精細さを感じさせる。",
+    "seed": {
+      "id": "dark-tech",
+      "name": "ダーク/テック",
+      "tone": "暗い背景にシアンと紫。精密で未来的な印象",
+      "baseMode": "dark",
+      "color": {
+        "brandHue": 285,
+        "brandChroma": 0.18,
+        "accentHue": 195,
+        "neutralHue": 270,
+        "neutralChroma": 0.02,
+        "contrast": 4
+      },
+      "shape": { "radiusPx": 6, "spacingScale": 1.05, "shadow": "soft" },
+      "font": {
+        "mood": "tech",
+        "heading": "Space Grotesk",
+        "body": "Zen Kaku Gothic New",
+        "mono": "JetBrains Mono",
+        "pairId": "space-grotesk+zen-kaku-gothic-new"
+      }
+    },
+    "layouts": { "lp": "centered", "dashboard": "sidebar", "blog": "minimal" },
+    "copy": {
+      "brand": "Orbit",
+      "tagline": "インフラの今を、一望する。",
+      "headline": "障害の前に、気づく。",
+      "lead": "サーバーとネットワークの状態を、暗い画面でも読みやすく表示します。",
+      "cta": "デモを見る",
+      "items": [
+        { "title": "リアルタイム監視", "body": "メトリクスを 1 秒単位で追いかけます。" },
+        { "title": "異常の検知", "body": "普段と違う動きを、しきい値なしで見つけます。" },
+        { "title": "ログ検索", "body": "数百万行からでも、目的の 1 行にたどり着けます。" },
+        { "title": "API と CLI", "body": "運用の自動化に組み込める入口を用意しています。" }
+      ]
+    }
+  },
+  {
+    "id": "editorial",
+    "name": "エディトリアル",
+    "description": "紙を思わせる暖色の無彩色とセリフ体で、読み物らしく組むスタイル。角丸と影を使わず、罫と余白で見せる。",
+    "rationale": "長い文章を最後まで読ませることを第一に置く。",
+    "seed": {
+      "id": "editorial",
+      "name": "エディトリアル",
+      "tone": "紙の質感を思わせる暖かい無彩色と、読み物らしい組版の印象",
+      "baseMode": "light",
+      "color": {
+        "brandHue": 45,
+        "brandChroma": 0.05,
+        "accentHue": 20,
+        "neutralHue": 75,
+        "neutralChroma": 0.015,
+        "contrast": 4
+      },
+      "shape": { "radiusPx": 0, "spacingScale": 1.15, "shadow": "none" },
+      "font": {
+        "mood": "serif",
+        "heading": "Playfair Display",
+        "body": "Noto Serif JP",
+        "mono": "IBM Plex Mono",
+        "pairId": "playfair-display+noto-serif-jp"
+      }
+    },
+    "layouts": { "lp": "fullbleed", "dashboard": "topnav", "blog": "magazine" },
+    "copy": {
+      "brand": "紙とインク",
+      "tagline": "読み物のための、静かなウェブ誌",
+      "headline": "長い文章を、ゆっくり読む。",
+      "lead": "紙の本のような組みと余白で、書き手の言葉を届けます。",
+      "cta": "最新号を読む",
+      "items": [
+        { "title": "巻頭エッセイ", "body": "毎号ひとつの主題を、じっくり掘り下げます。" },
+        { "title": "連載小説", "body": "書き下ろしの短編を、月ごとにお届けします。" },
+        { "title": "書評", "body": "話題の一冊を、書店員の言葉で紹介します。" },
+        { "title": "対談", "body": "つくる人どうしの、遠慮のない話。" }
+      ]
+    }
+  }
+]

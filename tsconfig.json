@@ -18,5 +18,5 @@
     "erasableSyntaxOnly": true,
     "skipLibCheck": true
   },
-  "include": ["core/**/*.ts", "app/**/*.ts", "scripts/**/*.ts", "skeletons/**/*.ts"]
+  "include": ["core/**/*.ts", "app/**/*.ts", "scripts/**/*.ts", "skeletons/**/*.ts", "test/**/*.ts"]
 }
