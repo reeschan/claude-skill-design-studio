@@ -143,38 +143,89 @@ export function findDisallowedUrls(html: string): string[] {
   return out;
 }
 
-const HEAD_OPEN_RE = /<head\b[^>]*>/i;
-const HEAD_CLOSE_RE = /<\/head\s*>/i;
-// head の中では、CSP の meta はほかの link・script・style より前に置く
-const FIRST_ASSET_RE = /<(?:link|script|style)\b/i;
-const META_TAG_RE = /<meta\b[^>]*>/gi;
-const META_HTTP_EQUIV_RE = /\bhttp-equiv\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
-const META_CONTENT_RE = /\bcontent\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
+// 属性つきの開始タグ。引用符の中の > では終わらない
+const openTag = (name: string): string => `<${name}(?=[\\s/>])(?:[^>"']|"[^"]*"|'[^']*')*>`;
+const CHARSET_META = String.raw`<meta\s+charset\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>` + "`" + String.raw`]+)\s*/?>`;
+// 文書の先頭から CSP の meta の直前までに置けるのは、空白・doctype・html・head・meta charset だけ
+// (コメントや script などが先にあると、CSP より先に動く・解釈されるので不可)。head の中で
+// CSP の meta がほかの link・script・style より前にある条件も、これで満たされる
+const PRE_CSP_RE = new RegExp(
+  `^\\s*(?:<!doctype\\s+html\\s*>\\s*)?(${openTag("html")}\\s*)?(${openTag("head")})\\s*(?:${CHARSET_META}\\s*)*`,
+  "i",
+);
+const META_OPEN_RE = /^<meta(?=[\s/>])/i;
+// on で始まる属性 (onload= など)。タグの中の引用符つきの値に出てきても false 側に倒す
+const EVENT_ATTR_RE = /[\s"'/]on[^\s"'=<>/]*\s*=/i;
 
-// タグの中の属性値を取り出す (二重引用符・単引用符・引用なし)
-function attrValue(tag: string, re: RegExp): string | undefined {
-  const match = re.exec(tag);
-  return match?.[1] ?? match?.[2] ?? match?.[3];
+// タグを属性の並びとして読むための、先頭固定 (sticky) の正規表現
+const SKIP_RE = /[\s/]*/y;
+const ATTR_NAME_RE = /[^\s/>][^\s/>=]*/y;
+const EQUALS_RE = /\s*=\s*/y;
+const QUOTED_RE = /"([^"]*)"|'([^']*)'/y;
+const UNQUOTED_RE = /[^\s>]*/y;
+
+function matchAt(re: RegExp, text: string, index: number): RegExpExecArray | null {
+  re.lastIndex = index;
+  return re.exec(text);
 }
 
-// CSP の meta か。http-equiv は大文字小文字を問わず、content は PAGE_CSP と一致すること
-function isCspMeta(tag: string): boolean {
-  return attrValue(tag, META_HTTP_EQUIV_RE)?.toLowerCase() === "content-security-policy" && attrValue(tag, META_CONTENT_RE) === PAGE_CSP;
-}
-
-/** CSP の meta が PAGE_CSP そのままで、<head> の中のほかの link・script・style より前にあるか */
-export function hasPageCsp(html: string): boolean {
-  const head = HEAD_OPEN_RE.exec(html);
-  if (head === null) return false;
-  const inner = html.slice(head.index + head[0].length);
-  const close = HEAD_CLOSE_RE.exec(inner);
-  const inHead = close === null ? inner : inner.slice(0, close.index);
-  const asset = FIRST_ASSET_RE.exec(inHead);
-  const beforeAssets = asset === null ? inHead : inHead.slice(0, asset.index);
-  for (const meta of beforeAssets.matchAll(META_TAG_RE)) {
-    if (isCspMeta(meta[0])) return true;
+// 属性値 (二重引用符・単引用符・引用なし) を index から読む。引用符が閉じないときは null
+function readAttrValue(text: string, index: number): { value: string; end: number } | null {
+  if (text[index] === '"' || text[index] === "'") {
+    const quoted = matchAt(QUOTED_RE, text, index);
+    if (quoted === null) return null;
+    return { value: quoted[1] ?? quoted[2] ?? "", end: index + quoted[0].length };
   }
-  return false;
+  const bare = matchAt(UNQUOTED_RE, text, index);
+  return { value: bare?.[0] ?? "", end: index + (bare?.[0].length ?? 0) };
+}
+
+// 属性 1 つ (名前と、あれば = と値) を index から読む。名前は小文字にする。引用符が閉じないときは null
+function readAttr(text: string, index: number): { name: string; value: string; end: number } | null {
+  const name = matchAt(ATTR_NAME_RE, text, index)?.[0] ?? "";
+  const afterName = index + name.length;
+  const equals = matchAt(EQUALS_RE, text, afterName);
+  if (equals === null) return { name: name.toLowerCase(), value: "", end: afterName };
+  const read = readAttrValue(text, afterName + equals[0].length);
+  return read === null ? null : { name: name.toLowerCase(), value: read.value, end: read.end };
+}
+
+/**
+ * `<meta` で始まる文字列の開始タグを、属性の並びとして先頭から 1 つずつ読む
+ * (名前・`=`・二重引用符 / 単引用符 / 引用なしの値)。名前は小文字にし、同じ名前は最初のものだけ使う。
+ * meta で始まらない・タグが閉じない (引用符が閉じない) ときは null
+ */
+function readMetaAttrs(text: string): Map<string, string> | null {
+  if (!META_OPEN_RE.test(text)) return null;
+  const attrs = new Map<string, string>();
+  let i = "<meta".length;
+  for (;;) {
+    i += matchAt(SKIP_RE, text, i)?.[0].length ?? 0;
+    if (i >= text.length) return null;
+    if (text[i] === ">") return attrs;
+    const attr = readAttr(text, i);
+    if (attr === null) return null;
+    if (!attrs.has(attr.name)) attrs.set(attr.name, attr.value);
+    i = attr.end;
+  }
+}
+
+// CSP の meta か。http-equiv は大文字小文字を問わず、content は PAGE_CSP と一致すること。
+// 別の属性の値の中にある文字列には当たらない
+function isCspMeta(text: string): boolean {
+  const attrs = readMetaAttrs(text);
+  return attrs !== null && attrs.get("http-equiv")?.toLowerCase() === "content-security-policy" && attrs.get("content") === PAGE_CSP;
+}
+
+/**
+ * CSP の meta が PAGE_CSP そのままで、文書の中で最初に現れる要素側にあるか。
+ * meta より前は空白・doctype・html・head・meta charset だけで、html・head に on 属性が無いこと
+ */
+export function hasPageCsp(html: string): boolean {
+  const pre = PRE_CSP_RE.exec(html);
+  if (pre === null) return false;
+  if (EVENT_ATTR_RE.test(pre[1] ?? "") || EVENT_ATTR_RE.test(pre[2] ?? "")) return false;
+  return isCspMeta(html.slice(pre[0].length));
 }
 
 /** 骨組み・LLM のページ・見本に共通の 1 ファイルの HTML を作る */

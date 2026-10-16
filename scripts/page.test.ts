@@ -260,6 +260,60 @@ void test("9 つの骨組みは CSP の meta をほかの link・script・style 
   }
 });
 
+void test("hasPageCsp は CSP の meta より前にあるインラインの script・コメント・on 属性を false にする", () => {
+  const cspMeta = `<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`;
+  const script = '<script>fetch(location.origin+"/api/projects")</script>';
+  const good = `<!doctype html><html lang="ja"><head><meta charset="utf-8">${cspMeta}</head><body>x</body></html>`;
+  assert.equal(hasPageCsp(good), true, "good");
+  assert.equal(hasPageCsp(`  \n${good}`), true, "先頭の空白");
+  assert.equal(
+    hasPageCsp(`<!DOCTYPE html>\n<HTML lang="ja">\n<HEAD>\n<META CHARSET="utf-8">\n${cspMeta}\n</HEAD><body></body></HTML>`),
+    true,
+    "大文字",
+  );
+  assert.equal(hasPageCsp(`<html lang="ja" data-x=">"><head>${cspMeta}</head></html>`), true, "引用符の中の >");
+  const reversed = `<meta content="${PAGE_CSP}" http-equiv="Content-Security-Policy">`;
+  assert.equal(hasPageCsp(`<!doctype html><html><head><meta charset="utf-8">${reversed}</head></html>`), true, "content が先");
+  assert.equal(
+    hasPageCsp(`<!doctype html><html><head><meta data-a='>' content="${PAGE_CSP}" HTTP-EQUIV=content-security-policy></head></html>`),
+    true,
+    "単引用符・引用なし・値の中の >",
+  );
+
+  const cases = [
+    { label: "head より前の script", html: `<!doctype html><html lang="ja">${script}<head><meta charset="utf-8">${cspMeta}</head></html>` },
+    { label: "doctype より前の script", html: `${script}<!doctype html><html><head>${cspMeta}</head></html>` },
+    { label: "html と head のあいだの script", html: `<!doctype html><html lang="ja">${script}<head>${cspMeta}</head></html>` },
+    { label: "html を省いた head より前の script", html: `<!doctype html>${script}<head>${cspMeta}</head>` },
+    { label: "CSP の meta より前のコメント", html: `<!doctype html><html><head><!-- x -->${cspMeta}</head></html>` },
+    { label: "doctype より前のコメント", html: `<!-- x --><!doctype html><html><head>${cspMeta}</head></html>` },
+    { label: "head の中の CSP より前の script", html: `<!doctype html><html><head>${script}${cspMeta}</head></html>` },
+    { label: "CSP より前の別の meta", html: `<!doctype html><html><head><meta name="x" content="y">${cspMeta}</head></html>` },
+    { label: "html の onload", html: `<!doctype html><html lang="ja" onload="alert(1)"><head>${cspMeta}</head></html>` },
+    { label: "html の onload (引用符なし・スラッシュ区切り)", html: `<!doctype html><html/onload=alert(1)><head>${cspMeta}</head></html>` },
+    { label: "head の onload", html: `<!doctype html><html><head ONLOAD='alert(1)'>${cspMeta}</head></html>` },
+    {
+      label: "別の属性 (単引用符) の値の中に CSP の meta の文字列",
+      html: `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name='x http-equiv="Content-Security-Policy" content="${PAGE_CSP}"'><script>fetch("/api/projects")</script></head><body>x</body></html>`,
+    },
+    {
+      label: "content が別の属性の値の中にしか無い",
+      html: `<!doctype html><html><head><meta name="x" data-a='content="${PAGE_CSP}"' http-equiv="Content-Security-Policy"></head></html>`,
+    },
+    {
+      label: "引用符が閉じないタグ",
+      html: `<!doctype html><html><head><meta data-a="x http-equiv=content-security-policy content=${PAGE_CSP}></head></html>`,
+    },
+    {
+      label: "同じ名前の属性は最初が有効 (content)",
+      html: `<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src *" content="${PAGE_CSP}"></head></html>`,
+    },
+    { label: "head が無い", html: `<!doctype html><html>${cspMeta}</html>` },
+    { label: "CSP の meta が無い", html: '<!doctype html><html><head><meta charset="utf-8"></head></html>' },
+  ];
+  for (const c of cases) assert.equal(hasPageCsp(c.html), false, c.label);
+});
+
 void test("findDisallowedUrls は mailto: と tel: を返さず、javascript: と http: を返す", () => {
   assert.deepEqual(findDisallowedUrls('<a href="mailto:a@example.com">メール</a>'), []);
   assert.deepEqual(findDisallowedUrls('<a href="tel:0312345678">電話</a>'), []);

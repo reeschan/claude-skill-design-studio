@@ -33,6 +33,7 @@ import { mixDirections, renderDirection, validatePicks } from "../core/direction
 import { planInstall } from "../core/installer.ts";
 import { generateDirections, generatePage, llmAvailable, LlmError } from "../core/llm.ts";
 import type { FontPair } from "../core/llm.ts";
+import { hasPageCsp } from "../core/page-html.ts";
 import { galleryDir, styleGuideDir } from "../core/paths.ts";
 import { listProjects, readPage, readProject, saveProject } from "../core/project.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
@@ -45,6 +46,8 @@ const INDEX_FILE = join(APP_DIR, "index.html");
 const HTML_TYPE = "text/html; charset=utf-8";
 const JSON_TYPE = "application/json; charset=utf-8";
 const JS_TYPE = "text/javascript; charset=utf-8";
+// 保存したページの配信に付ける CSP。不透明なオリジンになり、スクリプトは動くがアプリの API には届かない
+const PAGE_SANDBOX = "sandbox allow-scripts";
 
 // 本文の上限。screenshot (5MB) を data URL で受ける /api/directions だけ大きくする
 const BODY_LIMIT = 1024 * 1024;
@@ -101,9 +104,17 @@ type Handler = (ctx: RouteContext) => Promise<void> | void;
 // メソッドとパスの組 → 関数。上から順に見て、最初に合ったものを呼ぶ
 type Route = { method: string; pattern: RegExp; limit: number; handle: Handler };
 
-function sendRaw(res: http.ServerResponse, status: number, type: string, body: string | Buffer, close = false): void {
+function sendRaw(
+  res: http.ServerResponse,
+  status: number,
+  type: string,
+  body: string | Buffer,
+  close = false,
+  extraHeaders: Record<string, string> = {},
+): void {
   const data = typeof body === "string" ? Buffer.from(body, "utf8") : body;
   res.writeHead(status, {
+    ...extraHeaders,
     "Content-Type": type,
     "Content-Length": data.length,
     "Cache-Control": "no-store",
@@ -423,7 +434,8 @@ function serveProjectPage(ctx: RouteContext): void {
   if (pageType === undefined) throw notFound();
   const html = readPage(ctx.env, ctx.params[0] ?? "", pageType);
   if (html === null) throw notFound();
-  sendRaw(ctx.res, 200, HTML_TYPE, html);
+  // LLM が書いたページなので、不透明なオリジンで動かす (同じオリジンの /api を叩けない)
+  sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
 }
 
 function postCatalogEnabled(ctx: RouteContext): void {
@@ -476,6 +488,7 @@ async function postProjects(ctx: RouteContext): Promise<void> {
   const pageType = ctx.body.pageType === undefined ? undefined : pageTypeOf(ctx.body.pageType);
   const html = ctx.body.html === undefined ? undefined : bodyString(ctx.body.html, "html");
   if ((pageType === undefined) !== (html === undefined)) throw inputError("pageType と html は両方いっしょに指定してください");
+  if (html !== undefined && !hasPageCsp(html)) throw inputError("html に CSP の meta がありません");
   const direction = validateDirection(project.direction);
   const theme = await themeOfSeed(direction.seed, ctx.env);
   const page = pageType === undefined || html === undefined ? undefined : { pageType, html };

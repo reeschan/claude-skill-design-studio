@@ -9,6 +9,7 @@ import { join } from "node:path";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { pageHtml as makePageHtml } from "../core/page-html.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const MOCK_LLM = join(REPO_ROOT, "app", "mock-llm.mjs");
@@ -120,7 +121,7 @@ after(async () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-type HttpResult = { status: number; text: string; type: string; json: unknown };
+type HttpResult = { status: number; text: string; type: string; csp: string; json: unknown };
 
 function parseJson(text: string): unknown {
   try {
@@ -134,14 +135,26 @@ function parseJson(text: string): unknown {
 async function fetchPath(path: string): Promise<HttpResult> {
   const r = await fetch(base + path);
   const text = await r.text();
-  return { status: r.status, text, type: r.headers.get("content-type") ?? "", json: parseJson(text) };
+  return {
+    status: r.status,
+    text,
+    type: r.headers.get("content-type") ?? "",
+    csp: r.headers.get("content-security-policy") ?? "",
+    json: parseJson(text),
+  };
 }
 
 async function post(path: string, body: unknown, headers: Record<string, string> = {}): Promise<HttpResult> {
   const raw = typeof body === "string" ? body : JSON.stringify(body);
   const r = await fetch(base + path, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body: raw });
   const text = await r.text();
-  return { status: r.status, text, type: r.headers.get("content-type") ?? "", json: parseJson(text) };
+  return {
+    status: r.status,
+    text,
+    type: r.headers.get("content-type") ?? "",
+    csp: r.headers.get("content-security-policy") ?? "",
+    json: parseJson(text),
+  };
 }
 
 // 生の HTTP 要求。Host ヘッダーや Content-Length を自分で決めたいときに使う
@@ -154,7 +167,13 @@ function rawRequest(method: "GET" | "POST", path: string, body: string, headers:
         res.on("data", (chunk: Buffer) => chunks.push(chunk));
         res.on("end", () => {
           const text = Buffer.concat(chunks).toString("utf8");
-          resolve({ status: res.statusCode ?? 0, text, type: res.headers["content-type"] ?? "", json: parseJson(text) });
+          resolve({
+            status: res.statusCode ?? 0,
+            text,
+            type: res.headers["content-type"] ?? "",
+            csp: String(res.headers["content-security-policy"] ?? ""),
+            json: parseJson(text),
+          });
         });
       },
     );
@@ -347,7 +366,14 @@ void test("11. POST /api/page が 1 ファイルの HTML を返す", async () =>
 
 void test("12. POST /api/projects のあと、一覧・詳細・ページが返る", async () => {
   const direction = rec(await mixForTest());
-  const pageHtml = '<!doctype html>\n<html lang="ja"><body>保存したページ</body></html>\n';
+  const pageHtml = makePageHtml({
+    title: "保存したページ",
+    themeId: "test-project",
+    mode: "light",
+    cssForPage: "",
+    fontsUrl: "https://fonts.googleapis.com/css2?family=Inter",
+    body: "<p>保存したページ</p>",
+  });
   const created = await post("/api/projects", {
     project: { id: "test-project", prompt: "落ち着いた請求書アプリ", pageType: "lp", direction, pages: [] },
     pageType: "lp",
@@ -377,6 +403,21 @@ void test("12. POST /api/projects のあと、一覧・詳細・ページが返�
   assert.equal(page.status, 200);
   assert.match(page.type, /^text\/html; charset=utf-8/);
   assert.match(page.text, /保存したページ/);
+  assert.equal(page.csp, "sandbox allow-scripts");
+
+  // CSP の meta より前にスクリプトがある html は 400 で、保存されない
+  const evilHtml = pageHtml.replace("<head>", '<script>fetch(location.origin+"/api/projects")</script><head>');
+  assert.notEqual(evilHtml, pageHtml);
+  const evil = await post("/api/projects", {
+    project: { id: "test-project-evil", prompt: "x", pageType: "lp", direction, pages: [] },
+    pageType: "lp",
+    html: evilHtml,
+  });
+  assert.equal(evil.status, 400, evil.text);
+  assert.equal(get(evil.json, "error"), "input");
+  assert.equal(get(evil.json, "message"), "html に CSP の meta がありません");
+  assert.equal((await fetchPath("/api/projects/test-project-evil")).status, 404);
+  assert.equal((await fetchPath("/api/projects/test-project-evil/pages/lp")).status, 404);
 
   // pages を省いた保存もできる (アプリは保存するまでページを持たない)
   const second = await post("/api/projects", { project: { id: "test-project-2", prompt: "二つ目の依頼", pageType: "blog", direction } });
