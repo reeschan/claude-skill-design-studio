@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ja" data-theme="minimal" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ミニマル — ブログ記事の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Source+Code+Pro:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* ミニマル — 余白の広い、静かで飾らない道具のような印象 */
+      [data-theme="minimal"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.005 250.0);
+        --foreground: oklch(0.240 0.005 250.0);
+        --card: oklch(1.000 0.000 250.0);
+        --muted: oklch(0.955 0.005 250.0);
+        --muted-foreground: oklch(0.520 0.005 250.0);
+        --border: oklch(0.900 0.005 250.0);
+        --input: oklch(0.900 0.005 250.0);
+        --secondary: oklch(0.940 0.005 250.0);
+        --primary: oklch(0.550 0.040 250.0);
+        --ring: oklch(0.620 0.040 250.0);
+        --accent: oklch(0.950 0.012 250.0);
+        --accent-foreground: oklch(0.350 0.030 250.0);
+        --brand-accent: oklch(0.550 0.040 250.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.240 0.005 250.0);
+        --secondary-foreground: oklch(0.240 0.005 250.0);
+        --primary-foreground: oklch(0.985 0.005 250.0);
+        --destructive-foreground: oklch(0.985 0.005 250.0);
+        --success-foreground: oklch(0.985 0.005 250.0);
+        --warning-foreground: oklch(0.180 0.005 250.0);
+        --brand-accent-foreground: oklch(0.985 0.005 250.0);
+        --theme-radius: 4px;
+        --theme-spacing-scale: 1.2;
+        --theme-shadow: 0 0 #0000;
+        --theme-font-heading: "Montserrat", sans-serif;
+        --theme-font-body: "Noto Sans JP", sans-serif;
+        --theme-font-mono: "Source Code Pro", monospace;
+      }
+      [data-theme="minimal"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.005 250.0);
+        --foreground: oklch(0.940 0.005 250.0);
+        --card: oklch(0.200 0.005 250.0);
+        --muted: oklch(0.250 0.005 250.0);
+        --muted-foreground: oklch(0.660 0.005 250.0);
+        --border: oklch(0.300 0.005 250.0);
+        --input: oklch(0.300 0.005 250.0);
+        --secondary: oklch(0.270 0.005 250.0);
+        --primary: oklch(0.700 0.038 250.0);
+        --ring: oklch(0.620 0.040 250.0);
+        --accent: oklch(0.280 0.012 250.0);
+        --accent-foreground: oklch(0.850 0.030 250.0);
+        --brand-accent: oklch(0.700 0.038 250.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.940 0.005 250.0);
+        --secondary-foreground: oklch(0.940 0.005 250.0);
+        --primary-foreground: oklch(0.180 0.005 250.0);
+        --destructive-foreground: oklch(0.180 0.005 250.0);
+        --success-foreground: oklch(0.180 0.005 250.0);
+        --warning-foreground: oklch(0.180 0.005 250.0);
+        --brand-accent-foreground: oklch(0.180 0.005 250.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <a id="top"></a>
+    <header class="mx-auto flex max-w-prose items-baseline justify-between px-6 pt-10 text-sm">
+      <a href="#top" class="font-heading tracking-widest">余白</a>
+      <nav class="flex gap-8 font-mono text-xs text-muted-foreground">
+        <a href="#" class="hover:text-foreground">記事</a>
+        <a href="#" class="hover:text-foreground">このノートについて</a>
+      </nav>
+    </header>
+
+    <article class="mx-auto max-w-prose px-6 pb-32 pt-32">
+      <p class="font-mono text-xs tracking-widest text-muted-foreground">2026.10.16 &mdash; 6 分で読めます</p>
+      <h1 class="mt-10 font-heading text-5xl leading-tight tracking-tight">静けさが、<br>思考を速くする。</h1>
+      <p class="mt-12 text-lg leading-9 text-muted-foreground">書く道具から、ひとつずつ機能を外していった。そうして残った画面で、文章を書く速さと、考えをまとめる速さが同時に変わった。その経緯を、四つの気づきとして書いておく。</p>
+
+      <section id="sec-1" class="mt-40">
+        <p class="font-mono text-xs text-muted-foreground">01</p>
+        <h2 class="mt-4 font-heading text-2xl tracking-tight">通知を消すと、時間が長くなる</h2>
+        <p class="mt-8 leading-9">最初に外したのは通知だった。ノートを開いている間は、他のアプリからの知らせを一切受け取らない。それだけで、一時間の長さがまるで違って感じられた。</p>
+        <p class="mt-6 leading-9">集中が切れる原因は、知らせそのものより、知らせに「反応するかどうかを判断する」ことにある。通知が来なければ、その判断をしなくて済む。空いた分の注意が、そのまま書くことに回る。</p>
+      </section>
+
+      <section id="sec-2" class="mt-32">
+        <p class="font-mono text-xs text-muted-foreground">02</p>
+        <h2 class="mt-4 font-heading text-2xl tracking-tight">装飾を減らすと、言葉が目に入る</h2>
+        <p class="mt-8 leading-9">次に、ボタンや枠線、色のついた見出しを減らした。画面に残ったのは、文字と、行の間の余白だけだ。最初は寂しく思えたが、三日もすると、むしろ言葉の形がはっきり見えることに気づいた。</p>
+        <p class="mt-6 leading-9">余白は何も置かない場所ではなく、文字を読みやすくするために置く場所だと思う。行間を一割広げるだけで、長い段落でも途中で迷わなくなる。装飾を足す前に、まず間隔を整える。それが、このノートの最初の決まりになった。</p>
+      </section>
+
+      <section id="sec-3" class="mt-32">
+        <p class="font-mono text-xs text-muted-foreground">03</p>
+        <h2 class="mt-4 font-heading text-2xl tracking-tight">見出しは、あとから立ち上がってくる</h2>
+        <p class="mt-8 leading-9">書いている最中に見出しを決めようとすると、手が止まる。そこで、見出しは書き終えてから、本文の内容をもとに組み立てるようにした。書いた言葉を並べてみると、自然とまとまりの切れ目が見えてくる。</p>
+        <p class="mt-6 leading-9">先に構造を決めるのではなく、書いたものから構造を取り出す。順番を入れ替えただけで、書き出しの重さがずいぶん軽くなった。整理は、書くことの邪魔をしない時間にまとめて行えばいい。</p>
+      </section>
+
+      <section id="sec-4" class="mt-32">
+        <p class="font-mono text-xs text-muted-foreground">04</p>
+        <h2 class="mt-4 font-heading text-2xl tracking-tight">どこへでも持ち出せる形で残す</h2>
+        <p class="mt-8 leading-9">書いたものは、Markdown かプレーンテキストで書き出せるようにしてある。特別な形式に閉じ込めてしまうと、道具をやめるときに文章まで手放すことになる。道具は軽く、文章は長く残る。その関係を崩したくなかった。</p>
+        <p class="mt-6 leading-9">十年後に開いても読めること。それを確かめる一番簡単な方法は、ただの文字として保存しておくことだった。静かな画面の下には、そういう地味な約束がいくつか入っている。</p>
+      </section>
+
+      <div class="mt-40 w-10 border-t border-border"></div>
+      <p class="mt-8 text-sm leading-8 text-muted-foreground">次の記事 &rarr; <a href="#" class="text-foreground underline underline-offset-8 decoration-border hover:decoration-foreground">書き出しの一行を、毎朝変える</a></p>
+    </article>
+
+    <footer class="mx-auto flex max-w-prose items-baseline justify-between px-6 pb-16 font-mono text-xs text-muted-foreground">
+      <span>余白 &mdash; 書くことだけが残るノート</span>
+      <a href="#top" class="hover:text-foreground">上へ</a>
+    </footer>
+  </body>
+</html>

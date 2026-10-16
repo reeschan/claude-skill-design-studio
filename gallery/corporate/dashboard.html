@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja" data-theme="corporate" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>コーポレート — ダッシュボードの見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* コーポレート — 青を基調に、整った信頼感と落ち着きのある印象 */
+[data-theme="corporate"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.007 258.0);
+  --foreground: oklch(0.200 0.010 258.0);
+  --card: oklch(1.000 0.000 258.0);
+  --muted: oklch(0.955 0.010 258.0);
+  --muted-foreground: oklch(0.480 0.010 258.0);
+  --border: oklch(0.900 0.010 258.0);
+  --input: oklch(0.900 0.010 258.0);
+  --secondary: oklch(0.940 0.010 258.0);
+  --primary: oklch(0.550 0.139 258.0);
+  --ring: oklch(0.620 0.140 258.0);
+  --accent: oklch(0.950 0.024 258.0);
+  --accent-foreground: oklch(0.350 0.105 258.0);
+  --brand-accent: oklch(0.600 0.112 150.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.200 0.010 258.0);
+  --secondary-foreground: oklch(0.200 0.010 258.0);
+  --primary-foreground: oklch(0.985 0.007 258.0);
+  --destructive-foreground: oklch(0.985 0.007 258.0);
+  --success-foreground: oklch(0.985 0.007 258.0);
+  --warning-foreground: oklch(0.180 0.010 258.0);
+  --brand-accent-foreground: oklch(0.180 0.010 258.0);
+  --theme-radius: 8px;
+  --theme-spacing-scale: 1;
+  --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+  --theme-font-heading: "Zen Kaku Gothic New", sans-serif;
+  --theme-font-body: "Noto Sans JP", sans-serif;
+  --theme-font-mono: "JetBrains Mono", monospace;
+}
+[data-theme="corporate"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.010 258.0);
+  --foreground: oklch(0.960 0.010 258.0);
+  --card: oklch(0.200 0.010 258.0);
+  --muted: oklch(0.250 0.010 258.0);
+  --muted-foreground: oklch(0.680 0.010 258.0);
+  --border: oklch(0.300 0.010 258.0);
+  --input: oklch(0.300 0.010 258.0);
+  --secondary: oklch(0.270 0.010 258.0);
+  --primary: oklch(0.700 0.134 258.0);
+  --ring: oklch(0.620 0.140 258.0);
+  --accent: oklch(0.280 0.042 258.0);
+  --accent-foreground: oklch(0.850 0.075 258.0);
+  --brand-accent: oklch(0.720 0.106 150.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.960 0.010 258.0);
+  --secondary-foreground: oklch(0.960 0.010 258.0);
+  --primary-foreground: oklch(0.180 0.010 258.0);
+  --destructive-foreground: oklch(0.180 0.010 258.0);
+  --success-foreground: oklch(0.180 0.010 258.0);
+  --warning-foreground: oklch(0.180 0.010 258.0);
+  --brand-accent-foreground: oklch(0.180 0.010 258.0);
+}
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <div id="top" class="flex min-h-screen bg-muted">
+      <aside class="hidden w-60 shrink-0 flex-col border-r border-border bg-card lg:flex">
+        <div class="border-b border-border px-5 py-5">
+          <a href="#top" class="font-heading text-xl font-bold text-primary">ソラミチ</a>
+          <p class="mt-1 text-xs text-muted-foreground">物流を、もっと確かに。</p>
+        </div>
+        <nav class="flex-1 px-3 py-4 text-sm" aria-label="メイン">
+          <p class="px-2 pb-2 text-xs font-bold text-muted-foreground">運用</p>
+          <ul class="space-y-0.5">
+            <li><a href="#top" class="flex items-center gap-3 rounded-md bg-accent px-3 py-2 font-bold text-accent-foreground"><svg viewBox="0 0 20 20" class="size-4" fill="currentColor" aria-hidden="true"><path d="M2 2h7v7H2zM11 2h7v4h-7zM11 8h7v10h-7zM2 11h7v7H2z"/></svg>ダッシュボード</a></li>
+            <li><a href="#deliveries" class="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:bg-muted"><svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 5h10v8H2zM12 8h4l2 3v2h-6z"/><circle cx="6" cy="14.5" r="1.5"/><circle cx="15" cy="14.5" r="1.5"/></svg>配送</a></li>
+            <li><a href="#stock" class="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:bg-muted"><svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7l7-4 7 4v8l-7 4-7-4zM3 7l7 4 7-4M10 11v8"/></svg>在庫</a></li>
+            <li><a href="#top" class="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:bg-muted"><svg viewBox="0 0 20 20" class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z"/><circle cx="10" cy="8" r="2"/></svg>拠点</a></li>
+          </ul>
+          <p class="px-2 pb-2 pt-6 text-xs font-bold text-muted-foreground">管理</p>
+          <ul class="space-y-0.5">
+            <li><a href="#top" class="block rounded-md px-3 py-2 pl-10 text-muted-foreground transition-colors hover:bg-muted">レポート</a></li>
+            <li><a href="#top" class="block rounded-md px-3 py-2 pl-10 text-muted-foreground transition-colors hover:bg-muted">監査ログ</a></li>
+            <li><a href="#top" class="block rounded-md px-3 py-2 pl-10 text-muted-foreground transition-colors hover:bg-muted">設定</a></li>
+          </ul>
+        </nav>
+        <div class="flex items-center gap-3 border-t border-border px-5 py-4 text-xs">
+          <span class="grid size-8 place-items-center rounded-md bg-primary font-bold text-primary-foreground">山</span>
+          <span><span class="block font-bold">山口 健</span><span class="text-muted-foreground">物流管理部</span></span>
+        </div>
+      </aside>
+
+      <div class="min-w-0 flex-1">
+        <header class="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-6 py-3">
+          <p class="text-xs text-muted-foreground">運用 / <span class="font-bold text-foreground">ダッシュボード</span></p>
+          <div class="flex items-center gap-3 text-xs">
+            <span class="rounded-md border border-border bg-background px-3 py-2 text-muted-foreground">10月16日(金) 17:00 時点</span>
+            <a href="#top" class="rounded-md bg-primary px-4 py-2 font-bold text-primary-foreground shadow-md transition-opacity hover:opacity-90">資料をダウンロード</a>
+          </div>
+        </header>
+
+        <main class="space-y-5 p-6">
+          <h1 class="text-xl font-bold">現場のデータを、経営の判断に。</h1>
+
+          <section aria-label="主要指標" class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+            <div class="rounded-lg border border-border bg-card p-4 shadow-md">
+              <p class="text-xs text-muted-foreground">本日の出荷</p>
+              <p class="mt-1 font-mono text-2xl font-bold">4,826<span class="ml-1 text-xs font-normal text-muted-foreground">件</span></p>
+              <p class="mt-1 text-xs"><span class="font-bold text-primary">▲ 3.2%</span> <span class="text-muted-foreground">前週同曜日比</span></p>
+            </div>
+            <div class="rounded-lg border border-border bg-card p-4 shadow-md">
+              <p class="text-xs text-muted-foreground">定時到着率</p>
+              <p class="mt-1 font-mono text-2xl font-bold">97.4<span class="ml-1 text-xs font-normal text-muted-foreground">%</span></p>
+              <p class="mt-1 text-xs"><span class="font-bold text-primary">▲ 0.6pt</span> <span class="text-muted-foreground">目標 96.0%</span></p>
+            </div>
+            <div class="rounded-lg border border-border bg-card p-4 shadow-md">
+              <p class="text-xs text-muted-foreground">遅延中の荷物</p>
+              <p class="mt-1 font-mono text-2xl font-bold">61<span class="ml-1 text-xs font-normal text-muted-foreground">件</span></p>
+              <p class="mt-1 text-xs"><span class="font-bold text-primary">▼ 12 件</span> <span class="text-muted-foreground">前日比</span></p>
+            </div>
+            <div class="rounded-lg border border-border bg-card p-4 shadow-md">
+              <p class="text-xs text-muted-foreground">在庫回転日数</p>
+              <p class="mt-1 font-mono text-2xl font-bold">18.2<span class="ml-1 text-xs font-normal text-muted-foreground">日</span></p>
+              <p class="mt-1 text-xs"><span class="font-bold text-primary">▼ 1.4 日</span> <span class="text-muted-foreground">前月比</span></p>
+            </div>
+          </section>
+
+          <div class="grid gap-5 xl:grid-cols-3">
+            <section class="rounded-lg border border-border bg-card p-5 shadow-md xl:col-span-2" aria-labelledby="trend-h">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 id="trend-h" class="text-sm font-bold">配送件数の推移(直近 14 日)</h2>
+                <p class="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span class="flex items-center gap-1.5"><span class="h-0.5 w-4 bg-primary"></span>実績</span>
+                  <span class="flex items-center gap-1.5"><span class="h-0 w-4 border-t-2 border-dashed border-muted-foreground"></span>計画</span>
+                </p>
+              </div>
+              <svg viewBox="0 0 640 210" class="mt-4 w-full" role="img" aria-label="14 日間の配送件数。実績は 10 月 16 日に 4,826 件で計画の 4,600 件を上回った">
+                <g class="stroke-border" stroke-width="1">
+                  <line x1="40" x2="620" y1="20" y2="20"/><line x1="40" x2="620" y1="60" y2="60"/><line x1="40" x2="620" y1="100" y2="100"/><line x1="40" x2="620" y1="140" y2="140"/><line x1="40" x2="620" y1="180" y2="180"/>
+                </g>
+                <g class="fill-muted-foreground font-mono text-[10px]" text-anchor="end">
+                  <text x="32" y="23">5,000</text><text x="32" y="63">4,500</text><text x="32" y="103">4,000</text><text x="32" y="143">3,500</text><text x="32" y="183">3,000</text>
+                </g>
+                <polyline points="40,100 84.6,92 129.2,92 173.8,84 218.5,76 263.1,116 307.7,132 352.3,84 396.9,76 441.5,68 486.2,68 530.8,60 575.4,92 620,52" fill="none" class="stroke-muted-foreground" stroke-width="1.5" stroke-dasharray="5 4"/>
+                <polygon points="40,180 40,98.4 84.6,85.6 129.2,103.2 173.8,75.2 218.5,58.4 263.1,109.6 307.7,136.8 352.3,80 396.9,68.8 441.5,51.2 486.2,61.6 530.8,42.4 575.4,99.2 620,33.9 620,180" class="fill-primary" opacity="0.08"/>
+                <polyline points="40,98.4 84.6,85.6 129.2,103.2 173.8,75.2 218.5,58.4 263.1,109.6 307.7,136.8 352.3,80 396.9,68.8 441.5,51.2 486.2,61.6 530.8,42.4 575.4,99.2 620,33.9" fill="none" class="stroke-primary" stroke-width="2" stroke-linejoin="round"/>
+                <circle cx="620" cy="33.9" r="4" class="fill-primary"/>
+                <g class="fill-muted-foreground text-[10px]" text-anchor="middle"><text x="40" y="200">10/3</text><text x="352.3" y="200">10/10</text><text x="610" y="200">10/16</text></g>
+              </svg>
+            </section>
+
+            <section id="stock" class="rounded-lg border border-border bg-card p-5 shadow-md" aria-labelledby="stock-h">
+              <h2 id="stock-h" class="text-sm font-bold">拠点別の倉庫使用率</h2>
+              <ul class="mt-4 space-y-4 text-xs">
+                <li><div class="flex justify-between"><span>福岡センター</span><span class="font-mono font-bold">91%</span></div><div class="mt-1 h-2 rounded-sm bg-muted"><div class="h-2 w-[91%] rounded-sm bg-primary"></div></div></li>
+                <li><div class="flex justify-between"><span>東京センター</span><span class="font-mono">82%</span></div><div class="mt-1 h-2 rounded-sm bg-muted"><div class="h-2 w-[82%] rounded-sm bg-brand-accent"></div></div></li>
+                <li><div class="flex justify-between"><span>大阪センター</span><span class="font-mono">74%</span></div><div class="mt-1 h-2 rounded-sm bg-muted"><div class="h-2 w-[74%] rounded-sm bg-brand-accent"></div></div></li>
+                <li><div class="flex justify-between"><span>札幌センター</span><span class="font-mono">66%</span></div><div class="mt-1 h-2 rounded-sm bg-muted"><div class="h-2 w-[66%] rounded-sm bg-brand-accent"></div></div></li>
+                <li><div class="flex justify-between"><span>仙台センター</span><span class="font-mono">58%</span></div><div class="mt-1 h-2 rounded-sm bg-muted"><div class="h-2 w-[58%] rounded-sm bg-brand-accent"></div></div></li>
+              </ul>
+              <p class="mt-5 rounded-md bg-accent p-3 text-xs leading-relaxed text-accent-foreground">福岡は 90% を超えています。需要の変化に合わせ、大阪への一部移送を提案します。</p>
+            </section>
+          </div>
+
+          <section id="deliveries" class="rounded-lg border border-border bg-card shadow-md" aria-labelledby="deliv-h">
+            <div class="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 id="deliv-h" class="text-sm font-bold">配送の状況(新しい順)</h2>
+              <a href="#top" class="text-xs font-bold text-primary">すべて見る</a>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-muted text-muted-foreground">
+                  <tr><th scope="col" class="px-5 py-2.5 font-bold">伝票番号</th><th scope="col" class="px-5 py-2.5 font-bold">区間</th><th scope="col" class="px-5 py-2.5 font-bold">荷物</th><th scope="col" class="px-5 py-2.5 font-bold">状態</th><th scope="col" class="px-5 py-2.5 text-right font-bold">到着予定</th></tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                  <tr class="transition-colors hover:bg-muted"><td class="px-5 py-3 font-mono">SM-261016-0412</td><td class="px-5 py-3">東京 → 大阪</td><td class="px-5 py-3">精密部品 12 箱</td><td class="px-5 py-3"><span class="rounded-sm bg-accent px-2 py-0.5 font-bold text-accent-foreground">配送中</span></td><td class="px-5 py-3 text-right font-mono">18:40</td></tr>
+                  <tr class="transition-colors hover:bg-muted"><td class="px-5 py-3 font-mono">SM-261016-0409</td><td class="px-5 py-3">福岡 → 広島</td><td class="px-5 py-3">食品 36 ケース</td><td class="px-5 py-3"><span class="rounded-sm bg-primary px-2 py-0.5 font-bold text-primary-foreground">遅延 35 分</span></td><td class="px-5 py-3 text-right font-mono">19:15</td></tr>
+                  <tr class="transition-colors hover:bg-muted"><td class="px-5 py-3 font-mono">SM-261016-0398</td><td class="px-5 py-3">仙台 → 札幌</td><td class="px-5 py-3">医療機器 4 箱</td><td class="px-5 py-3"><span class="rounded-sm bg-accent px-2 py-0.5 font-bold text-accent-foreground">配送中</span></td><td class="px-5 py-3 text-right font-mono">21:05</td></tr>
+                  <tr class="transition-colors hover:bg-muted"><td class="px-5 py-3 font-mono">SM-261016-0391</td><td class="px-5 py-3">大阪 → 名古屋</td><td class="px-5 py-3">日用品 58 箱</td><td class="px-5 py-3"><span class="rounded-sm bg-muted px-2 py-0.5 font-bold text-muted-foreground">到着済</span></td><td class="px-5 py-3 text-right font-mono">16:20</td></tr>
+                  <tr class="transition-colors hover:bg-muted"><td class="px-5 py-3 font-mono">SM-261016-0387</td><td class="px-5 py-3">東京 → 横浜</td><td class="px-5 py-3">書籍 20 箱</td><td class="px-5 py-3"><span class="rounded-sm bg-muted px-2 py-0.5 font-bold text-muted-foreground">到着済</span></td><td class="px-5 py-3 text-right font-mono">15:50</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

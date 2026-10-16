@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja" data-theme="editorial" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>エディトリアル — ブログ記事の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* エディトリアル — 紙の質感を思わせる暖かい無彩色と、読み物らしい組版の印象 */
+      [data-theme="editorial"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.012 75.0);
+        --foreground: oklch(0.200 0.015 75.0);
+        --card: oklch(1.000 0.000 75.0);
+        --muted: oklch(0.955 0.015 75.0);
+        --muted-foreground: oklch(0.480 0.015 75.0);
+        --border: oklch(0.900 0.015 75.0);
+        --input: oklch(0.900 0.015 75.0);
+        --secondary: oklch(0.940 0.015 75.0);
+        --primary: oklch(0.550 0.050 45.0);
+        --ring: oklch(0.620 0.050 45.0);
+        --accent: oklch(0.950 0.015 45.0);
+        --accent-foreground: oklch(0.350 0.038 45.0);
+        --brand-accent: oklch(0.600 0.040 20.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.200 0.015 75.0);
+        --secondary-foreground: oklch(0.200 0.015 75.0);
+        --primary-foreground: oklch(0.985 0.012 75.0);
+        --destructive-foreground: oklch(0.985 0.012 75.0);
+        --success-foreground: oklch(0.985 0.012 75.0);
+        --warning-foreground: oklch(0.180 0.015 75.0);
+        --brand-accent-foreground: oklch(0.180 0.015 75.0);
+        --theme-radius: 0px;
+        --theme-spacing-scale: 1.15;
+        --theme-shadow: 0 0 #0000;
+        --theme-font-heading: "Playfair Display", serif;
+        --theme-font-body: "Noto Serif JP", serif;
+        --theme-font-mono: "IBM Plex Mono", monospace;
+      }
+      [data-theme="editorial"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.015 75.0);
+        --foreground: oklch(0.960 0.015 75.0);
+        --card: oklch(0.200 0.015 75.0);
+        --muted: oklch(0.250 0.015 75.0);
+        --muted-foreground: oklch(0.680 0.015 75.0);
+        --border: oklch(0.300 0.015 75.0);
+        --input: oklch(0.300 0.015 75.0);
+        --secondary: oklch(0.270 0.015 75.0);
+        --primary: oklch(0.700 0.048 45.0);
+        --ring: oklch(0.620 0.050 45.0);
+        --accent: oklch(0.280 0.015 45.0);
+        --accent-foreground: oklch(0.850 0.038 45.0);
+        --brand-accent: oklch(0.720 0.038 20.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.960 0.015 75.0);
+        --secondary-foreground: oklch(0.960 0.015 75.0);
+        --primary-foreground: oklch(0.180 0.015 75.0);
+        --destructive-foreground: oklch(0.180 0.015 75.0);
+        --success-foreground: oklch(0.180 0.015 75.0);
+        --warning-foreground: oklch(0.180 0.015 75.0);
+        --brand-accent-foreground: oklch(0.180 0.015 75.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <a id="top"></a>
+    <header class="mx-auto max-w-5xl px-6 pt-8">
+      <div class="flex items-center justify-between border-b border-border pb-3 font-mono text-xs tracking-widest text-muted-foreground">
+        <span>第 24 号</span>
+        <span>2026 年 10 月 16 日</span>
+        <span>定価 無料</span>
+      </div>
+      <div class="border-b-4 border-double border-foreground py-6 text-center">
+        <a href="#top" class="font-heading text-5xl tracking-[0.35em]">紙とインク</a>
+        <p class="mt-2 text-sm tracking-[0.4em] text-muted-foreground">読み物のための、静かなウェブ誌</p>
+      </div>
+      <nav class="flex justify-center gap-10 border-b border-border py-3 text-sm tracking-widest">
+        <a href="#" class="hover:text-primary">巻頭エッセイ</a>
+        <a href="#" class="hover:text-primary">連載小説</a>
+        <a href="#" class="hover:text-primary">書評</a>
+        <a href="#" class="hover:text-primary">対談</a>
+      </nav>
+    </header>
+
+    <article class="mx-auto max-w-5xl px-6 pb-24 pt-16">
+      <header class="mx-auto max-w-3xl text-center">
+        <p class="font-heading text-sm tracking-[0.5em] text-brand-accent">ESSAY ／ 巻頭エッセイ</p>
+        <h1 class="mt-8 font-heading text-6xl leading-[1.25] tracking-tight">長い文章を、<br>ゆっくり読む。</h1>
+        <p class="mx-auto mt-10 max-w-xl text-lg italic leading-9 text-muted-foreground">画面で読む長い文章は、なぜ途中で疲れてしまうのか。紙の本が数百年かけて磨いてきた組みの知恵を、ウェブにそっと持ち込む試み。</p>
+        <p class="mt-10 border-y border-border py-3 font-mono text-xs tracking-widest text-muted-foreground">文　篠原 澄　／　読了 12 分　／　全 4 節</p>
+      </header>
+
+      <div class="mt-16 md:columns-2 md:gap-14">
+        <section id="sec-1">
+          <h2 class="break-after-avoid font-heading text-2xl"><span class="text-brand-accent">I.</span> 一行の長さを、息の長さに合わせる</h2>
+          <p class="mt-5 leading-[2.1] first-letter:float-left first-letter:mr-3 first-letter:font-heading first-letter:text-7xl first-letter:leading-[0.9]">本を開くと、一行はおよそ四十字ほどで改行されている。これは偶然ではなく、目が行の終わりから次の行の頭へ迷わず戻れる長さを、長い年月をかけて探り当てた結果だ。画面が大きくなるにつれ、一行はどんどん長くなったが、読む人の目の動きは何も変わっていない。</p>
+          <p class="mt-4 leading-[2.1]">行が長すぎると、次の行の頭を探すあいだに文脈を見失う。だから私たちは、画面がどれだけ広くても、本文の幅を意図的に狭くとる。広い余白は、無駄ではなく、読む人の目を守るための装置である。</p>
+        </section>
+
+        <section id="sec-2" class="mt-10">
+          <h2 class="break-after-avoid font-heading text-2xl"><span class="text-brand-accent">II.</span> 行間は、文字の高さの半分を足す</h2>
+          <p class="mt-5 leading-[2.1]">日本語の組版では、行間を文字の高さの半分ほど空けるのが、読み物の基本とされている。詰めすぎれば黒々とした塊になり、空けすぎれば行がばらばらに見える。ちょうどよい行間は、文章を「面」として感じさせてくれる。</p>
+          <p class="mt-4 leading-[2.1]">もう一つ大切なのは、段落のあいだの空き方だ。段落を分ける空きは、行間よりはっきり大きく、しかし一頁を分断するほどには大きくしない。段落の切れ目は、読み手が一度息をつく場所だから、その間隔には書き手の呼吸が表れる。</p>
+        </section>
+
+        <blockquote class="my-10 break-inside-avoid border-y-4 border-foreground py-8 text-center md:-mx-6">
+          <p class="font-heading text-6xl leading-none text-brand-accent" aria-hidden="true">&ldquo;</p>
+          <p class="mt-2 font-heading text-3xl leading-snug">余白は、書き手が<br>読み手に差し出す時間である。</p>
+          <p class="mt-4 font-mono text-xs tracking-widest text-muted-foreground">編集後記より</p>
+        </blockquote>
+
+        <section id="sec-3" class="mt-10">
+          <h2 class="break-after-avoid font-heading text-2xl"><span class="text-brand-accent">III.</span> 見出しは、静かに小さく</h2>
+          <p class="mt-5 leading-[2.1]">雑誌の見出しは大きく太いものだと思われがちだが、長い読み物では、見出しが声を張り上げすぎると、本文の流れを断ち切ってしまう。本文より少し大きく、細い罫を添えるくらいが、ちょうどいい合図になる。</p>
+          <p class="mt-4 leading-[2.1]">色も、できるだけ使わない。本文は黒に近い墨色、強調には一色だけ。この号では、朱に近い暖色を、番号と引用の記号にだけ使っている。色の数を絞ると、残った一色がはっきり意味を持つ。</p>
+        </section>
+
+        <section id="sec-4" class="mt-10">
+          <h2 class="break-after-avoid font-heading text-2xl"><span class="text-brand-accent">IV.</span> 読み終えたあとの時間</h2>
+          <p class="mt-5 leading-[2.1]">よい読み物は、読み終えたあとに少しだけ、立ち止まる時間を残す。次の記事へすぐに誘導するのではなく、頁の終わりに空白を置き、静かに閉じる。ウェブでも、その余韻を大切にしたいと思う。</p>
+          <p class="mt-4 leading-[2.1]">長い文章をゆっくり読む。それは、効率とは別の速さで、言葉と付き合うということだ。この小さなウェブ誌が、その場所の一つになれたらうれしい。</p>
+          <p class="mt-6 text-right font-heading tracking-widest">&mdash; 了 &mdash;</p>
+        </section>
+      </div>
+
+      <aside class="mt-16 border-t-4 border-foreground pt-6">
+        <div class="grid gap-8 md:grid-cols-3">
+          <div>
+            <p class="font-heading text-sm tracking-[0.4em]">目次</p>
+            <ol class="mt-3 space-y-1 text-sm leading-7 text-muted-foreground">
+              <li><a href="#sec-1" class="hover:text-foreground">I. 一行の長さ</a></li>
+              <li><a href="#sec-2" class="hover:text-foreground">II. 行間</a></li>
+              <li><a href="#sec-3" class="hover:text-foreground">III. 見出し</a></li>
+              <li><a href="#sec-4" class="hover:text-foreground">IV. 読み終えたあと</a></li>
+            </ol>
+          </div>
+          <div>
+            <p class="font-heading text-sm tracking-[0.4em]">註</p>
+            <p class="mt-3 text-sm leading-7 text-muted-foreground">本文の書体は明朝体、見出しの欧文はセリフ体。行長は約四十字、行間は文字高の一・〇五倍。</p>
+          </div>
+          <div>
+            <p class="font-heading text-sm tracking-[0.4em]">次号予告</p>
+            <p class="mt-3 text-sm leading-7 text-muted-foreground"><a href="#" class="text-foreground underline underline-offset-4 decoration-brand-accent">連載小説「夜の図書室」</a>　第六回、十一月刊行。</p>
+          </div>
+        </div>
+      </aside>
+    </article>
+
+    <footer class="border-t-4 border-double border-foreground">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 font-mono text-xs tracking-widest text-muted-foreground">
+        <span>紙とインク ／ 最新号を読む</span>
+        <a href="#top" class="hover:text-foreground">頁の先頭へ</a>
+      </div>
+    </footer>
+  </body>
+</html>

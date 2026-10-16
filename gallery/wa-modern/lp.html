@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja" data-theme="wa-modern" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>和モダン — LP の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* 和モダン — 藍と朱、明朝体。落ち着いた和の趣と現代的な読みやすさ */
+      [data-theme="wa-modern"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.011 70.0);
+        --foreground: oklch(0.240 0.012 70.0);
+        --card: oklch(1.000 0.000 70.0);
+        --muted: oklch(0.955 0.012 70.0);
+        --muted-foreground: oklch(0.520 0.012 70.0);
+        --border: oklch(0.900 0.012 70.0);
+        --input: oklch(0.900 0.012 70.0);
+        --secondary: oklch(0.940 0.012 70.0);
+        --primary: oklch(0.550 0.119 255.0);
+        --ring: oklch(0.620 0.120 255.0);
+        --accent: oklch(0.950 0.024 255.0);
+        --accent-foreground: oklch(0.350 0.090 255.0);
+        --brand-accent: oklch(0.600 0.096 40.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.240 0.012 70.0);
+        --secondary-foreground: oklch(0.240 0.012 70.0);
+        --primary-foreground: oklch(0.985 0.011 70.0);
+        --destructive-foreground: oklch(0.985 0.011 70.0);
+        --success-foreground: oklch(0.985 0.011 70.0);
+        --warning-foreground: oklch(0.180 0.012 70.0);
+        --brand-accent-foreground: oklch(0.180 0.012 70.0);
+        --theme-radius: 2px;
+        --theme-spacing-scale: 1.05;
+        --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+        --theme-font-heading: "Shippori Mincho", serif;
+        --theme-font-body: "Shippori Mincho", serif;
+        --theme-font-mono: "IBM Plex Mono", monospace;
+      }
+      [data-theme="wa-modern"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.012 70.0);
+        --foreground: oklch(0.940 0.012 70.0);
+        --card: oklch(0.200 0.012 70.0);
+        --muted: oklch(0.250 0.012 70.0);
+        --muted-foreground: oklch(0.660 0.012 70.0);
+        --border: oklch(0.300 0.012 70.0);
+        --input: oklch(0.300 0.012 70.0);
+        --secondary: oklch(0.270 0.012 70.0);
+        --primary: oklch(0.700 0.115 255.0);
+        --ring: oklch(0.620 0.120 255.0);
+        --accent: oklch(0.280 0.036 255.0);
+        --accent-foreground: oklch(0.850 0.075 255.0);
+        --brand-accent: oklch(0.720 0.090 40.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.940 0.012 70.0);
+        --secondary-foreground: oklch(0.940 0.012 70.0);
+        --primary-foreground: oklch(0.180 0.012 70.0);
+        --destructive-foreground: oklch(0.180 0.012 70.0);
+        --success-foreground: oklch(0.180 0.012 70.0);
+        --warning-foreground: oklch(0.180 0.012 70.0);
+        --brand-accent-foreground: oklch(0.180 0.012 70.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground" id="top">
+    <header class="flex items-center justify-between border-b border-border px-6 py-5 md:px-12">
+      <a href="#top" class="flex items-center gap-3 focus-visible:ring-2 ring-ring">
+        <span class="font-heading flex size-9 items-center justify-center rounded-sm bg-brand-accent text-sm font-bold text-brand-accent-foreground" aria-hidden="true">暦</span>
+        <span class="font-heading text-lg font-bold tracking-[0.2em]">和ごよみ</span>
+      </a>
+      <nav aria-label="主なリンク" class="hidden gap-10 text-sm tracking-widest md:flex">
+        <a href="#sekki" class="hover:text-primary">節気</a>
+        <a href="#moon" class="hover:text-primary">月</a>
+        <a href="#voice" class="hover:text-primary">声</a>
+        <a href="#start" class="hover:text-primary">はじめる</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="grid min-h-[44rem] md:grid-cols-2">
+        <div class="relative flex items-center justify-center bg-secondary px-6 py-20 md:justify-end md:px-16">
+          <div class="flex flex-row-reverse items-start gap-8">
+            <h1 class="font-heading text-6xl font-bold leading-[1.3] tracking-[0.12em] [writing-mode:vertical-rl] md:text-7xl">季節を、手元に。</h1>
+            <p class="font-heading pt-6 text-sm leading-[2.4] tracking-[0.3em] text-muted-foreground [writing-mode:vertical-rl]">暮らしに寄り添う暦</p>
+          </div>
+          <p class="absolute bottom-8 left-6 max-w-[16rem] text-sm leading-[2.2] text-muted-foreground md:left-16">二十四節気と月齢を、静かな和の佇まいで眺められます。</p>
+        </div>
+        <div class="relative overflow-hidden bg-primary text-primary-foreground">
+          <svg viewBox="0 0 400 560" class="absolute inset-0 size-full" preserveAspectRatio="xMidYMid slice" role="img" aria-label="青海波の上に浮かぶ朱の日と白い月">
+            <defs>
+              <pattern id="seigaiha" width="48" height="24" patternUnits="userSpaceOnUse">
+                <g class="fill-none stroke-primary-foreground/25" stroke-width="1">
+                  <circle cx="0" cy="24" r="24"/><circle cx="0" cy="24" r="18"/><circle cx="0" cy="24" r="12"/><circle cx="0" cy="24" r="6"/>
+                  <circle cx="48" cy="24" r="24"/><circle cx="48" cy="24" r="18"/><circle cx="48" cy="24" r="12"/><circle cx="48" cy="24" r="6"/>
+                  <circle cx="24" cy="12" r="24"/><circle cx="24" cy="12" r="18"/><circle cx="24" cy="12" r="12"/><circle cx="24" cy="12" r="6"/>
+                </g>
+              </pattern>
+            </defs>
+            <rect width="400" height="560" fill="url(#seigaiha)"/>
+            <circle cx="270" cy="170" r="74" class="fill-brand-accent"/>
+            <circle cx="150" cy="330" r="54" class="fill-primary-foreground"/>
+            <circle cx="172" cy="318" r="50" class="fill-primary"/>
+          </svg>
+          <a href="#start" class="absolute bottom-8 right-8 rounded-sm bg-primary-foreground px-8 py-3 text-sm font-bold tracking-[0.3em] text-primary shadow-md transition-opacity hover:opacity-85 focus-visible:ring-2 ring-ring">暦をひらく</a>
+        </div>
+      </section>
+
+      <section id="sekki" class="grid gap-10 px-6 py-28 md:grid-cols-[14rem_1fr] md:px-12">
+        <div>
+          <h2 class="font-heading text-3xl font-bold tracking-[0.3em] md:[writing-mode:vertical-rl]">四季の道具</h2>
+          <div class="mt-6 h-px w-12 bg-brand-accent md:h-12 md:w-px"></div>
+        </div>
+        <ul class="max-w-3xl">
+          <li class="grid grid-cols-[5rem_1fr] items-baseline gap-6 border-b border-border py-9">
+            <span class="font-heading text-4xl font-bold text-primary" aria-hidden="true">節</span>
+            <div>
+              <h3 class="font-heading text-xl font-bold tracking-widest">二十四節気</h3>
+              <p class="mt-3 leading-[2.1] text-muted-foreground">季節の変わり目を、やわらかい言葉で知らせます。立春、啓蟄、清明。名前の由来も、そっと添えます。</p>
+            </div>
+          </li>
+          <li id="moon" class="grid grid-cols-[5rem_1fr] items-baseline gap-6 border-b border-border py-9">
+            <span class="font-heading text-4xl font-bold text-primary" aria-hidden="true">月</span>
+            <div>
+              <h3 class="font-heading text-xl font-bold tracking-widest">月齢カレンダー</h3>
+              <p class="mt-3 leading-[2.1] text-muted-foreground">今夜の月を、陰影まで丁寧に描きます。満ち欠けの先の一か月を、一目で見通せます。</p>
+            </div>
+          </li>
+          <li class="grid grid-cols-[5rem_1fr] items-baseline gap-6 border-b border-border py-9">
+            <span class="font-heading text-4xl font-bold text-primary" aria-hidden="true">季</span>
+            <div>
+              <h3 class="font-heading text-xl font-bold tracking-widest">季語メモ</h3>
+              <p class="mt-3 leading-[2.1] text-muted-foreground">日々の便りに使える季語を、意味つきで引けます。手紙の書き出しに迷う朝にも。</p>
+            </div>
+          </li>
+          <li class="grid grid-cols-[5rem_1fr] items-baseline gap-6 border-b border-border py-9">
+            <span class="font-heading text-4xl font-bold text-primary" aria-hidden="true">事</span>
+            <div>
+              <h3 class="font-heading text-xl font-bold tracking-widest">行事のしおり</h3>
+              <p class="mt-3 leading-[2.1] text-muted-foreground">地域の行事を控えめに記録できます。祭りも法事も、同じ静かな書式で並びます。</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="bg-secondary px-6 py-24 md:px-12">
+        <div class="mx-auto max-w-5xl">
+          <p class="font-heading text-sm tracking-[0.4em] text-muted-foreground">今宵の月のならび</p>
+          <ul class="mt-10 grid grid-cols-3 gap-y-10 md:grid-cols-6">
+            <li class="text-center">
+              <svg viewBox="0 0 80 80" class="mx-auto size-16" role="img" aria-label="新月"><circle cx="40" cy="40" r="30" class="fill-none stroke-foreground/40" stroke-width="1.5"/></svg>
+              <p class="font-heading mt-3 text-sm tracking-widest">朔</p>
+            </li>
+            <li class="text-center">
+              <svg viewBox="0 0 80 80" class="mx-auto size-16" role="img" aria-label="三日月"><circle cx="40" cy="40" r="30" class="fill-foreground"/><circle cx="52" cy="40" r="27" class="fill-secondary"/></svg>
+              <p class="font-heading mt-3 text-sm tracking-widest">三日月</p>
+            </li>
+            <li class="text-center">
+              <svg viewBox="0 0 80 80" class="mx-auto size-16" role="img" aria-label="上弦の月"><circle cx="40" cy="40" r="30" class="fill-none stroke-foreground/40" stroke-width="1.5"/><path d="M40 10a30 30 0 0 1 0 60z" class="fill-foreground"/></svg>
+              <p class="font-heading mt-3 text-sm tracking-widest">上弦</p>
+            </li>
+            <li class="text-center">
+              <svg viewBox="0 0 80 80" class="mx-auto size-16" role="img" aria-label="十三夜"><circle cx="40" cy="40" r="30" class="fill-foreground"/><circle cx="62" cy="40" r="22" class="fill-secondary"/></svg>
+              <p class="font-heading mt-3 text-sm tracking-widest">十三夜</p>
+            </li>
+            <li class="text-center">
+              <svg viewBox="0 0 80 80" class="mx-auto size-16" role="img" aria-label="満月"><circle cx="40" cy="40" r="30" class="fill-brand-accent"/></svg>
+              <p class="font-heading mt-3 text-sm tracking-widest">望月</p>
+            </li>
+            <li class="text-center">
+              <svg viewBox="0 0 80 80" class="mx-auto size-16" role="img" aria-label="下弦の月"><circle cx="40" cy="40" r="30" class="fill-none stroke-foreground/40" stroke-width="1.5"/><path d="M40 10a30 30 0 0 0 0 60z" class="fill-foreground"/></svg>
+              <p class="font-heading mt-3 text-sm tracking-widest">下弦</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="voice" class="grid md:grid-cols-[1fr_1.4fr]">
+        <div class="flex items-center justify-center bg-primary px-6 py-20 text-primary-foreground">
+          <p class="font-heading text-2xl font-bold leading-[2.2] tracking-[0.25em] [writing-mode:vertical-rl]">朝の一杯に、<br>季節をひとつ。</p>
+        </div>
+        <div class="px-6 py-24 md:px-16">
+          <h2 class="font-heading text-sm tracking-[0.4em] text-muted-foreground">使っている人の声</h2>
+          <blockquote class="font-heading mt-8 max-w-xl text-xl leading-[2.2] tracking-wide">立秋の朝に届いた一行を読んで、窓を開けました。暦を見るというより、季節に声をかけられる感じです。</blockquote>
+          <p class="mt-6 text-sm tracking-widest text-muted-foreground">茶道教室を営む　Kさん</p>
+        </div>
+      </section>
+
+      <section id="start" class="border-t border-border px-6 py-28 text-center md:px-12">
+        <p class="font-heading text-sm tracking-[0.4em] text-muted-foreground">二十四節気の最初の一枚から</p>
+        <h2 class="font-heading mt-6 text-4xl font-bold tracking-[0.2em]">今日から、暦と暮らす。</h2>
+        <a href="#top" class="mt-12 inline-block rounded-sm bg-brand-accent px-12 py-4 font-bold tracking-[0.3em] text-brand-accent-foreground shadow-md transition-opacity hover:opacity-85 focus-visible:ring-2 ring-ring">暦をひらく</a>
+      </section>
+    </main>
+
+    <footer class="border-t border-border px-6 py-10 text-center text-sm text-muted-foreground md:px-12">
+      <p class="font-heading tracking-[0.3em]">和ごよみ</p>
+      <p class="mt-2">これは架空のサービスの見本です。</p>
+    </footer>
+  </body>
+</html>

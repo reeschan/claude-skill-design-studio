@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ja" data-theme="wa-modern" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>和モダン — ブログ記事の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* 和モダン — 藍と朱、明朝体。落ち着いた和の趣と現代的な読みやすさ */
+      [data-theme="wa-modern"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.011 70.0);
+        --foreground: oklch(0.240 0.012 70.0);
+        --card: oklch(1.000 0.000 70.0);
+        --muted: oklch(0.955 0.012 70.0);
+        --muted-foreground: oklch(0.520 0.012 70.0);
+        --border: oklch(0.900 0.012 70.0);
+        --input: oklch(0.900 0.012 70.0);
+        --secondary: oklch(0.940 0.012 70.0);
+        --primary: oklch(0.550 0.119 255.0);
+        --ring: oklch(0.620 0.120 255.0);
+        --accent: oklch(0.950 0.024 255.0);
+        --accent-foreground: oklch(0.350 0.090 255.0);
+        --brand-accent: oklch(0.600 0.096 40.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.240 0.012 70.0);
+        --secondary-foreground: oklch(0.240 0.012 70.0);
+        --primary-foreground: oklch(0.985 0.011 70.0);
+        --destructive-foreground: oklch(0.985 0.011 70.0);
+        --success-foreground: oklch(0.985 0.011 70.0);
+        --warning-foreground: oklch(0.180 0.012 70.0);
+        --brand-accent-foreground: oklch(0.180 0.012 70.0);
+        --theme-radius: 2px;
+        --theme-spacing-scale: 1.05;
+        --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+        --theme-font-heading: "Shippori Mincho", serif;
+        --theme-font-body: "Shippori Mincho", serif;
+        --theme-font-mono: "IBM Plex Mono", monospace;
+      }
+      [data-theme="wa-modern"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.012 70.0);
+        --foreground: oklch(0.940 0.012 70.0);
+        --card: oklch(0.200 0.012 70.0);
+        --muted: oklch(0.250 0.012 70.0);
+        --muted-foreground: oklch(0.660 0.012 70.0);
+        --border: oklch(0.300 0.012 70.0);
+        --input: oklch(0.300 0.012 70.0);
+        --secondary: oklch(0.270 0.012 70.0);
+        --primary: oklch(0.700 0.115 255.0);
+        --ring: oklch(0.620 0.120 255.0);
+        --accent: oklch(0.280 0.036 255.0);
+        --accent-foreground: oklch(0.850 0.075 255.0);
+        --brand-accent: oklch(0.720 0.090 40.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.940 0.012 70.0);
+        --secondary-foreground: oklch(0.940 0.012 70.0);
+        --primary-foreground: oklch(0.180 0.012 70.0);
+        --destructive-foreground: oklch(0.180 0.012 70.0);
+        --success-foreground: oklch(0.180 0.012 70.0);
+        --warning-foreground: oklch(0.180 0.012 70.0);
+        --brand-accent-foreground: oklch(0.180 0.012 70.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <a id="top"></a>
+    <header class="border-b border-border">
+      <nav class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
+        <div class="flex items-center gap-3">
+          <span class="flex size-9 items-center justify-center rounded-sm bg-brand-accent text-sm text-brand-accent-foreground">暦</span>
+          <span class="font-heading text-xl tracking-[0.3em]">和ごよみ</span>
+        </div>
+        <div class="flex gap-8 text-sm tracking-widest text-muted-foreground">
+          <a href="#" class="hover:text-foreground">節気</a>
+          <a href="#" class="hover:text-foreground">月齢</a>
+          <a href="#" class="hover:text-foreground">季語</a>
+        </div>
+      </nav>
+    </header>
+
+    <article>
+      <section class="border-b-4 border-double border-border">
+        <div class="mx-auto flex max-w-5xl flex-row-reverse items-start justify-center gap-10 px-6 py-16 md:justify-between">
+          <h1 class="font-heading text-5xl leading-[1.4] tracking-[0.2em] [writing-mode:vertical-rl]">立春の朝に、暦をひらく</h1>
+          <div class="max-w-md pt-2">
+            <p class="text-sm tracking-[0.3em] text-muted-foreground">暮らしに寄り添う暦 ／ 二月四日</p>
+            <p class="mt-8 text-lg leading-[2.2] tracking-wider">冬のさなかに、暦のうえでは春が来る。数字だけで日々を数えるのをやめて、二十四節気という古い物差しを、もう一度手元に置いてみる。</p>
+            <p class="mt-8 flex items-center gap-4 text-sm tracking-widest text-muted-foreground">
+              <span class="inline-block size-3 bg-brand-accent"></span>
+              読了 五分 ／ 和ごよみ編集部
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="mx-auto grid max-w-5xl gap-16 px-6 py-20 md:grid-cols-[1fr_16rem]">
+        <div class="max-w-xl">
+          <section id="sec-1">
+            <h2 class="flex items-baseline gap-4 border-b border-border pb-3 font-heading text-2xl tracking-widest">
+              <span class="text-brand-accent">一</span>二十四節気という物差し
+            </h2>
+            <p class="mt-8 leading-[2.2]">二十四節気は、太陽の動きをもとに一年を二十四に分けたものだ。およそ十五日ごとに名前がついていて、立春から始まり、大寒で終わる。月の満ち欠けで日を数える旧暦と並べて使われてきたのは、月だけでは季節が少しずつずれてしまうからだった。</p>
+            <p class="mt-6 leading-[2.2]">暦のうえの春は、肌で感じる春よりずっと早い。まだ霜の降りる朝に「春」と名づけるのは、気が早いようでいて、実は先を見て暮らすための知恵だった。冬のあいだに種を選び、土を整える。節気はそういう段取りの目印でもある。</p>
+          </section>
+
+          <section id="sec-2" class="mt-16">
+            <h2 class="flex items-baseline gap-4 border-b border-border pb-3 font-heading text-2xl tracking-widest">
+              <span class="text-brand-accent">二</span>七十二候で見る、五日ごとの変化
+            </h2>
+            <p class="mt-8 leading-[2.2]">節気をさらに三つに分けたのが七十二候である。立春の初候は「東風、氷を解く」。春の風が吹いて、厚い氷がゆるみはじめる頃という意味だ。次の候は「黄鶯、睍睆く」、うぐいすが鳴きはじめる。名前を読むだけで、その五日間の景色が浮かぶ。</p>
+            <p class="mt-6 leading-[2.2]">五日という単位は、思いのほかちょうどいい。一日では変化がわからず、一か月では大づかみになりすぎる。五日ごとに窓の外を見て、候の名と見比べる。それだけで、毎日の散歩が小さな答え合わせになる。</p>
+          </section>
+
+          <section id="sec-3" class="mt-16">
+            <h2 class="flex items-baseline gap-4 border-b border-border pb-3 font-heading text-2xl tracking-widest">
+              <span class="text-brand-accent">三</span>月の満ち欠けを書き留める
+            </h2>
+            <p class="mt-8 leading-[2.2]">月齢は、新月を零として数える。三日月は月齢およそ二、上弦は七、満月は十五のあたり。数字を覚える必要はなく、夜に空を見上げて、その形を手帖に小さく描いておけばいい。</p>
+            <blockquote class="my-10 border-l-2 border-brand-accent py-2 pl-6">
+              <p class="font-heading text-xl leading-[2] tracking-widest">月を見る日は、<br>一日が少し長くなる。</p>
+            </blockquote>
+            <p class="leading-[2.2]">毎晩同じ窓から描いていると、月が昇る場所が季節とともに動いていくのがわかる。陰影の濃さや雲のかかり方まで書き添えると、あとで読み返したときに、その夜の空気まで思い出せる。</p>
+          </section>
+
+          <section id="sec-4" class="mt-16">
+            <h2 class="flex items-baseline gap-4 border-b border-border pb-3 font-heading text-2xl tracking-widest">
+              <span class="text-brand-accent">四</span>季語を一つ、便りに添える
+            </h2>
+            <p class="mt-8 leading-[2.2]">季語は、俳句のためだけの言葉ではない。「春浅し」「薄氷」「梅便り」といった言葉を、手紙の書き出しやひとことの添え書きに使うと、文面がふっと和らぐ。意味を引いて確かめながら、一つずつ自分の言葉にしていく。</p>
+            <p class="mt-6 leading-[2.2]">節気、候、月、季語。この四つを手元に置くと、日々の暮らしに、静かな見出しがつく。立春の朝、まず窓を開けて、今日の候の名を声に出して読んでみてほしい。</p>
+          </section>
+
+          <p class="mt-16 border-t border-border pt-6 text-sm tracking-widest text-muted-foreground">次の便り &rarr; <a href="#" class="text-foreground underline underline-offset-8 decoration-border hover:decoration-brand-accent">雨水、氷が水に変わる頃</a></p>
+        </div>
+
+        <aside class="space-y-8 md:pt-2">
+          <nav class="border-4 border-double border-border p-5">
+            <p class="font-heading tracking-[0.4em]">目次</p>
+            <ol class="mt-4 space-y-3 text-sm leading-relaxed tracking-wider">
+              <li><a href="#sec-1" class="hover:text-primary"><span class="text-brand-accent">一</span>　節気という物差し</a></li>
+              <li><a href="#sec-2" class="hover:text-primary"><span class="text-brand-accent">二</span>　七十二候</a></li>
+              <li><a href="#sec-3" class="hover:text-primary"><span class="text-brand-accent">三</span>　月の満ち欠け</a></li>
+              <li><a href="#sec-4" class="hover:text-primary"><span class="text-brand-accent">四</span>　季語を便りに</a></li>
+            </ol>
+          </nav>
+
+          <div class="rounded-sm bg-muted p-5 shadow-md">
+            <p class="font-heading tracking-[0.4em]">今日の暦</p>
+            <dl class="mt-4 space-y-3 text-sm tracking-wider">
+              <div class="flex justify-between border-b border-border pb-2"><dt class="text-muted-foreground">節気</dt><dd>立春</dd></div>
+              <div class="flex justify-between border-b border-border pb-2"><dt class="text-muted-foreground">候</dt><dd>東風解凍</dd></div>
+              <div class="flex justify-between border-b border-border pb-2"><dt class="text-muted-foreground">月齢</dt><dd>十二・三</dd></div>
+              <div class="flex justify-between"><dt class="text-muted-foreground">季語</dt><dd>春立つ</dd></div>
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </article>
+
+    <footer class="border-t-4 border-double border-border">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-8 text-sm tracking-widest text-muted-foreground">
+        <span>和ごよみ ／ 暮らしに寄り添う暦</span>
+        <a href="#top" class="hover:text-foreground">頁のはじめへ</a>
+      </div>
+    </footer>
+  </body>
+</html>

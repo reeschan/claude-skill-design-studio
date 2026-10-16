@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ja" data-theme="pop" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ポップ — LP の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One:wght@400&family=Zen+Maru+Gothic:wght@500;700&family=Space+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* ポップ — 明るく元気で、まるい形と鮮やかな色が弾む印象 */
+      [data-theme="pop"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.012 330.0);
+        --foreground: oklch(0.200 0.020 330.0);
+        --card: oklch(1.000 0.000 330.0);
+        --muted: oklch(0.955 0.020 330.0);
+        --muted-foreground: oklch(0.480 0.020 330.0);
+        --border: oklch(0.900 0.020 330.0);
+        --input: oklch(0.900 0.020 330.0);
+        --secondary: oklch(0.940 0.020 330.0);
+        --primary: oklch(0.550 0.238 340.0);
+        --ring: oklch(0.620 0.240 340.0);
+        --accent: oklch(0.950 0.034 340.0);
+        --accent-foreground: oklch(0.350 0.154 340.0);
+        --brand-accent: oklch(0.600 0.104 190.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.200 0.020 330.0);
+        --secondary-foreground: oklch(0.200 0.020 330.0);
+        --primary-foreground: oklch(0.985 0.012 330.0);
+        --destructive-foreground: oklch(0.985 0.012 330.0);
+        --success-foreground: oklch(0.985 0.012 330.0);
+        --warning-foreground: oklch(0.180 0.020 330.0);
+        --brand-accent-foreground: oklch(0.180 0.020 330.0);
+        --theme-radius: 20px;
+        --theme-spacing-scale: 1.1;
+        --theme-shadow: 3px 3px 0 0 var(--foreground);
+        --theme-font-heading: "Mochiy Pop One", sans-serif;
+        --theme-font-body: "Zen Maru Gothic", sans-serif;
+        --theme-font-mono: "Space Mono", monospace;
+      }
+      [data-theme="pop"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.020 330.0);
+        --foreground: oklch(0.960 0.020 330.0);
+        --card: oklch(0.200 0.020 330.0);
+        --muted: oklch(0.250 0.020 330.0);
+        --muted-foreground: oklch(0.680 0.020 330.0);
+        --border: oklch(0.300 0.020 330.0);
+        --input: oklch(0.300 0.020 330.0);
+        --secondary: oklch(0.270 0.020 330.0);
+        --primary: oklch(0.700 0.230 340.0);
+        --ring: oklch(0.620 0.240 340.0);
+        --accent: oklch(0.280 0.072 340.0);
+        --accent-foreground: oklch(0.850 0.111 340.0);
+        --brand-accent: oklch(0.720 0.125 190.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.960 0.020 330.0);
+        --secondary-foreground: oklch(0.960 0.020 330.0);
+        --primary-foreground: oklch(0.180 0.020 330.0);
+        --destructive-foreground: oklch(0.180 0.020 330.0);
+        --success-foreground: oklch(0.180 0.020 330.0);
+        --warning-foreground: oklch(0.180 0.020 330.0);
+        --brand-accent-foreground: oklch(0.180 0.020 330.0);
+      }
+    </style>
+  </head>
+  <body class="overflow-x-hidden bg-background font-sans text-foreground" id="top">
+    <section class="relative overflow-hidden bg-primary text-primary-foreground">
+      <svg viewBox="0 0 600 600" class="absolute -top-24 -right-24 size-[34rem] fill-brand-accent" aria-hidden="true">
+        <path d="M300 30c80-10 170 40 210 120s60 160 10 230-140 200-230 190S120 520 70 430 20 250 90 160 220 40 300 30z"/>
+      </svg>
+      <svg viewBox="0 0 200 200" class="absolute bottom-10 left-6 size-28 fill-accent" aria-hidden="true">
+        <path d="M100 5l24 62 66 4-52 42 18 64-56-36-56 36 18-64L10 71l66-4z"/>
+      </svg>
+      <svg viewBox="0 0 100 100" class="absolute top-40 left-[46%] size-14 fill-background" aria-hidden="true">
+        <circle cx="50" cy="50" r="46"/>
+      </svg>
+
+      <header class="relative mx-auto flex max-w-6xl items-center justify-between px-6 pt-6">
+        <a href="#top" class="font-heading rounded-full border-2 border-foreground bg-card px-6 py-2 text-xl text-card-foreground shadow-md focus-visible:ring-2 ring-ring">まつりー</a>
+        <nav aria-label="主なリンク" class="hidden gap-3 text-sm font-bold md:flex">
+          <a href="#find" class="rounded-full border-2 border-foreground bg-card px-5 py-2 text-card-foreground shadow-md transition-transform hover:-translate-y-0.5">さがす</a>
+          <a href="#how" class="rounded-full border-2 border-foreground bg-card px-5 py-2 text-card-foreground shadow-md transition-transform hover:-translate-y-0.5">つかいかた</a>
+        </nav>
+      </header>
+
+      <div class="relative mx-auto max-w-6xl px-6 pt-20 pb-36">
+        <p class="inline-block -rotate-3 rounded-full border-2 border-foreground bg-accent px-5 py-2 text-sm font-bold text-accent-foreground shadow-md">きょうのたのしみを、いっしょに。</p>
+        <h1 class="font-heading mt-8 text-7xl leading-[1.05] md:text-[9rem]">きょう、<br>なにする<span class="ml-2 inline-block rotate-12 text-brand-accent">？</span></h1>
+        <p class="mt-10 max-w-md text-lg font-bold leading-relaxed">街のイベントを、まるいカードで元気に一覧できます。ぜんぶ、近所の「いま」です！</p>
+        <a href="#find" class="mt-10 inline-block rounded-full border-2 border-foreground bg-brand-accent px-10 py-5 text-xl font-bold text-brand-accent-foreground shadow-md transition-transform hover:-translate-y-1 focus-visible:ring-2 ring-ring active:translate-y-1">さがしてみる</a>
+      </div>
+    </section>
+
+    <div class="-mt-8 -rotate-2 overflow-hidden border-y-2 border-foreground bg-foreground py-4 text-background" aria-hidden="true">
+      <p class="font-heading whitespace-nowrap text-2xl tracking-widest">★ 週末マーケット ♪ ワークショップ ● ライブとお芝居 ✿ こども広場 ★ 週末マーケット ♪ ワークショップ ● ライブとお芝居 ✿ こども広場 ★ 週末マーケット ♪ ワークショップ</p>
+    </div>
+
+    <main>
+      <section id="find" class="mx-auto max-w-6xl px-6 py-28">
+        <h2 class="font-heading text-4xl md:text-6xl">どれにしようかな？</h2>
+        <div class="mt-16 grid gap-10 md:grid-cols-2">
+          <article class="rotate-1 rounded-lg border-2 border-foreground bg-card p-8 text-card-foreground shadow-md">
+            <p class="font-heading flex size-14 items-center justify-center rounded-full border-2 border-foreground bg-brand-accent text-2xl text-brand-accent-foreground" aria-hidden="true">★</p>
+            <h3 class="font-heading mt-6 text-3xl">週末マーケット</h3>
+            <p class="mt-3 text-lg font-bold leading-relaxed text-muted-foreground">近所の朝市から大きな蚤の市まで。今度の土曜は、パンと古本の日。</p>
+          </article>
+          <article class="-rotate-2 rounded-lg border-2 border-foreground bg-accent p-8 text-accent-foreground shadow-md md:mt-12">
+            <p class="font-heading flex size-14 items-center justify-center rounded-full border-2 border-foreground bg-primary text-2xl text-primary-foreground" aria-hidden="true">✿</p>
+            <h3 class="font-heading mt-6 text-3xl">ワークショップ</h3>
+            <p class="mt-3 text-lg font-bold leading-relaxed">手を動かす教室を、日付からさがせます。染め物、木工、はじめてのパン作り。</p>
+          </article>
+          <article class="-rotate-1 rounded-lg border-2 border-foreground bg-secondary p-8 text-secondary-foreground shadow-md">
+            <p class="font-heading flex size-14 items-center justify-center rounded-full border-2 border-foreground bg-accent text-2xl text-accent-foreground" aria-hidden="true">♪</p>
+            <h3 class="font-heading mt-6 text-3xl">ライブとお芝居</h3>
+            <p class="mt-3 text-lg font-bold leading-relaxed">小さな会場の公演も見落としません。当日券の有無までわかります。</p>
+          </article>
+          <article class="rotate-2 rounded-lg border-2 border-foreground bg-brand-accent p-8 text-brand-accent-foreground shadow-md md:mt-12">
+            <p class="font-heading flex size-14 items-center justify-center rounded-full border-2 border-foreground bg-card text-2xl text-card-foreground" aria-hidden="true">●</p>
+            <h3 class="font-heading mt-6 text-3xl">こども広場</h3>
+            <p class="mt-3 text-lg font-bold leading-relaxed">家族で出かけられる場所をまとめました。雨の日の逃げ場所つき！</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="how" class="border-y-2 border-foreground bg-accent px-6 py-24 text-accent-foreground">
+        <div class="mx-auto max-w-6xl">
+          <h2 class="font-heading text-4xl md:text-5xl">3 タップで、おでかけ。</h2>
+          <ol class="mt-14 grid gap-8 md:grid-cols-3">
+            <li class="flex items-center gap-5 rounded-full border-2 border-foreground bg-card py-4 pr-8 pl-4 text-card-foreground shadow-md">
+              <span class="font-heading flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-3xl text-primary-foreground">1</span>
+              <span class="text-lg font-bold">日付をえらぶ</span>
+            </li>
+            <li class="flex items-center gap-5 rounded-full border-2 border-foreground bg-card py-4 pr-8 pl-4 text-card-foreground shadow-md md:translate-y-6">
+              <span class="font-heading flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-accent text-3xl text-brand-accent-foreground">2</span>
+              <span class="text-lg font-bold">気分をえらぶ</span>
+            </li>
+            <li class="flex items-center gap-5 rounded-full border-2 border-foreground bg-card py-4 pr-8 pl-4 text-card-foreground shadow-md">
+              <span class="font-heading flex size-16 shrink-0 items-center justify-center rounded-full bg-foreground text-3xl text-background">3</span>
+              <span class="text-lg font-bold">カードを見て、ゴー！</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <section class="relative overflow-hidden bg-brand-accent px-6 py-32 text-center text-brand-accent-foreground">
+      <svg viewBox="0 0 200 200" class="absolute -bottom-10 -left-10 size-56 fill-primary" aria-hidden="true">
+        <circle cx="100" cy="100" r="90"/>
+      </svg>
+      <svg viewBox="0 0 200 200" class="absolute -top-10 -right-6 size-48 rotate-12 fill-background" aria-hidden="true">
+        <path d="M100 5l24 62 66 4-52 42 18 64-56-36-56 36 18-64L10 71l66-4z"/>
+      </svg>
+      <h2 class="font-heading relative text-5xl leading-tight md:text-8xl">今週末、<br>どこ行く？</h2>
+      <a href="#top" class="relative mt-12 inline-block rounded-full border-2 border-foreground bg-card px-12 py-5 text-xl font-bold text-card-foreground shadow-md transition-transform hover:-translate-y-1 focus-visible:ring-2 ring-ring active:translate-y-1">さがしてみる</a>
+    </section>
+
+    <footer class="bg-foreground px-6 py-10 text-center text-background">
+      <p class="font-heading text-2xl">まつりー</p>
+      <p class="mt-2 text-sm font-bold">これは架空のサービスの見本です。</p>
+    </footer>
+  </body>
+</html>

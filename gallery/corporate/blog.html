@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ja" data-theme="corporate" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>コーポレート — ブログ記事の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* コーポレート — 青を基調に、整った信頼感と落ち着きのある印象 */
+      [data-theme="corporate"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.007 258.0);
+        --foreground: oklch(0.200 0.010 258.0);
+        --card: oklch(1.000 0.000 258.0);
+        --muted: oklch(0.955 0.010 258.0);
+        --muted-foreground: oklch(0.480 0.010 258.0);
+        --border: oklch(0.900 0.010 258.0);
+        --input: oklch(0.900 0.010 258.0);
+        --secondary: oklch(0.940 0.010 258.0);
+        --primary: oklch(0.550 0.139 258.0);
+        --ring: oklch(0.620 0.140 258.0);
+        --accent: oklch(0.950 0.024 258.0);
+        --accent-foreground: oklch(0.350 0.105 258.0);
+        --brand-accent: oklch(0.600 0.112 150.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.200 0.010 258.0);
+        --secondary-foreground: oklch(0.200 0.010 258.0);
+        --primary-foreground: oklch(0.985 0.007 258.0);
+        --destructive-foreground: oklch(0.985 0.007 258.0);
+        --success-foreground: oklch(0.985 0.007 258.0);
+        --warning-foreground: oklch(0.180 0.010 258.0);
+        --brand-accent-foreground: oklch(0.180 0.010 258.0);
+        --theme-radius: 8px;
+        --theme-spacing-scale: 1;
+        --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+        --theme-font-heading: "Zen Kaku Gothic New", sans-serif;
+        --theme-font-body: "Noto Sans JP", sans-serif;
+        --theme-font-mono: "JetBrains Mono", monospace;
+      }
+      [data-theme="corporate"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.010 258.0);
+        --foreground: oklch(0.960 0.010 258.0);
+        --card: oklch(0.200 0.010 258.0);
+        --muted: oklch(0.250 0.010 258.0);
+        --muted-foreground: oklch(0.680 0.010 258.0);
+        --border: oklch(0.300 0.010 258.0);
+        --input: oklch(0.300 0.010 258.0);
+        --secondary: oklch(0.270 0.010 258.0);
+        --primary: oklch(0.700 0.134 258.0);
+        --ring: oklch(0.620 0.140 258.0);
+        --accent: oklch(0.280 0.042 258.0);
+        --accent-foreground: oklch(0.850 0.075 258.0);
+        --brand-accent: oklch(0.720 0.106 150.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.960 0.010 258.0);
+        --secondary-foreground: oklch(0.960 0.010 258.0);
+        --primary-foreground: oklch(0.180 0.010 258.0);
+        --destructive-foreground: oklch(0.180 0.010 258.0);
+        --success-foreground: oklch(0.180 0.010 258.0);
+        --warning-foreground: oklch(0.180 0.010 258.0);
+        --brand-accent-foreground: oklch(0.180 0.010 258.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <a id="top"></a>
+    <header class="border-b border-border bg-card">
+      <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+          <svg viewBox="0 0 24 24" class="size-7 text-primary" aria-hidden="true"><path fill="currentColor" d="M2 18 12 4l10 14h-6.5L12 12.5 8.5 18z"/></svg>
+          <span class="font-heading text-xl font-bold">ソラミチ</span>
+        </div>
+        <div class="hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
+          <a href="#" class="hover:text-foreground">サービス</a>
+          <a href="#" class="hover:text-foreground">導入事例</a>
+          <a href="#" class="border-b-2 border-primary pb-1 text-foreground">ブログ</a>
+          <a href="#" class="hover:text-foreground">会社情報</a>
+        </div>
+        <a href="#" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">資料をダウンロード</a>
+      </nav>
+    </header>
+
+    <div class="mx-auto max-w-6xl px-6 pt-8">
+      <p class="text-sm text-muted-foreground"><a href="#" class="hover:text-foreground">ホーム</a> / <a href="#" class="hover:text-foreground">ブログ</a> / 物流データの活用</p>
+    </div>
+
+    <article class="mx-auto max-w-6xl px-6 pb-20 pt-6">
+      <header class="max-w-3xl">
+        <p class="inline-block rounded-sm bg-accent px-3 py-1 text-xs font-bold tracking-wider text-accent-foreground">データ活用</p>
+        <h1 class="mt-5 font-heading text-4xl font-bold leading-tight">現場のデータを、経営の判断に。<br>物流の数字を読み解く 4 つの視点</h1>
+        <p class="mt-5 text-lg leading-8 text-muted-foreground">配送の進捗や在庫の動きは、毎日大量に記録されています。それを「見ているだけ」で終わらせず、次の一手につなげるために、私たちが現場で磨いてきた見方を整理しました。</p>
+        <div class="mt-6 flex items-center gap-4 text-sm">
+          <span class="flex size-10 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">佐</span>
+          <div>
+            <p class="font-medium">佐藤 啓介</p>
+            <p class="text-muted-foreground">ソラミチ 導入支援チーム ／ 2026 年 10 月 16 日 ／ 読了 7 分</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="mt-10 grid grid-cols-1 divide-y divide-border rounded-md border border-border bg-card shadow-md md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div class="p-6"><p class="text-sm text-muted-foreground">在庫回転日数の改善</p><p class="mt-2 font-heading text-4xl font-bold text-primary">−18<span class="text-lg">%</span></p></div>
+        <div class="p-6"><p class="text-sm text-muted-foreground">遅延の原因特定にかかる時間</p><p class="mt-2 font-heading text-4xl font-bold text-primary">1/4</p></div>
+        <div class="p-6"><p class="text-sm text-muted-foreground">導入から定着までの期間</p><p class="mt-2 font-heading text-4xl font-bold text-primary">約 3<span class="text-lg"> か月</span></p></div>
+      </div>
+
+      <div class="mt-12 grid gap-12 lg:grid-cols-[1fr_20rem]">
+        <div class="max-w-3xl">
+          <div class="rounded-md border-l-4 border-primary bg-muted p-6">
+            <p class="font-heading font-bold">この記事の要点</p>
+            <ul class="mt-3 list-disc space-y-2 pl-5 leading-7 text-muted-foreground">
+              <li>数字は「現在地」「所要時間」「在庫」「記録」の 4 つの軸で見る</li>
+              <li>異常値は、集計する前に現場へ戻して確かめる</li>
+              <li>判断の根拠が残る形にして、はじめて組織の資産になる</li>
+            </ul>
+          </div>
+
+          <section id="sec-1" class="mt-12">
+            <h2 class="flex items-center gap-3 font-heading text-2xl font-bold"><span class="flex size-8 items-center justify-center rounded-sm bg-primary text-base text-primary-foreground">1</span>荷物の「現在地」を、全員が同じ画面で見る</h2>
+            <p class="mt-5 leading-8">物流の相談で最も多いのは、「お客様から荷物の場所を聞かれて、答えるのに時間がかかる」というものです。営業、倉庫、配送の各担当が別々の表を見ていると、同じ荷物でも言うことが少しずつ食い違います。</p>
+            <p class="mt-4 leading-8">まず取り組むべきは、地図と一覧の両方で、現在地を同じ画面に表示することです。地図は全体の偏りを見つけるのに向き、一覧は特定の荷物を探すのに向いています。二つを行き来できるようにするだけで、問い合わせへの回答時間は大きく縮まります。</p>
+          </section>
+
+          <section id="sec-2" class="mt-12">
+            <h2 class="flex items-center gap-3 font-heading text-2xl font-bold"><span class="flex size-8 items-center justify-center rounded-sm bg-primary text-base text-primary-foreground">2</span>所要時間は、平均ではなく「ばらつき」で見る</h2>
+            <p class="mt-5 leading-8">配送の所要時間を平均だけで管理していると、遅れの本当の原因が隠れます。同じ平均四時間でも、毎回ほぼ四時間のルートと、二時間の日と六時間の日が混ざるルートでは、顧客への約束の仕方がまったく違うからです。</p>
+            <div class="mt-6 overflow-hidden rounded-md border border-border">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-secondary text-secondary-foreground"><tr><th class="px-4 py-3 font-medium">ルート</th><th class="px-4 py-3 font-medium">平均</th><th class="px-4 py-3 font-medium">ばらつき</th><th class="px-4 py-3 font-medium">対応</th></tr></thead>
+                <tbody class="divide-y divide-border">
+                  <tr><td class="px-4 py-3">A 倉庫 → 都心</td><td class="px-4 py-3">4.0 時間</td><td class="px-4 py-3">小</td><td class="px-4 py-3">時間指定を受ける</td></tr>
+                  <tr><td class="px-4 py-3">B 倉庫 → 湾岸</td><td class="px-4 py-3">4.1 時間</td><td class="px-4 py-3">大</td><td class="px-4 py-3">午前便に分ける</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-4 leading-8">平均が同じでも打つ手が違う、ということが一目でわかります。ばらつきの大きいルートは、時間帯や天候、荷役の待ちなど、原因を一つずつ切り分けていきます。</p>
+          </section>
+
+          <section id="sec-3" class="mt-12">
+            <h2 class="flex items-center gap-3 font-heading text-2xl font-bold"><span class="flex size-8 items-center justify-center rounded-sm bg-primary text-base text-primary-foreground">3</span>在庫は、需要の変化に合わせて動かす</h2>
+            <p class="mt-5 leading-8">適正な在庫量は固定の数字ではなく、需要の波に応じて変わります。季節や販促、取引先の発注の癖を踏まえ、拠点ごとに「今月はいくつ持つべきか」を見直す仕組みが必要です。</p>
+            <p class="mt-4 leading-8">私たちのお客様では、過去二年分の出荷実績から需要の予測を作り、毎週の会議で担当者が確かめています。機械が出した数字を、現場の感覚で修正する。この往復が、予測の精度と現場の納得感を同時に高めてくれます。</p>
+          </section>
+
+          <section id="sec-4" class="mt-12">
+            <h2 class="flex items-center gap-3 font-heading text-2xl font-bold"><span class="flex size-8 items-center justify-center rounded-sm bg-primary text-base text-primary-foreground">4</span>判断の根拠を、監査に耐える形で残す</h2>
+            <p class="mt-5 leading-8">誰が、いつ、どの数字を見て、何を決めたのか。この記録が残っていなければ、良い判断も悪い判断も、次に生かせません。さらに、取引先や監査からの問いに答える際にも、操作の履歴は欠かせない資料になります。</p>
+            <p class="mt-4 leading-8">導入の初期から記録の取り方を決めておけば、運用が広がっても手間は増えません。現場への定着までを見据えて設計することが、データ活用を一過性の取り組みで終わらせない一番の近道です。</p>
+          </section>
+        </div>
+
+        <aside class="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <nav class="rounded-md border border-border bg-card p-6 shadow-md">
+            <p class="font-heading font-bold">目次</p>
+            <ol class="mt-4 space-y-3 text-sm">
+              <li><a href="#sec-1" class="flex gap-3 text-muted-foreground hover:text-primary"><span class="font-mono text-foreground">01</span>荷物の現在地を見る</a></li>
+              <li><a href="#sec-2" class="flex gap-3 text-muted-foreground hover:text-primary"><span class="font-mono text-foreground">02</span>所要時間のばらつき</a></li>
+              <li><a href="#sec-3" class="flex gap-3 text-muted-foreground hover:text-primary"><span class="font-mono text-foreground">03</span>需要に合わせた在庫</a></li>
+              <li><a href="#sec-4" class="flex gap-3 text-muted-foreground hover:text-primary"><span class="font-mono text-foreground">04</span>監査に耐える記録</a></li>
+            </ol>
+          </nav>
+          <div class="rounded-md bg-primary p-6 text-primary-foreground shadow-md">
+            <p class="font-heading text-lg font-bold">導入ガイドを無料で配布中</p>
+            <p class="mt-3 text-sm leading-7">この記事の 4 つの視点を、導入の進め方に落とした資料です。</p>
+            <a href="#" class="mt-5 block rounded-md bg-card px-4 py-3 text-center text-sm font-bold text-foreground hover:bg-secondary">資料をダウンロード</a>
+          </div>
+        </aside>
+      </div>
+    </article>
+
+    <section class="border-t border-border bg-muted">
+      <div class="mx-auto max-w-6xl px-6 py-12">
+        <p class="font-heading text-xl font-bold">あわせて読みたい</p>
+        <div class="mt-6 grid gap-6 md:grid-cols-3">
+          <a href="#" class="rounded-md border border-border bg-card p-6 shadow-md hover:border-primary"><p class="text-xs font-bold text-primary">導入事例</p><p class="mt-2 font-medium leading-7">三拠点の在庫を一本化した、食品卸の 90 日</p></a>
+          <a href="#" class="rounded-md border border-border bg-card p-6 shadow-md hover:border-primary"><p class="text-xs font-bold text-primary">コラム</p><p class="mt-2 font-medium leading-7">監査対応を「年に一度の大仕事」にしない</p></a>
+          <a href="#" class="rounded-md border border-border bg-card p-6 shadow-md hover:border-primary"><p class="text-xs font-bold text-primary">ガイド</p><p class="mt-2 font-medium leading-7">現場に定着させる、導入支援の進め方</p></a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="border-t border-border bg-card">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 text-sm text-muted-foreground">
+        <span>ソラミチ ／ 物流を、もっと確かに。</span>
+        <a href="#top" class="hover:text-foreground">ページの先頭へ</a>
+      </div>
+    </footer>
+  </body>
+</html>

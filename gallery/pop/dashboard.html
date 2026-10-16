@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ja" data-theme="pop" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ポップ — ダッシュボードの見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One:wght@400&family=Zen+Maru+Gothic:wght@500;700&family=Space+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ポップ — 明るく元気で、まるい形と鮮やかな色が弾む印象 */
+[data-theme="pop"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.012 330.0);
+  --foreground: oklch(0.200 0.020 330.0);
+  --card: oklch(1.000 0.000 330.0);
+  --muted: oklch(0.955 0.020 330.0);
+  --muted-foreground: oklch(0.480 0.020 330.0);
+  --border: oklch(0.900 0.020 330.0);
+  --input: oklch(0.900 0.020 330.0);
+  --secondary: oklch(0.940 0.020 330.0);
+  --primary: oklch(0.550 0.238 340.0);
+  --ring: oklch(0.620 0.240 340.0);
+  --accent: oklch(0.950 0.034 340.0);
+  --accent-foreground: oklch(0.350 0.154 340.0);
+  --brand-accent: oklch(0.600 0.104 190.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.200 0.020 330.0);
+  --secondary-foreground: oklch(0.200 0.020 330.0);
+  --primary-foreground: oklch(0.985 0.012 330.0);
+  --destructive-foreground: oklch(0.985 0.012 330.0);
+  --success-foreground: oklch(0.985 0.012 330.0);
+  --warning-foreground: oklch(0.180 0.020 330.0);
+  --brand-accent-foreground: oklch(0.180 0.020 330.0);
+  --theme-radius: 20px;
+  --theme-spacing-scale: 1.1;
+  --theme-shadow: 3px 3px 0 0 var(--foreground);
+  --theme-font-heading: "Mochiy Pop One", sans-serif;
+  --theme-font-body: "Zen Maru Gothic", sans-serif;
+  --theme-font-mono: "Space Mono", monospace;
+}
+[data-theme="pop"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.020 330.0);
+  --foreground: oklch(0.960 0.020 330.0);
+  --card: oklch(0.200 0.020 330.0);
+  --muted: oklch(0.250 0.020 330.0);
+  --muted-foreground: oklch(0.680 0.020 330.0);
+  --border: oklch(0.300 0.020 330.0);
+  --input: oklch(0.300 0.020 330.0);
+  --secondary: oklch(0.270 0.020 330.0);
+  --primary: oklch(0.700 0.230 340.0);
+  --ring: oklch(0.620 0.240 340.0);
+  --accent: oklch(0.280 0.072 340.0);
+  --accent-foreground: oklch(0.850 0.111 340.0);
+  --brand-accent: oklch(0.720 0.125 190.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.960 0.020 330.0);
+  --secondary-foreground: oklch(0.960 0.020 330.0);
+  --primary-foreground: oklch(0.180 0.020 330.0);
+  --destructive-foreground: oklch(0.180 0.020 330.0);
+  --success-foreground: oklch(0.180 0.020 330.0);
+  --warning-foreground: oklch(0.180 0.020 330.0);
+  --brand-accent-foreground: oklch(0.180 0.020 330.0);
+}
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <div id="top" class="min-h-screen px-4 py-6 md:px-10">
+      <header class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+        <a href="#top" class="flex items-center gap-3">
+          <span class="grid size-12 -rotate-6 place-items-center rounded-lg border-2 border-foreground bg-primary font-heading text-xl text-primary-foreground shadow-md">ま</span>
+          <span class="font-heading text-3xl">まつりー</span>
+        </a>
+        <nav aria-label="メイン" class="flex flex-wrap gap-2 text-sm font-bold">
+          <a href="#top" class="rounded-lg border-2 border-foreground bg-foreground px-5 py-2 text-background">ホーム</a>
+          <a href="#ranking" class="rounded-lg border-2 border-foreground bg-card px-5 py-2 transition-transform hover:-translate-y-1">ランキング</a>
+          <a href="#week" class="rounded-lg border-2 border-foreground bg-card px-5 py-2 transition-transform hover:-translate-y-1">カレンダー</a>
+          <a href="#top" class="rounded-lg border-2 border-foreground bg-brand-accent px-5 py-2 text-brand-accent-foreground shadow-md transition-transform hover:-translate-y-1">さがしてみる</a>
+        </nav>
+      </header>
+
+      <main class="mx-auto mt-10 max-w-6xl">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <h1 class="font-heading text-5xl leading-tight md:text-6xl">きょう、<span class="inline-block -rotate-2 rounded-lg bg-brand-accent px-3 text-brand-accent-foreground">なにする？</span></h1>
+          <p class="max-w-xs text-sm font-bold leading-relaxed">街のイベントを、まるいカードで元気に一覧。<br>今週は 128 こ、たのしみがあるよ。</p>
+        </div>
+
+        <div class="mt-10 grid grid-cols-12 gap-5">
+          <section class="relative col-span-12 rotate-1 overflow-hidden rounded-lg border-2 border-foreground bg-primary p-7 text-primary-foreground shadow-md md:col-span-5" aria-labelledby="k1">
+            <h2 id="k1" class="text-sm font-bold">今週のイベント</h2>
+            <p class="mt-2 font-heading text-8xl leading-none">128</p>
+            <p class="mt-3 inline-block -rotate-3 rounded-lg border-2 border-foreground bg-card px-3 py-1 text-sm font-bold text-card-foreground">先週より 24 こ ふえた！</p>
+            <svg viewBox="0 0 120 120" class="absolute -right-6 -top-6 size-36 opacity-25" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="10" stroke-dasharray="4 14" stroke-linecap="round"/><circle cx="60" cy="60" r="30" fill="currentColor"/></svg>
+          </section>
+
+          <section class="col-span-12 -rotate-1 rounded-lg border-2 border-foreground bg-brand-accent p-7 text-brand-accent-foreground shadow-md sm:col-span-7 md:col-span-4" aria-labelledby="k2">
+            <h2 id="k2" class="text-sm font-bold">土曜の朝市に行く人</h2>
+            <p class="mt-2 font-heading text-6xl leading-none">1,240<span class="ml-1 text-lg">人</span></p>
+            <div class="mt-5 flex items-center" aria-label="参加予定のみなさん">
+              <span class="grid size-10 place-items-center rounded-full border-2 border-foreground bg-card text-sm font-bold text-card-foreground">ゆ</span>
+              <span class="-ml-2 grid size-10 place-items-center rounded-full border-2 border-foreground bg-primary text-sm font-bold text-primary-foreground">け</span>
+              <span class="-ml-2 grid size-10 place-items-center rounded-full border-2 border-foreground bg-secondary text-sm font-bold">あ</span>
+              <span class="-ml-2 grid size-10 place-items-center rounded-full border-2 border-foreground bg-foreground text-xs font-bold text-background">+99</span>
+            </div>
+          </section>
+
+          <section class="col-span-12 grid place-items-center rounded-lg border-2 border-foreground bg-secondary p-6 text-center shadow-md sm:col-span-5 md:col-span-3" aria-labelledby="k3">
+            <div>
+              <h2 id="k3" class="text-sm font-bold">あしたの空</h2>
+              <svg viewBox="0 0 100 100" class="mx-auto mt-2 size-20" role="img" aria-label="晴れのマーク">
+                <g class="stroke-foreground" stroke-width="6" stroke-linecap="round"><path d="M50 6v12M50 82v12M6 50h12M82 50h12M19 19l8 8M73 73l8 8M81 19l-8 8M27 73l-8 8"/></g>
+                <circle cx="50" cy="50" r="22" class="fill-primary stroke-foreground" stroke-width="4"/>
+              </svg>
+              <p class="mt-2 font-heading text-xl">おでかけ日和</p>
+            </div>
+          </section>
+
+          <section class="col-span-12 rounded-lg border-2 border-foreground bg-card p-7 shadow-md md:col-span-7" aria-labelledby="cat-h">
+            <h2 id="cat-h" class="font-heading text-2xl">どんなイベントが多い？</h2>
+            <div class="mt-5 flex flex-wrap items-center gap-8">
+              <div class="relative size-44 shrink-0">
+                <svg viewBox="0 0 120 120" class="size-44 -rotate-90" role="img" aria-label="カテゴリ別のイベント数。マーケット 49 件、ワークショップ 34 件、ライブとお芝居 27 件、こども広場 18 件">
+                  <circle cx="60" cy="60" r="40" fill="none" class="stroke-primary" stroke-width="26" stroke-dasharray="95.5 155.8" stroke-dashoffset="0"/>
+                  <circle cx="60" cy="60" r="40" fill="none" class="stroke-brand-accent" stroke-width="26" stroke-dasharray="67.9 183.4" stroke-dashoffset="-95.5"/>
+                  <circle cx="60" cy="60" r="40" fill="none" class="stroke-foreground" stroke-width="26" stroke-dasharray="52.8 198.5" stroke-dashoffset="-163.4"/>
+                  <circle cx="60" cy="60" r="40" fill="none" class="stroke-secondary" stroke-width="26" stroke-dasharray="35.2 216.1" stroke-dashoffset="-216.2"/>
+                  <circle cx="60" cy="60" r="53" fill="none" class="stroke-foreground" stroke-width="2"/>
+                  <circle cx="60" cy="60" r="27" fill="none" class="stroke-foreground" stroke-width="2"/>
+                </svg>
+                <p class="absolute inset-0 grid place-items-center text-center font-heading text-2xl leading-none">128<span class="-mt-4 block text-xs">こ</span></p>
+              </div>
+              <ul class="flex-1 space-y-3 text-sm font-bold">
+                <li class="flex items-center gap-3"><span class="size-5 rounded-full border-2 border-foreground bg-primary"></span>マーケット<span class="ml-auto font-heading text-xl">49</span></li>
+                <li class="flex items-center gap-3"><span class="size-5 rounded-full border-2 border-foreground bg-brand-accent"></span>ワークショップ<span class="ml-auto font-heading text-xl">34</span></li>
+                <li class="flex items-center gap-3"><span class="size-5 rounded-full border-2 border-foreground bg-foreground"></span>ライブとお芝居<span class="ml-auto font-heading text-xl">27</span></li>
+                <li class="flex items-center gap-3"><span class="size-5 rounded-full border-2 border-foreground bg-secondary"></span>こども広場<span class="ml-auto font-heading text-xl">18</span></li>
+              </ul>
+            </div>
+          </section>
+
+          <section id="week" class="col-span-12 rotate-1 rounded-lg border-2 border-foreground bg-card p-7 shadow-md md:col-span-5" aria-labelledby="week-h">
+            <h2 id="week-h" class="font-heading text-2xl">曜日ごとの こ数</h2>
+            <div class="mt-6 flex h-52 items-end gap-3 pt-8" role="img" aria-label="曜日ごとのイベント数。月 12、火 10、水 11、木 13、金 19、土 36、日 27">
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="text-xs font-bold">12</span><div class="h-[33%] rounded-lg border-2 border-foreground bg-secondary"></div></div>
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="text-xs font-bold">10</span><div class="h-[28%] rounded-lg border-2 border-foreground bg-secondary"></div></div>
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="text-xs font-bold">11</span><div class="h-[31%] rounded-lg border-2 border-foreground bg-secondary"></div></div>
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="text-xs font-bold">13</span><div class="h-[36%] rounded-lg border-2 border-foreground bg-secondary"></div></div>
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="text-xs font-bold">19</span><div class="h-[53%] rounded-lg border-2 border-foreground bg-brand-accent"></div></div>
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="font-heading text-lg text-primary">36</span><div class="h-[100%] rounded-lg border-2 border-foreground bg-primary"></div></div>
+              <div class="flex h-full flex-1 flex-col justify-end text-center"><span class="text-xs font-bold">27</span><div class="h-[75%] rounded-lg border-2 border-foreground bg-brand-accent"></div></div>
+            </div>
+            <div class="mt-2 flex gap-3 text-center text-sm font-bold"><span class="flex-1">月</span><span class="flex-1">火</span><span class="flex-1">水</span><span class="flex-1">木</span><span class="flex-1">金</span><span class="flex-1 text-primary">土</span><span class="flex-1">日</span></div>
+          </section>
+
+          <section id="ranking" class="col-span-12 -rotate-1 rounded-lg border-2 border-foreground bg-card p-7 shadow-md" aria-labelledby="rank-h">
+            <h2 id="rank-h" class="font-heading text-2xl">いま人気の イベント ベスト 5</h2>
+            <ol class="mt-5 grid gap-4 md:grid-cols-5">
+              <li class="rounded-lg border-2 border-foreground bg-primary p-4 text-primary-foreground"><span class="font-heading text-4xl">1</span><p class="mt-1 text-sm font-bold">土曜の朝市</p><p class="text-xs">1,240 人</p></li>
+              <li class="rounded-lg border-2 border-foreground bg-brand-accent p-4 text-brand-accent-foreground"><span class="font-heading text-4xl">2</span><p class="mt-1 text-sm font-bold">手づくり石けん教室</p><p class="text-xs">860 人</p></li>
+              <li class="rounded-lg border-2 border-foreground bg-secondary p-4"><span class="font-heading text-4xl">3</span><p class="mt-1 text-sm font-bold">公園ジャズ</p><p class="text-xs">790 人</p></li>
+              <li class="rounded-lg border-2 border-foreground bg-card p-4"><span class="font-heading text-4xl">4</span><p class="mt-1 text-sm font-bold">こども科学ひろば</p><p class="text-xs">640 人</p></li>
+              <li class="rounded-lg border-2 border-foreground bg-card p-4"><span class="font-heading text-4xl">5</span><p class="mt-1 text-sm font-bold">古本まつり</p><p class="text-xs">510 人</p></li>
+            </ol>
+          </section>
+        </div>
+      </main>
+
+      <footer class="mx-auto mt-12 max-w-6xl text-center font-heading text-lg">きょうのたのしみを、いっしょに。</footer>
+    </div>
+  </body>
+</html>

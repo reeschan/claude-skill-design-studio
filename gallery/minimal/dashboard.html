@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja" data-theme="minimal" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ミニマル — ダッシュボードの見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Source+Code+Pro:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ミニマル — 余白の広い、静かで飾らない道具のような印象 */
+[data-theme="minimal"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.005 250.0);
+  --foreground: oklch(0.240 0.005 250.0);
+  --card: oklch(1.000 0.000 250.0);
+  --muted: oklch(0.955 0.005 250.0);
+  --muted-foreground: oklch(0.520 0.005 250.0);
+  --border: oklch(0.900 0.005 250.0);
+  --input: oklch(0.900 0.005 250.0);
+  --secondary: oklch(0.940 0.005 250.0);
+  --primary: oklch(0.550 0.040 250.0);
+  --ring: oklch(0.620 0.040 250.0);
+  --accent: oklch(0.950 0.012 250.0);
+  --accent-foreground: oklch(0.350 0.030 250.0);
+  --brand-accent: oklch(0.550 0.040 250.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.240 0.005 250.0);
+  --secondary-foreground: oklch(0.240 0.005 250.0);
+  --primary-foreground: oklch(0.985 0.005 250.0);
+  --destructive-foreground: oklch(0.985 0.005 250.0);
+  --success-foreground: oklch(0.985 0.005 250.0);
+  --warning-foreground: oklch(0.180 0.005 250.0);
+  --brand-accent-foreground: oklch(0.985 0.005 250.0);
+  --theme-radius: 4px;
+  --theme-spacing-scale: 1.2;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Montserrat", sans-serif;
+  --theme-font-body: "Noto Sans JP", sans-serif;
+  --theme-font-mono: "Source Code Pro", monospace;
+}
+[data-theme="minimal"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.005 250.0);
+  --foreground: oklch(0.940 0.005 250.0);
+  --card: oklch(0.200 0.005 250.0);
+  --muted: oklch(0.250 0.005 250.0);
+  --muted-foreground: oklch(0.660 0.005 250.0);
+  --border: oklch(0.300 0.005 250.0);
+  --input: oklch(0.300 0.005 250.0);
+  --secondary: oklch(0.270 0.005 250.0);
+  --primary: oklch(0.700 0.038 250.0);
+  --ring: oklch(0.620 0.040 250.0);
+  --accent: oklch(0.280 0.012 250.0);
+  --accent-foreground: oklch(0.850 0.030 250.0);
+  --brand-accent: oklch(0.700 0.038 250.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.940 0.005 250.0);
+  --secondary-foreground: oklch(0.940 0.005 250.0);
+  --primary-foreground: oklch(0.180 0.005 250.0);
+  --destructive-foreground: oklch(0.180 0.005 250.0);
+  --success-foreground: oklch(0.180 0.005 250.0);
+  --warning-foreground: oklch(0.180 0.005 250.0);
+  --brand-accent-foreground: oklch(0.180 0.005 250.0);
+}
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <div id="top" class="min-h-screen">
+      <header class="border-b border-border">
+        <nav class="mx-auto flex max-w-4xl items-center justify-between px-6 py-6" aria-label="メイン">
+          <a href="#top" class="font-heading text-lg font-bold tracking-widest">余白</a>
+          <div class="flex items-center gap-10 text-sm">
+            <a href="#top" class="border-b border-foreground pb-1">概況</a>
+            <a href="#notes" class="pb-1 text-muted-foreground transition-colors hover:text-foreground">ノート</a>
+            <a href="#top" class="pb-1 text-muted-foreground transition-colors hover:text-foreground">書き出し</a>
+          </div>
+        </nav>
+      </header>
+
+      <main class="mx-auto max-w-4xl px-6 py-20">
+        <p class="text-xs tracking-widest text-muted-foreground">今週の執筆 / 10月12日 – 10月18日</p>
+
+        <section class="mt-10 grid items-end gap-16 md:grid-cols-5" aria-labelledby="week-total">
+          <div class="md:col-span-2">
+            <h1 id="week-total" class="sr-only">今週書いた文字数</h1>
+            <p class="font-heading text-7xl font-bold leading-none tracking-tight">12,480</p>
+            <p class="mt-4 text-sm text-muted-foreground">字を書きました。先週より 8% 多い、静かな一週間でした。</p>
+          </div>
+          <figure class="md:col-span-3">
+            <svg viewBox="0 0 400 124" class="w-full text-foreground" role="img" aria-label="曜日ごとの文字数。木曜が 2,780 字で最も多く、日曜は 1,150 字">
+              <line x1="20" y1="105" x2="380" y2="105" class="stroke-border" stroke-width="1"/>
+              <polyline points="20,64.6 80,43.5 140,54.9 200,20 260,69.8 320,30.7 380,69.8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+              <circle cx="380" cy="69.8" r="3.5" class="fill-foreground"/>
+              <g class="fill-muted-foreground text-[10px]" text-anchor="middle">
+                <text x="20" y="121">月</text><text x="80" y="121">火</text><text x="140" y="121">水</text><text x="200" y="121">木</text><text x="260" y="121">金</text><text x="320" y="121">土</text><text x="380" y="121">日</text>
+              </g>
+            </svg>
+          </figure>
+        </section>
+
+        <dl class="mt-24 grid grid-cols-3 border-t border-border">
+          <div class="py-8 pr-8">
+            <dt class="text-xs tracking-widest text-muted-foreground">集中した時間</dt>
+            <dd class="mt-3 font-heading text-3xl">18.5<span class="ml-1 text-sm text-muted-foreground">時間</span></dd>
+          </div>
+          <div class="border-l border-border px-8 py-8">
+            <dt class="text-xs tracking-widest text-muted-foreground">書いたノート</dt>
+            <dd class="mt-3 font-heading text-3xl">9<span class="ml-1 text-sm text-muted-foreground">冊</span></dd>
+          </div>
+          <div class="border-l border-border py-8 pl-8">
+            <dt class="text-xs tracking-widest text-muted-foreground">続けた日数</dt>
+            <dd class="mt-3 font-heading text-3xl">23<span class="ml-1 text-sm text-muted-foreground">日</span></dd>
+          </div>
+        </dl>
+
+        <section id="notes" class="mt-20" aria-labelledby="recent">
+          <h2 id="recent" class="text-xs tracking-widest text-muted-foreground">最近のノート</h2>
+          <ul class="mt-6 divide-y divide-border border-y border-border">
+            <li class="flex items-baseline justify-between py-5 transition-colors hover:bg-muted">
+              <a href="#top" class="text-base">来月の企画メモ</a>
+              <span class="font-mono text-sm text-muted-foreground">1,840 字 · 今日</span>
+            </li>
+            <li class="flex items-baseline justify-between py-5 transition-colors hover:bg-muted">
+              <a href="#top" class="text-base">読書ノート「余白の経済」</a>
+              <span class="font-mono text-sm text-muted-foreground">3,210 字 · 昨日</span>
+            </li>
+            <li class="flex items-baseline justify-between py-5 transition-colors hover:bg-muted">
+              <a href="#top" class="text-base">週次の振り返り</a>
+              <span class="font-mono text-sm text-muted-foreground">980 字 · 3 日前</span>
+            </li>
+            <li class="flex items-baseline justify-between py-5 transition-colors hover:bg-muted">
+              <a href="#top" class="text-base">旅の下書き</a>
+              <span class="font-mono text-sm text-muted-foreground">5,620 字 · 先週</span>
+            </li>
+          </ul>
+        </section>
+      </main>
+
+      <footer class="mx-auto max-w-4xl px-6 pb-16 text-xs text-muted-foreground">静けさが、思考を速くする。</footer>
+    </div>
+  </body>
+</html>

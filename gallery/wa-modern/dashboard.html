@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja" data-theme="wa-modern" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>和モダン — ダッシュボードの見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* 和モダン — 藍と朱、明朝体。落ち着いた和の趣と現代的な読みやすさ */
+[data-theme="wa-modern"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.011 70.0);
+  --foreground: oklch(0.240 0.012 70.0);
+  --card: oklch(1.000 0.000 70.0);
+  --muted: oklch(0.955 0.012 70.0);
+  --muted-foreground: oklch(0.520 0.012 70.0);
+  --border: oklch(0.900 0.012 70.0);
+  --input: oklch(0.900 0.012 70.0);
+  --secondary: oklch(0.940 0.012 70.0);
+  --primary: oklch(0.550 0.119 255.0);
+  --ring: oklch(0.620 0.120 255.0);
+  --accent: oklch(0.950 0.024 255.0);
+  --accent-foreground: oklch(0.350 0.090 255.0);
+  --brand-accent: oklch(0.600 0.096 40.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.240 0.012 70.0);
+  --secondary-foreground: oklch(0.240 0.012 70.0);
+  --primary-foreground: oklch(0.985 0.011 70.0);
+  --destructive-foreground: oklch(0.985 0.011 70.0);
+  --success-foreground: oklch(0.985 0.011 70.0);
+  --warning-foreground: oklch(0.180 0.012 70.0);
+  --brand-accent-foreground: oklch(0.180 0.012 70.0);
+  --theme-radius: 2px;
+  --theme-spacing-scale: 1.05;
+  --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+  --theme-font-heading: "Shippori Mincho", serif;
+  --theme-font-body: "Shippori Mincho", serif;
+  --theme-font-mono: "IBM Plex Mono", monospace;
+}
+[data-theme="wa-modern"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.012 70.0);
+  --foreground: oklch(0.940 0.012 70.0);
+  --card: oklch(0.200 0.012 70.0);
+  --muted: oklch(0.250 0.012 70.0);
+  --muted-foreground: oklch(0.660 0.012 70.0);
+  --border: oklch(0.300 0.012 70.0);
+  --input: oklch(0.300 0.012 70.0);
+  --secondary: oklch(0.270 0.012 70.0);
+  --primary: oklch(0.700 0.115 255.0);
+  --ring: oklch(0.620 0.120 255.0);
+  --accent: oklch(0.280 0.036 255.0);
+  --accent-foreground: oklch(0.850 0.075 255.0);
+  --brand-accent: oklch(0.720 0.090 40.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.940 0.012 70.0);
+  --secondary-foreground: oklch(0.940 0.012 70.0);
+  --primary-foreground: oklch(0.180 0.012 70.0);
+  --destructive-foreground: oklch(0.180 0.012 70.0);
+  --success-foreground: oklch(0.180 0.012 70.0);
+  --warning-foreground: oklch(0.180 0.012 70.0);
+  --brand-accent-foreground: oklch(0.180 0.012 70.0);
+}
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <div id="top" class="flex min-h-screen">
+      <aside class="hidden w-60 shrink-0 flex-col justify-between border-r border-border bg-card p-6 md:flex">
+        <div>
+          <a href="#top" class="block font-heading text-2xl font-bold tracking-widest">和ごよみ</a>
+          <p class="mt-2 text-xs leading-relaxed text-muted-foreground">暮らしに寄り添う暦</p>
+          <nav class="mt-12" aria-label="メイン">
+            <ul class="space-y-1 text-sm">
+              <li><a href="#top" class="flex items-center gap-3 rounded-sm bg-accent px-3 py-3 text-accent-foreground"><span class="size-1.5 rounded-sm bg-brand-accent"></span>今日の暦</a></li>
+              <li><a href="#sekki" class="flex items-center gap-3 rounded-sm px-3 py-3 text-muted-foreground transition-colors hover:bg-muted"><span class="size-1.5 rounded-sm bg-border"></span>二十四節気</a></li>
+              <li><a href="#tsuki" class="flex items-center gap-3 rounded-sm px-3 py-3 text-muted-foreground transition-colors hover:bg-muted"><span class="size-1.5 rounded-sm bg-border"></span>月齢カレンダー</a></li>
+              <li><a href="#kigo" class="flex items-center gap-3 rounded-sm px-3 py-3 text-muted-foreground transition-colors hover:bg-muted"><span class="size-1.5 rounded-sm bg-border"></span>季語メモ</a></li>
+              <li><a href="#gyoji" class="flex items-center gap-3 rounded-sm px-3 py-3 text-muted-foreground transition-colors hover:bg-muted"><span class="size-1.5 rounded-sm bg-border"></span>行事のしおり</a></li>
+            </ul>
+          </nav>
+        </div>
+        <div class="border-t border-border pt-5 text-xs leading-loose text-muted-foreground">
+          令和八年 神無月<br>
+          <span class="text-base text-foreground">十六日 金曜</span>
+        </div>
+      </aside>
+
+      <main class="min-w-0 flex-1 px-6 py-10 md:px-14 md:py-14">
+        <header class="flex items-end justify-between border-b border-border pb-6">
+          <div>
+            <p class="text-xs tracking-widest text-muted-foreground">本日の暦</p>
+            <h1 class="mt-2 font-heading text-3xl font-bold tracking-wide">季節を、手元に。</h1>
+          </div>
+          <a href="#kigo" class="rounded-sm border border-border px-5 py-2 text-sm transition-colors hover:bg-muted">暦をひらく</a>
+        </header>
+
+        <div class="mt-12 grid gap-10 lg:grid-cols-12">
+          <section id="sekki" class="rounded-md bg-card p-8 shadow-md lg:col-span-7" aria-labelledby="sekki-h">
+            <div class="flex gap-8">
+              <h2 id="sekki-h" class="font-heading text-sm tracking-widest text-muted-foreground [writing-mode:vertical-rl]">二十四節気</h2>
+              <div class="flex-1">
+                <p class="font-heading text-7xl font-bold leading-none tracking-widest">寒露</p>
+                <p class="mt-3 text-sm text-muted-foreground">かんろ — 草木に冷たい露が宿るころ</p>
+                <p class="mt-8 border-l-2 border-brand-accent pl-4 text-base leading-loose">
+                  七十二候は<strong class="font-bold">蟋蟀、戸に在り</strong>。<br>
+                  夜になると、虫の声が家のすぐそばで聞こえます。
+                </p>
+                <div class="mt-8">
+                  <div class="flex justify-between text-xs text-muted-foreground"><span>寒露 十月八日</span><span>霜降 十月二十三日</span></div>
+                  <div class="mt-2 h-1 bg-muted"><div class="h-1 w-[60%] bg-brand-accent"></div></div>
+                  <p class="mt-2 text-xs text-muted-foreground">次の節気まで あと 7 日</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="tsuki" class="rounded-md bg-card p-8 shadow-md lg:col-span-5" aria-labelledby="tsuki-h">
+            <h2 id="tsuki-h" class="font-heading text-sm tracking-widest text-muted-foreground">月齢</h2>
+            <div class="mt-6 flex items-center gap-6">
+              <svg viewBox="0 0 100 100" class="size-28 shrink-0" role="img" aria-label="今夜の月。細く右側が光る三日月より少し太い月">
+                <circle cx="50" cy="50" r="40" class="fill-secondary stroke-border" stroke-width="1"/>
+                <path d="M50 10 A40 40 0 0 1 50 90 A10 40 0 0 0 50 10 Z" class="fill-brand-accent"/>
+              </svg>
+              <div>
+                <p class="font-heading text-5xl font-bold">6.2</p>
+                <p class="mt-2 text-sm text-muted-foreground">今夜は上弦に向かう月。<br>南の空で、夕暮れから宵まで。</p>
+              </div>
+            </div>
+            <ol class="mt-8 grid grid-cols-7 gap-1 border-t border-border pt-5 text-center text-xs text-muted-foreground" aria-label="これからの七日間の月">
+              <li><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary"/><path d="M20 6 A14 14 0 0 1 20 34 A11.3 14 0 0 0 20 6 Z" class="fill-brand-accent"/></svg>13</li>
+              <li><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary"/><path d="M20 6 A14 14 0 0 1 20 34 A9.2 14 0 0 0 20 6 Z" class="fill-brand-accent"/></svg>14</li>
+              <li><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary"/><path d="M20 6 A14 14 0 0 1 20 34 A6.8 14 0 0 0 20 6 Z" class="fill-brand-accent"/></svg>15</li>
+              <li class="text-foreground"><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary stroke-foreground" stroke-width="1"/><path d="M20 6 A14 14 0 0 1 20 34 A4.1 14 0 0 0 20 6 Z" class="fill-brand-accent"/></svg>16</li>
+              <li><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary"/><path d="M20 6 A14 14 0 0 1 20 34 A1.1 14 0 0 0 20 6 Z" class="fill-brand-accent"/></svg>17</li>
+              <li><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary"/><path d="M20 6 A14 14 0 0 1 20 34 A1.8 14 0 0 1 20 6 Z" class="fill-brand-accent"/></svg>18</li>
+              <li><svg viewBox="0 0 40 40" class="mx-auto size-8" aria-hidden="true"><circle cx="20" cy="20" r="14" class="fill-secondary"/><path d="M20 6 A14 14 0 0 1 20 34 A4.8 14 0 0 1 20 6 Z" class="fill-brand-accent"/></svg>19</li>
+            </ol>
+          </section>
+        </div>
+
+        <div class="mt-10 grid gap-10 lg:grid-cols-12">
+          <section class="rounded-md bg-card p-8 shadow-md lg:col-span-7" aria-labelledby="visit-h">
+            <div class="flex items-baseline justify-between">
+              <h2 id="visit-h" class="font-heading text-sm tracking-widest text-muted-foreground">暦をひらいた回数 — 十二か月</h2>
+              <p class="text-xs text-muted-foreground">十月は途中</p>
+            </div>
+            <svg viewBox="0 0 370 134" class="mt-6 w-full" role="img" aria-label="直近 12 か月に暦を開いた回数。1 月が 740 回で最も多く、10 月は 680 回で途中">
+              <line x1="0" y1="110" x2="370" y2="110" class="stroke-foreground" stroke-width="1"/>
+              <g class="fill-muted-foreground opacity-40">
+                <rect x="10" y="41.6" width="10" height="68.4"/>
+                <rect x="40" y="29.7" width="10" height="80.3"/>
+                <rect x="70" y="12.6" width="10" height="97.4"/>
+                <rect x="100" y="46.8" width="10" height="63.2"/>
+                <rect x="130" y="50.8" width="10" height="59.2"/>
+                <rect x="160" y="36.3" width="10" height="73.7"/>
+                <rect x="190" y="44.2" width="10" height="65.8"/>
+                <rect x="220" y="58.7" width="10" height="51.3"/>
+                <rect x="250" y="62.6" width="10" height="47.4"/>
+                <rect x="280" y="56" width="10" height="54"/>
+                <rect x="310" y="28.4" width="10" height="81.6"/>
+              </g>
+              <rect x="340" y="20.5" width="10" height="89.5" class="fill-brand-accent"/>
+              <g class="fill-muted-foreground text-[10px]" text-anchor="middle">
+                <text x="15" y="126">11</text><text x="45" y="126">12</text><text x="75" y="126">1</text><text x="105" y="126">2</text><text x="135" y="126">3</text><text x="165" y="126">4</text><text x="195" y="126">5</text><text x="225" y="126">6</text><text x="255" y="126">7</text><text x="285" y="126">8</text><text x="315" y="126">9</text><text x="345" y="126" class="fill-foreground">10月</text>
+              </g>
+            </svg>
+          </section>
+
+          <section id="kigo" class="rounded-md bg-card p-8 shadow-md lg:col-span-5" aria-labelledby="kigo-h">
+            <h2 id="kigo-h" class="font-heading text-sm tracking-widest text-muted-foreground">季語メモ — 晩秋に使えるもの</h2>
+            <table class="mt-4 w-full text-sm">
+              <thead class="sr-only"><tr><th scope="col">季語</th><th scope="col">読み</th><th scope="col">意味</th></tr></thead>
+              <tbody class="divide-y divide-border">
+                <tr><th scope="row" class="py-4 pr-4 text-left font-heading text-lg font-bold">鰯雲</th><td class="pr-4 text-muted-foreground">いわしぐも</td><td class="text-right text-xs leading-relaxed">空一面に広がる<br>小さな雲のうろこ</td></tr>
+                <tr><th scope="row" class="py-4 pr-4 text-left font-heading text-lg font-bold">秋の暮</th><td class="pr-4 text-muted-foreground">あきのくれ</td><td class="text-right text-xs leading-relaxed">秋の夕暮れの<br>ものさびしさ</td></tr>
+                <tr><th scope="row" class="py-4 pr-4 text-left font-heading text-lg font-bold">新米</th><td class="pr-4 text-muted-foreground">しんまい</td><td class="text-right text-xs leading-relaxed">その年に採れた<br>ばかりのお米</td></tr>
+                <tr><th scope="row" class="py-4 pr-4 text-left font-heading text-lg font-bold">柿</th><td class="pr-4 text-muted-foreground">かき</td><td class="text-right text-xs leading-relaxed">朱色に熟れる<br>秋の実り</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+
+        <section id="gyoji" class="mt-10 rounded-md bg-card p-8 shadow-md" aria-labelledby="gyoji-h">
+          <h2 id="gyoji-h" class="font-heading text-sm tracking-widest text-muted-foreground">行事のしおり</h2>
+          <ol class="mt-6 grid gap-8 md:grid-cols-3">
+            <li class="flex gap-5 border-t-2 border-foreground pt-4">
+              <p class="font-heading text-3xl font-bold leading-none">17<span class="block pt-1 text-xs font-normal text-muted-foreground">十月</span></p>
+              <div><p class="font-bold">神嘗祭</p><p class="mt-1 text-xs leading-relaxed text-muted-foreground">その年の新穀を神に供える祭り。</p></div>
+            </li>
+            <li class="flex gap-5 border-t-2 border-brand-accent pt-4">
+              <p class="font-heading text-3xl font-bold leading-none">23<span class="block pt-1 text-xs font-normal text-muted-foreground">十月</span></p>
+              <div><p class="font-bold">霜降</p><p class="mt-1 text-xs leading-relaxed text-muted-foreground">朝晩の冷え込みが一段と深まります。</p></div>
+            </li>
+            <li class="flex gap-5 border-t-2 border-foreground pt-4">
+              <p class="font-heading text-3xl font-bold leading-none">25<span class="block pt-1 text-xs font-normal text-muted-foreground">十月</span></p>
+              <div><p class="font-bold">町内の文化祭</p><p class="mt-1 text-xs leading-relaxed text-muted-foreground">公民館で、書と陶芸の展示があります。</p></div>
+            </li>
+          </ol>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

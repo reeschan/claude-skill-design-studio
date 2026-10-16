@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja" data-theme="editorial" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>エディトリアル — ダッシュボードの見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* エディトリアル — 紙の質感を思わせる暖かい無彩色と、読み物らしい組版の印象 */
+[data-theme="editorial"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.012 75.0);
+  --foreground: oklch(0.200 0.015 75.0);
+  --card: oklch(1.000 0.000 75.0);
+  --muted: oklch(0.955 0.015 75.0);
+  --muted-foreground: oklch(0.480 0.015 75.0);
+  --border: oklch(0.900 0.015 75.0);
+  --input: oklch(0.900 0.015 75.0);
+  --secondary: oklch(0.940 0.015 75.0);
+  --primary: oklch(0.550 0.050 45.0);
+  --ring: oklch(0.620 0.050 45.0);
+  --accent: oklch(0.950 0.015 45.0);
+  --accent-foreground: oklch(0.350 0.038 45.0);
+  --brand-accent: oklch(0.600 0.040 20.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.200 0.015 75.0);
+  --secondary-foreground: oklch(0.200 0.015 75.0);
+  --primary-foreground: oklch(0.985 0.012 75.0);
+  --destructive-foreground: oklch(0.985 0.012 75.0);
+  --success-foreground: oklch(0.985 0.012 75.0);
+  --warning-foreground: oklch(0.180 0.015 75.0);
+  --brand-accent-foreground: oklch(0.180 0.015 75.0);
+  --theme-radius: 0px;
+  --theme-spacing-scale: 1.15;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Playfair Display", serif;
+  --theme-font-body: "Noto Serif JP", serif;
+  --theme-font-mono: "IBM Plex Mono", monospace;
+}
+[data-theme="editorial"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.015 75.0);
+  --foreground: oklch(0.960 0.015 75.0);
+  --card: oklch(0.200 0.015 75.0);
+  --muted: oklch(0.250 0.015 75.0);
+  --muted-foreground: oklch(0.680 0.015 75.0);
+  --border: oklch(0.300 0.015 75.0);
+  --input: oklch(0.300 0.015 75.0);
+  --secondary: oklch(0.270 0.015 75.0);
+  --primary: oklch(0.700 0.048 45.0);
+  --ring: oklch(0.620 0.050 45.0);
+  --accent: oklch(0.280 0.015 45.0);
+  --accent-foreground: oklch(0.850 0.038 45.0);
+  --brand-accent: oklch(0.720 0.038 20.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.960 0.015 75.0);
+  --secondary-foreground: oklch(0.960 0.015 75.0);
+  --primary-foreground: oklch(0.180 0.015 75.0);
+  --destructive-foreground: oklch(0.180 0.015 75.0);
+  --success-foreground: oklch(0.180 0.015 75.0);
+  --warning-foreground: oklch(0.180 0.015 75.0);
+  --brand-accent-foreground: oklch(0.180 0.015 75.0);
+}
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <div id="top" class="mx-auto min-h-screen max-w-6xl px-6 py-6 md:px-10">
+      <div class="flex items-center justify-between border-b border-border pb-2 text-xs text-muted-foreground">
+        <span>第 42 号 — 2026 年 10 月号</span>
+        <span class="hidden sm:inline">読者のしらべ 編集部調べ</span>
+        <span>10 月 16 日 金曜</span>
+      </div>
+
+      <header class="border-b-4 border-double border-foreground pb-5 pt-8 text-center">
+        <p class="font-heading text-xs uppercase tracking-widest text-muted-foreground">Paper &amp; Ink — A Quiet Web Magazine</p>
+        <a href="#top" class="mt-2 block font-heading text-5xl font-bold tracking-wide md:text-6xl">紙とインク</a>
+        <p class="mt-2 text-sm text-muted-foreground">読み物のための、静かなウェブ誌</p>
+      </header>
+      <nav class="flex justify-center gap-8 border-b border-border py-3 text-sm tracking-widest" aria-label="メイン">
+        <a href="#top" class="border-b border-foreground pb-0.5">概況</a>
+        <a href="#articles" class="pb-0.5 text-muted-foreground transition-colors hover:text-foreground">記事</a>
+        <a href="#readers" class="pb-0.5 text-muted-foreground transition-colors hover:text-foreground">読者</a>
+        <a href="#top" class="pb-0.5 text-muted-foreground transition-colors hover:text-foreground">最新号を読む</a>
+      </nav>
+
+      <main>
+        <section class="border-b border-border py-10 text-center" aria-labelledby="lead-h">
+          <p class="text-xs tracking-widest text-muted-foreground">今月の読者</p>
+          <h1 id="lead-h" class="mx-auto mt-3 max-w-3xl font-heading text-4xl font-bold leading-snug md:text-5xl">読者は 12,480 人。<br>前の月より、6 パーセント増えた。</h1>
+          <p class="mx-auto mt-5 max-w-xl text-sm leading-loose text-muted-foreground">長い文章を、ゆっくり読む。そのための場所に、静かに人が集まっています。</p>
+        </section>
+
+        <div class="grid md:grid-cols-3">
+          <article class="py-8 md:pr-8" aria-labelledby="note-h">
+            <h2 id="note-h" class="font-heading text-sm font-bold uppercase tracking-widest">編集後記</h2>
+            <p class="mt-4 text-sm leading-loose [text-align:justify]"><span class="float-left mr-2 font-heading text-6xl font-bold leading-[0.9]">十</span>月号の公開から一週間で、読者は 12,480 人になった。前の月は 11,770 人だったから、増えたのは 710 人である。数が伸びた理由を、編集部は一つに絞れずにいる。ただ、巻頭エッセイの読了率が 78% に届いたことは、素直にうれしい。</p>
+            <p class="mt-4 text-sm leading-loose [text-align:justify]">連載小説の最終ページまで読んだ人は 91% にのぼった。長い文章は、読まれないのではなく、読む場所が足りなかったのだと思う。</p>
+          </article>
+
+          <section id="articles" class="border-t border-border py-8 md:border-l md:border-t-0 md:px-8" aria-labelledby="rank-h">
+            <h2 id="rank-h" class="font-heading text-sm font-bold uppercase tracking-widest">よく読まれた記事</h2>
+            <ol class="mt-4 divide-y divide-border border-y border-border">
+              <li class="flex items-baseline gap-4 py-4"><span class="font-heading text-3xl font-bold">1</span><span class="flex-1 text-sm leading-snug">巻頭エッセイ「余白の経済」</span><span class="font-mono text-xs text-muted-foreground">3,420</span></li>
+              <li class="flex items-baseline gap-4 py-4"><span class="font-heading text-3xl font-bold">2</span><span class="flex-1 text-sm leading-snug">連載小説『雨の標本室』第 7 回</span><span class="font-mono text-xs text-muted-foreground">2,980</span></li>
+              <li class="flex items-baseline gap-4 py-4"><span class="font-heading text-3xl font-bold">3</span><span class="flex-1 text-sm leading-snug">書評 深夜の台所で読む三冊</span><span class="font-mono text-xs text-muted-foreground">2,310</span></li>
+              <li class="flex items-baseline gap-4 py-4"><span class="font-heading text-3xl font-bold">4</span><span class="flex-1 text-sm leading-snug">対談 つくる人どうしの、遠慮のない話</span><span class="font-mono text-xs text-muted-foreground">1,870</span></li>
+            </ol>
+            <p class="mt-2 text-right text-xs text-muted-foreground">閲覧数(回)</p>
+          </section>
+
+          <section id="readers" class="border-t border-border py-8 md:border-l md:border-t-0 md:pl-8" aria-labelledby="trend-h">
+            <h2 id="trend-h" class="font-heading text-sm font-bold uppercase tracking-widest">読者数の十二か月</h2>
+            <svg viewBox="0 0 360 200" class="mt-4 w-full" role="img" aria-label="直近 12 か月の読者数。9,120 人から 12,480 人まで、ほぼ一貫して増えている">
+              <g class="stroke-border" stroke-width="1"><line x1="20" x2="350" y1="57.5" y2="57.5"/><line x1="20" x2="350" y1="132.5" y2="132.5"/></g>
+              <line x1="20" x2="350" y1="170" y2="170" class="stroke-foreground" stroke-width="1"/>
+              <g class="fill-muted-foreground font-mono text-[9px]"><text x="22" y="53">12,000</text><text x="22" y="128">10,000</text></g>
+              <polyline points="20,165.5 50,152 80,142.6 110,126.9 140,130.2 170,116.7 200,99.5 230,92.7 260,81.9 290,79.2 320,66.1 350,39.5" fill="none" class="stroke-foreground" stroke-width="1.5" stroke-linejoin="round"/>
+              <circle cx="20" cy="165.5" r="2.5" class="fill-foreground"/>
+              <circle cx="350" cy="39.5" r="3.5" class="fill-brand-accent"/>
+              <g class="fill-foreground font-heading text-[11px] font-bold" text-anchor="end"><text x="342" y="30">12,480</text></g>
+              <g class="fill-muted-foreground font-mono text-[9px]"><text x="20" y="188">25/11</text><text x="170" y="188" text-anchor="middle">26/4</text><text x="350" y="188" text-anchor="end">26/10</text></g>
+            </svg>
+          </section>
+        </div>
+
+        <div class="grid border-t-2 border-foreground md:grid-cols-2">
+          <section class="py-8 md:pr-10" aria-labelledby="done-h">
+            <h2 id="done-h" class="font-heading text-sm font-bold uppercase tracking-widest">どこまで読まれたか</h2>
+            <ul class="mt-5 space-y-5 text-sm">
+              <li><div class="flex justify-between"><span>連載小説『雨の標本室』第 7 回</span><span class="font-heading font-bold">91%</span></div><div class="mt-2 h-px bg-border"><div class="-mt-px h-1 w-[91%] bg-foreground"></div></div></li>
+              <li><div class="flex justify-between"><span>巻頭エッセイ「余白の経済」</span><span class="font-heading font-bold">78%</span></div><div class="mt-2 h-px bg-border"><div class="-mt-px h-1 w-[78%] bg-foreground"></div></div></li>
+              <li><div class="flex justify-between"><span>対談 つくる人どうしの、遠慮のない話</span><span class="font-heading font-bold">72%</span></div><div class="mt-2 h-px bg-border"><div class="-mt-px h-1 w-[72%] bg-foreground"></div></div></li>
+              <li><div class="flex justify-between"><span>書評 深夜の台所で読む三冊</span><span class="font-heading font-bold">64%</span></div><div class="mt-2 h-px bg-border"><div class="-mt-px h-1 w-[64%] bg-foreground"></div></div></li>
+            </ul>
+          </section>
+
+          <section class="border-t border-border py-8 md:border-l md:border-t-0 md:pl-10" aria-labelledby="sub-h">
+            <h2 id="sub-h" class="font-heading text-sm font-bold uppercase tracking-widest">読者の内訳</h2>
+            <div class="mt-5 flex h-3 w-full" role="img" aria-label="定期購読 50%、単号購入 23%、無料メルマガ 27%">
+              <div class="w-[50%] bg-foreground"></div>
+              <div class="w-[23%] border-x border-background bg-brand-accent"></div>
+              <div class="w-[27%] bg-border"></div>
+            </div>
+            <dl class="mt-5 text-sm">
+              <div class="flex items-baseline gap-2 py-2"><dt class="flex items-center gap-2"><span class="size-2 bg-foreground"></span>定期購読</dt><span class="flex-1 border-b border-dotted border-muted-foreground"></span><dd class="font-heading font-bold">6,240 人</dd></div>
+              <div class="flex items-baseline gap-2 py-2"><dt class="flex items-center gap-2"><span class="size-2 bg-brand-accent"></span>単号購入</dt><span class="flex-1 border-b border-dotted border-muted-foreground"></span><dd class="font-heading font-bold">2,870 人</dd></div>
+              <div class="flex items-baseline gap-2 py-2"><dt class="flex items-center gap-2"><span class="size-2 bg-border"></span>無料メルマガ</dt><span class="flex-1 border-b border-dotted border-muted-foreground"></span><dd class="font-heading font-bold">3,370 人</dd></div>
+              <div class="mt-1 flex items-baseline gap-2 border-t border-foreground py-2"><dt class="font-bold">合計</dt><span class="flex-1"></span><dd class="font-heading font-bold">12,480 人</dd></div>
+            </dl>
+          </section>
+        </div>
+      </main>
+
+      <footer class="mt-6 border-t border-foreground pt-4 text-center text-xs text-muted-foreground">紙とインク 編集部 — 紙の本のような組みと余白で、書き手の言葉を届けます。</footer>
+    </div>
+  </body>
+</html>

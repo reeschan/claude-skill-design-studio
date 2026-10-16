@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja" data-theme="dark-tech" data-mode="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ダーク/テック — ブログ記事の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=JetBrains+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* ダーク/テック — 暗い背景にシアンと紫。精密で未来的な印象 */
+      [data-theme="dark-tech"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.020 270.0);
+        --foreground: oklch(0.960 0.019 270.0);
+        --card: oklch(0.200 0.020 270.0);
+        --muted: oklch(0.250 0.020 270.0);
+        --muted-foreground: oklch(0.680 0.020 270.0);
+        --border: oklch(0.300 0.020 270.0);
+        --input: oklch(0.300 0.020 270.0);
+        --secondary: oklch(0.270 0.020 270.0);
+        --primary: oklch(0.700 0.164 285.0);
+        --ring: oklch(0.620 0.180 285.0);
+        --accent: oklch(0.280 0.054 285.0);
+        --accent-foreground: oklch(0.850 0.077 285.0);
+        --brand-accent: oklch(0.720 0.123 195.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.960 0.019 270.0);
+        --secondary-foreground: oklch(0.960 0.019 270.0);
+        --primary-foreground: oklch(0.180 0.020 270.0);
+        --destructive-foreground: oklch(0.180 0.020 270.0);
+        --success-foreground: oklch(0.180 0.020 270.0);
+        --warning-foreground: oklch(0.180 0.020 270.0);
+        --brand-accent-foreground: oklch(0.180 0.020 270.0);
+        --theme-radius: 6px;
+        --theme-spacing-scale: 1.05;
+        --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+        --theme-font-heading: "Space Grotesk", sans-serif;
+        --theme-font-body: "Zen Kaku Gothic New", sans-serif;
+        --theme-font-mono: "JetBrains Mono", monospace;
+      }
+      [data-theme="dark-tech"][data-mode="light"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.007 270.0);
+        --foreground: oklch(0.200 0.020 270.0);
+        --card: oklch(1.000 0.000 270.0);
+        --muted: oklch(0.955 0.020 270.0);
+        --muted-foreground: oklch(0.480 0.020 270.0);
+        --border: oklch(0.900 0.020 270.0);
+        --input: oklch(0.900 0.020 270.0);
+        --secondary: oklch(0.940 0.020 270.0);
+        --primary: oklch(0.550 0.178 285.0);
+        --ring: oklch(0.620 0.180 285.0);
+        --accent: oklch(0.950 0.025 285.0);
+        --accent-foreground: oklch(0.350 0.135 285.0);
+        --brand-accent: oklch(0.600 0.103 195.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.200 0.020 270.0);
+        --secondary-foreground: oklch(0.200 0.020 270.0);
+        --primary-foreground: oklch(0.985 0.007 270.0);
+        --destructive-foreground: oklch(0.985 0.007 270.0);
+        --success-foreground: oklch(0.985 0.007 270.0);
+        --warning-foreground: oklch(0.180 0.020 270.0);
+        --brand-accent-foreground: oklch(0.180 0.020 270.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground">
+    <a id="top"></a>
+    <div class="bg-linear-to-b from-primary/20 to-transparent">
+      <header class="mx-auto flex max-w-3xl items-center justify-between px-6 py-5 font-mono text-sm">
+        <a href="#top" class="flex items-center gap-2 text-foreground">
+          <span class="inline-block size-2 animate-pulse rounded-full bg-brand-accent"></span>orbit
+        </a>
+        <nav class="flex gap-6 text-muted-foreground">
+          <a href="#" class="hover:text-brand-accent">/docs</a>
+          <a href="#" class="hover:text-brand-accent">/blog</a>
+          <a href="#" class="hover:text-brand-accent">/changelog</a>
+        </nav>
+      </header>
+
+      <div class="mx-auto max-w-3xl px-6 pb-16 pt-20">
+        <p class="font-mono text-sm text-brand-accent">orbit / blog / 2026-10-16</p>
+        <h1 class="mt-6 font-heading text-5xl font-bold leading-tight tracking-tight">障害の前に、気づく。<br><span class="text-primary">しきい値に頼らない異常検知</span></h1>
+        <p class="mt-8 text-lg leading-9 text-muted-foreground">「CPU 80% 超で通知」という設定は、午前三時には正しくても、月末の夕方には誤報になる。普段の動きを学ぶことで、しきい値を一つも書かずに異常を見つける仕組みを、Orbit でどう作ったかを書く。</p>
+        <div class="mt-8 flex flex-wrap gap-3 font-mono text-xs">
+          <span class="rounded-sm border border-border bg-card px-3 py-1 text-muted-foreground">#anomaly-detection</span>
+          <span class="rounded-sm border border-border bg-card px-3 py-1 text-muted-foreground">#observability</span>
+          <span class="rounded-sm border border-border bg-card px-3 py-1 text-muted-foreground">8 min read</span>
+        </div>
+      </div>
+    </div>
+
+    <article class="mx-auto max-w-3xl px-6 pb-24">
+      <section id="sec-1">
+        <h2 class="font-heading text-2xl font-bold"><span class="mr-3 font-mono text-brand-accent">01</span>固定のしきい値は、なぜ壊れるのか</h2>
+        <p class="mt-6 leading-9">しきい値は、運用する人の経験を数字にしたものだ。だが、サービスの利用は曜日や時間帯、キャンペーン、新機能の公開で絶えず形を変える。一度決めた数字は、そのたびに少しずつ現実からずれていく。</p>
+        <p class="mt-4 leading-9">結果として、夜間は誤報が多く、昼のピーク時は逆に見逃しが増える。通知が増えるほど人は通知を読まなくなり、本当に重要な一件が埋もれてしまう。しきい値の調整に時間を使うほど、肝心の原因調査の時間が減っていくのが現場の実情だった。</p>
+      </section>
+
+      <section id="sec-2" class="mt-16">
+        <h2 class="font-heading text-2xl font-bold"><span class="mr-3 font-mono text-brand-accent">02</span>「普段」を、時間帯ごとに学習する</h2>
+        <p class="mt-6 leading-9">Orbit は、メトリクスごとに過去四週間の同じ曜日・同じ時間帯の分布を保持する。いまの値がその分布のどこにあるかを見て、普段との距離が大きいときだけ「異常の候補」として扱う。固定の数字は一つも持たない。</p>
+        <figure class="mt-6 overflow-hidden rounded-md border border-border bg-card">
+          <figcaption class="flex items-center justify-between border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground"><span>~/orbit</span><span>zsh</span></figcaption>
+          <pre class="overflow-x-auto p-4 font-mono text-sm leading-7"><code><span class="text-muted-foreground">$</span> orbit detect --metric http.p99 --window 5m
+<span class="text-muted-foreground"># baseline: tue 18:00-18:05, 4 weeks</span>
+<span class="text-brand-accent">metric</span>    http.p99
+<span class="text-brand-accent">now</span>       <span class="text-warning">812ms</span>
+<span class="text-brand-accent">baseline</span>  <span class="text-success">240ms</span> (p10 180 / p90 310)
+<span class="text-brand-accent">score</span>     <span class="text-primary">4.7σ</span>  =&gt; <span class="text-warning">anomaly</span></code></pre>
+        </figure>
+        <p class="mt-6 leading-9">同じ 800 ミリ秒でも、月曜の朝の分布なら普通の範囲かもしれない。分布ごと比べているので、同じ値を時間帯によって異常と判断したり、しなかったりできる。</p>
+      </section>
+
+      <section id="sec-3" class="mt-16">
+        <h2 class="font-heading text-2xl font-bold"><span class="mr-3 font-mono text-brand-accent">03</span>一つの異常を、一つの通知にまとめる</h2>
+        <p class="mt-6 leading-9">異常の候補を出すだけでは、通知が増えるだけだ。そこで、依存関係のあるメトリクスの異常をひとまとめにし、最も上流にある原因を先頭に置いて一件として通知する。データベースの遅延が原因なら、その下流の API やキューの異常は、まとめて一つの事象として扱う。</p>
+        <div class="mt-6 overflow-hidden rounded-md border border-border">
+          <table class="w-full text-left font-mono text-sm">
+            <thead class="bg-muted text-muted-foreground"><tr><th class="px-4 py-3 font-normal">方式</th><th class="px-4 py-3 font-normal">通知/日</th><th class="px-4 py-3 font-normal">誤報率</th></tr></thead>
+            <tbody class="divide-y divide-border">
+              <tr><td class="px-4 py-3">固定しきい値</td><td class="px-4 py-3">64</td><td class="px-4 py-3 text-warning">71%</td></tr>
+              <tr><td class="px-4 py-3">分布ベース</td><td class="px-4 py-3">19</td><td class="px-4 py-3 text-warning">28%</td></tr>
+              <tr><td class="px-4 py-3">分布 + 原因の集約</td><td class="px-4 py-3">6</td><td class="px-4 py-3 text-success">9%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-sm leading-7 text-muted-foreground">社内の本番環境で 30 日間計測した平均値。</p>
+      </section>
+
+      <section id="sec-4" class="mt-16">
+        <h2 class="font-heading text-2xl font-bold"><span class="mr-3 font-mono text-brand-accent">04</span>CLI と API から、運用に組み込む</h2>
+        <p class="mt-6 leading-9">検知の結果は、画面で眺めるだけでなく、運用の自動化に組み込めるようにしてある。たとえば、異常のスコアが一定を超えたらデプロイを止める、といった判断を、CI の中から呼び出せる。</p>
+        <figure class="mt-6 overflow-hidden rounded-md border border-border bg-card">
+          <figcaption class="border-b border-border px-4 py-2 font-mono text-xs text-muted-foreground">.github/ci.yml</figcaption>
+          <pre class="overflow-x-auto p-4 font-mono text-sm leading-7"><code><span class="text-brand-accent">- run:</span> orbit detect --service api --since 10m --fail-on anomaly
+<span class="text-brand-accent">- run:</span> orbit report --format json &gt; orbit.json</code></pre>
+        </figure>
+        <p class="mt-6 leading-9">しきい値を手放すと、最初は少し心細い。それでも、数字の意味を考える時間が、サービスの変化を観察する時間に変わった。障害の前に気づく、というのは、結局その積み重ねの結果なのだと思う。</p>
+      </section>
+
+      <div class="mt-20 flex items-center justify-between rounded-md border border-border bg-card p-6">
+        <div>
+          <p class="font-mono text-xs text-muted-foreground">next</p>
+          <a href="#" class="mt-1 block font-heading text-lg hover:text-brand-accent">ログ検索を 10 倍速くした話 &rarr;</a>
+        </div>
+        <a href="#" class="rounded-md bg-primary px-4 py-2 font-mono text-sm text-primary-foreground hover:opacity-90">デモを見る</a>
+      </div>
+    </article>
+
+    <footer class="border-t border-border">
+      <div class="mx-auto flex max-w-3xl items-center justify-between px-6 py-6 font-mono text-xs text-muted-foreground">
+        <span>&copy; Orbit &mdash; インフラの今を、一望する。</span>
+        <a href="#top" class="hover:text-brand-accent">cd ~</a>
+      </div>
+    </footer>
+  </body>
+</html>

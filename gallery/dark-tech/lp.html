@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja" data-theme="dark-tech" data-mode="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ダーク/テック — LP の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=JetBrains+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* ダーク/テック — 暗い背景にシアンと紫。精密で未来的な印象 */
+      [data-theme="dark-tech"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.020 270.0);
+        --foreground: oklch(0.960 0.019 270.0);
+        --card: oklch(0.200 0.020 270.0);
+        --muted: oklch(0.250 0.020 270.0);
+        --muted-foreground: oklch(0.680 0.020 270.0);
+        --border: oklch(0.300 0.020 270.0);
+        --input: oklch(0.300 0.020 270.0);
+        --secondary: oklch(0.270 0.020 270.0);
+        --primary: oklch(0.700 0.164 285.0);
+        --ring: oklch(0.620 0.180 285.0);
+        --accent: oklch(0.280 0.054 285.0);
+        --accent-foreground: oklch(0.850 0.077 285.0);
+        --brand-accent: oklch(0.720 0.123 195.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.960 0.019 270.0);
+        --secondary-foreground: oklch(0.960 0.019 270.0);
+        --primary-foreground: oklch(0.180 0.020 270.0);
+        --destructive-foreground: oklch(0.180 0.020 270.0);
+        --success-foreground: oklch(0.180 0.020 270.0);
+        --warning-foreground: oklch(0.180 0.020 270.0);
+        --brand-accent-foreground: oklch(0.180 0.020 270.0);
+        --theme-radius: 6px;
+        --theme-spacing-scale: 1.05;
+        --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+        --theme-font-heading: "Space Grotesk", sans-serif;
+        --theme-font-body: "Zen Kaku Gothic New", sans-serif;
+        --theme-font-mono: "JetBrains Mono", monospace;
+      }
+      [data-theme="dark-tech"][data-mode="light"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.007 270.0);
+        --foreground: oklch(0.200 0.020 270.0);
+        --card: oklch(1.000 0.000 270.0);
+        --muted: oklch(0.955 0.020 270.0);
+        --muted-foreground: oklch(0.480 0.020 270.0);
+        --border: oklch(0.900 0.020 270.0);
+        --input: oklch(0.900 0.020 270.0);
+        --secondary: oklch(0.940 0.020 270.0);
+        --primary: oklch(0.550 0.178 285.0);
+        --ring: oklch(0.620 0.180 285.0);
+        --accent: oklch(0.950 0.025 285.0);
+        --accent-foreground: oklch(0.350 0.135 285.0);
+        --brand-accent: oklch(0.600 0.103 195.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.200 0.020 270.0);
+        --secondary-foreground: oklch(0.200 0.020 270.0);
+        --primary-foreground: oklch(0.985 0.007 270.0);
+        --destructive-foreground: oklch(0.985 0.007 270.0);
+        --success-foreground: oklch(0.985 0.007 270.0);
+        --warning-foreground: oklch(0.180 0.020 270.0);
+        --brand-accent-foreground: oklch(0.180 0.020 270.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground antialiased" id="top">
+    <div class="relative overflow-hidden">
+      <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:56px_56px] opacity-40 [mask-image:radial-gradient(ellipse_at_50%_0%,black,transparent_70%)]" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute -top-40 left-1/2 h-[32rem] w-[48rem] -translate-x-1/2 rounded-full bg-primary opacity-25 blur-3xl" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute top-40 right-[10%] h-64 w-64 rounded-full bg-brand-accent opacity-15 blur-3xl" aria-hidden="true"></div>
+
+      <header class="relative mx-auto flex max-w-5xl items-center justify-between px-6 py-6">
+        <a href="#top" class="flex items-center gap-2 font-heading text-lg font-bold tracking-tight focus-visible:ring-2 ring-ring">
+          <svg viewBox="0 0 24 24" class="size-6" aria-hidden="true"><circle cx="12" cy="12" r="10" class="fill-none stroke-primary" stroke-width="1.5"/><circle cx="12" cy="12" r="3.5" class="fill-brand-accent"/><circle cx="20" cy="9" r="1.5" class="fill-primary"/></svg>
+          Orbit
+        </a>
+        <nav aria-label="主なリンク" class="flex items-center gap-6 font-mono text-xs text-muted-foreground">
+          <a href="#features" class="hidden hover:text-foreground md:inline">/features</a>
+          <a href="#cli" class="hidden hover:text-foreground md:inline">/cli</a>
+          <a href="#plans" class="hidden hover:text-foreground md:inline">/plans</a>
+          <a href="#demo" class="rounded-md border border-border bg-card px-4 py-2 text-foreground hover:border-primary focus-visible:ring-2 ring-ring">デモを見る</a>
+        </nav>
+      </header>
+
+      <section class="relative mx-auto max-w-4xl px-6 pt-24 pb-28 text-center">
+        <p class="mx-auto inline-flex items-center gap-2 rounded-md border border-border bg-card/60 px-3 py-1 font-mono text-xs text-muted-foreground">
+          <span class="size-1.5 rounded-full bg-success"></span>インフラの今を、一望する。
+        </p>
+        <h1 class="font-heading mt-8 text-5xl font-bold leading-[1.1] tracking-tight md:text-7xl">障害の前に、<br><span class="bg-gradient-to-r from-primary to-brand-accent bg-clip-text text-transparent">気づく。</span></h1>
+        <p class="mx-auto mt-8 max-w-xl leading-8 text-muted-foreground">サーバーとネットワークの状態を、暗い画面でも読みやすく表示します。深夜のオンコールで見ても、目が疲れません。</p>
+        <div class="mt-10 flex flex-wrap justify-center gap-4">
+          <a id="demo" href="#features" class="rounded-md bg-primary px-8 py-3.5 font-bold text-primary-foreground shadow-md transition-opacity hover:opacity-90 focus-visible:ring-2 ring-ring">デモを見る</a>
+          <a href="#cli" class="rounded-md border border-border bg-card px-8 py-3.5 font-mono text-sm hover:border-brand-accent focus-visible:ring-2 ring-ring">$ orbit init</a>
+        </div>
+
+        <div class="mx-auto mt-20 max-w-3xl rounded-lg border border-border bg-card text-left shadow-md" role="img" aria-label="p95 レイテンシのグラフの例。異常を検知した地点に印が付いている">
+          <div class="flex items-center justify-between border-b border-border px-5 py-3 font-mono text-xs text-muted-foreground">
+            <span>api-gateway / p95 latency</span><span class="text-brand-accent">● live</span>
+          </div>
+          <svg viewBox="0 0 600 180" class="w-full" preserveAspectRatio="none">
+            <g class="stroke-border" stroke-width="1"><path d="M0 45H600M0 90H600M0 135H600"/></g>
+            <path d="M0 120C60 110 90 126 150 112S240 118 300 100 380 104 420 60 470 40 520 70 570 80 600 74" class="fill-none stroke-primary" stroke-width="2.5"/>
+            <path d="M0 120C60 110 90 126 150 112S240 118 300 100 380 104 420 60 470 40 520 70 570 80 600 74V180H0z" class="fill-primary opacity-10"/>
+            <circle cx="420" cy="60" r="6" class="fill-brand-accent"/><circle cx="420" cy="60" r="14" class="fill-none stroke-brand-accent" stroke-width="1.5"/>
+          </svg>
+          <div class="grid grid-cols-3 divide-x divide-border border-t border-border text-center font-mono text-xs">
+            <p class="py-3"><span class="text-muted-foreground">p95</span> 182ms</p>
+            <p class="py-3"><span class="text-muted-foreground">err</span> 0.02%</p>
+            <p class="py-3 text-brand-accent">anomaly @ 14:02</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <main>
+      <section id="features" class="mx-auto max-w-5xl px-6 py-24">
+        <p class="font-mono text-xs text-brand-accent">// features</p>
+        <h2 class="font-heading mt-3 text-3xl font-bold tracking-tight md:text-4xl">見るべきものだけが、光る。</h2>
+        <div class="mt-12 grid gap-4 md:grid-cols-6">
+          <article class="rounded-lg border border-border bg-card p-7 md:col-span-4">
+            <p class="font-mono text-xs text-primary">01 / realtime</p>
+            <h3 class="font-heading mt-3 text-xl font-bold">リアルタイム監視</h3>
+            <p class="mt-3 max-w-md leading-8 text-muted-foreground">メトリクスを 1 秒単位で追いかけます。1,000 台を並べても、描画は 60fps のままです。</p>
+            <svg viewBox="0 0 300 40" class="mt-6 h-10 w-full" preserveAspectRatio="none" aria-hidden="true"><path d="M0 28l20-6 20 8 20-14 20 10 20-4 20-12 20 14 20-6 20 4 20-18 20 12 20-2 20 6 20-10" class="fill-none stroke-brand-accent" stroke-width="2"/></svg>
+          </article>
+          <article class="rounded-lg border border-border bg-card p-7 md:col-span-2">
+            <p class="font-mono text-xs text-primary">02 / anomaly</p>
+            <h3 class="font-heading mt-3 text-xl font-bold">異常の検知</h3>
+            <p class="mt-3 leading-8 text-muted-foreground">普段と違う動きを、しきい値なしで見つけます。</p>
+          </article>
+          <article class="rounded-lg border border-border bg-card p-7 md:col-span-2">
+            <p class="font-mono text-xs text-primary">03 / logs</p>
+            <h3 class="font-heading mt-3 text-xl font-bold">ログ検索</h3>
+            <p class="mt-3 leading-8 text-muted-foreground">数百万行からでも、目的の 1 行にたどり着けます。</p>
+          </article>
+          <article class="rounded-lg border border-border bg-card p-7 md:col-span-4">
+            <p class="font-mono text-xs text-primary">04 / api &amp; cli</p>
+            <h3 class="font-heading mt-3 text-xl font-bold">API と CLI</h3>
+            <p class="mt-3 max-w-md leading-8 text-muted-foreground">運用の自動化に組み込める入口を用意しています。Terraform と GitHub Actions の例も付属します。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="cli" class="mx-auto max-w-5xl px-6 pb-24">
+        <div class="overflow-hidden rounded-lg border border-border bg-card shadow-md">
+          <div class="flex items-center gap-2 border-b border-border px-5 py-3">
+            <span class="size-2.5 rounded-full bg-destructive"></span><span class="size-2.5 rounded-full bg-warning"></span><span class="size-2.5 rounded-full bg-success"></span>
+            <span class="ml-3 font-mono text-xs text-muted-foreground">~/prod</span>
+          </div>
+          <pre class="overflow-x-auto p-6 font-mono text-sm leading-7"><code><span class="text-muted-foreground">$</span> orbit watch --service api-gateway
+<span class="text-brand-accent">✓</span> 12 hosts connected
+<span class="text-warning">!</span> 14:02:11  p95 latency  182ms  (usual 120ms)
+<span class="text-primary">→</span> likely cause: deploy #4412 (db pool 20 → 8)
+<span class="text-muted-foreground">$</span> orbit rollback 4412 --dry-run</code></pre>
+        </div>
+      </section>
+
+      <section id="plans" class="mx-auto max-w-5xl px-6 pb-28">
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="rounded-lg border border-border p-7">
+            <p class="font-mono text-xs text-muted-foreground">Hobby</p>
+            <p class="font-heading mt-3 text-4xl font-bold">¥0</p>
+            <p class="mt-3 text-sm leading-7 text-muted-foreground">5 ホストまで。1 分間隔のメトリクス。</p>
+          </div>
+          <div class="rounded-lg border border-primary bg-card p-7 shadow-md">
+            <p class="font-mono text-xs text-primary">Team</p>
+            <p class="font-heading mt-3 text-4xl font-bold">¥2,900<span class="text-sm font-normal text-muted-foreground"> /host</span></p>
+            <p class="mt-3 text-sm leading-7 text-muted-foreground">1 秒単位の監視、異常検知、30 日のログ。</p>
+          </div>
+          <div class="rounded-lg border border-border p-7">
+            <p class="font-mono text-xs text-muted-foreground">Scale</p>
+            <p class="font-heading mt-3 text-4xl font-bold">相談</p>
+            <p class="mt-3 text-sm leading-7 text-muted-foreground">SSO、監査ログ、専用のサポート窓口。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="relative overflow-hidden border-t border-border px-6 py-28 text-center">
+        <div class="pointer-events-none absolute -bottom-40 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary opacity-25 blur-3xl" aria-hidden="true"></div>
+        <h2 class="font-heading relative text-3xl font-bold tracking-tight md:text-5xl">次の障害は、画面の中で終わらせる。</h2>
+        <a href="#top" class="relative mt-10 inline-block rounded-md bg-primary px-10 py-4 font-bold text-primary-foreground shadow-md transition-opacity hover:opacity-90 focus-visible:ring-2 ring-ring">デモを見る</a>
+      </section>
+    </main>
+
+    <footer class="border-t border-border px-6 py-8 text-center font-mono text-xs text-muted-foreground">
+      Orbit — これは架空のサービスの見本です。
+    </footer>
+  </body>
+</html>

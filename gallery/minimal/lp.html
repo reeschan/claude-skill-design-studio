@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ja" data-theme="minimal" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ミニマル — LP の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Noto+Sans+JP:wght@400;700&family=Source+Code+Pro:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* ミニマル — 余白の広い、静かで飾らない道具のような印象 */
+      [data-theme="minimal"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.005 250.0);
+        --foreground: oklch(0.240 0.005 250.0);
+        --card: oklch(1.000 0.000 250.0);
+        --muted: oklch(0.955 0.005 250.0);
+        --muted-foreground: oklch(0.520 0.005 250.0);
+        --border: oklch(0.900 0.005 250.0);
+        --input: oklch(0.900 0.005 250.0);
+        --secondary: oklch(0.940 0.005 250.0);
+        --primary: oklch(0.550 0.040 250.0);
+        --ring: oklch(0.620 0.040 250.0);
+        --accent: oklch(0.950 0.012 250.0);
+        --accent-foreground: oklch(0.350 0.030 250.0);
+        --brand-accent: oklch(0.550 0.040 250.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.240 0.005 250.0);
+        --secondary-foreground: oklch(0.240 0.005 250.0);
+        --primary-foreground: oklch(0.985 0.005 250.0);
+        --destructive-foreground: oklch(0.985 0.005 250.0);
+        --success-foreground: oklch(0.985 0.005 250.0);
+        --warning-foreground: oklch(0.180 0.005 250.0);
+        --brand-accent-foreground: oklch(0.985 0.005 250.0);
+        --theme-radius: 4px;
+        --theme-spacing-scale: 1.2;
+        --theme-shadow: 0 0 #0000;
+        --theme-font-heading: "Montserrat", sans-serif;
+        --theme-font-body: "Noto Sans JP", sans-serif;
+        --theme-font-mono: "Source Code Pro", monospace;
+      }
+      [data-theme="minimal"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.005 250.0);
+        --foreground: oklch(0.940 0.005 250.0);
+        --card: oklch(0.200 0.005 250.0);
+        --muted: oklch(0.250 0.005 250.0);
+        --muted-foreground: oklch(0.660 0.005 250.0);
+        --border: oklch(0.300 0.005 250.0);
+        --input: oklch(0.300 0.005 250.0);
+        --secondary: oklch(0.270 0.005 250.0);
+        --primary: oklch(0.700 0.038 250.0);
+        --ring: oklch(0.620 0.040 250.0);
+        --accent: oklch(0.280 0.012 250.0);
+        --accent-foreground: oklch(0.850 0.030 250.0);
+        --brand-accent: oklch(0.700 0.038 250.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.940 0.005 250.0);
+        --secondary-foreground: oklch(0.940 0.005 250.0);
+        --primary-foreground: oklch(0.180 0.005 250.0);
+        --destructive-foreground: oklch(0.180 0.005 250.0);
+        --success-foreground: oklch(0.180 0.005 250.0);
+        --warning-foreground: oklch(0.180 0.005 250.0);
+        --brand-accent-foreground: oklch(0.180 0.005 250.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground antialiased" id="top">
+    <header class="mx-auto flex max-w-2xl items-center justify-between px-6 py-10">
+      <a href="#top" class="font-heading text-sm font-medium tracking-[0.4em] focus-visible:ring-2 ring-ring">余白</a>
+      <nav aria-label="主なリンク" class="flex gap-8 text-xs tracking-widest text-muted-foreground">
+        <a href="#features" class="transition-colors hover:text-foreground">機能</a>
+        <a href="#price" class="transition-colors hover:text-foreground">料金</a>
+        <a href="#faq" class="transition-colors hover:text-foreground">質問</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="mx-auto max-w-2xl px-6 pt-36 pb-44 text-center">
+        <p class="text-xs tracking-[0.5em] text-muted-foreground">書くことだけが残るノート</p>
+        <h1 class="font-heading mt-16 text-4xl font-medium leading-[1.7] tracking-wide md:text-6xl md:leading-[1.6]">静けさが、<br>思考を速くする。</h1>
+        <p class="mx-auto mt-14 max-w-md text-sm leading-[2.4] text-muted-foreground">飾りを削ぎ落とした画面で、書きたいことにだけ集中できます。通知も、ツールバーも、いまは見えません。</p>
+        <a href="#price" class="mt-20 inline-block rounded-sm bg-primary px-10 py-4 text-sm tracking-[0.3em] text-primary-foreground transition-opacity hover:opacity-80 focus-visible:ring-2 ring-ring active:opacity-70">無料で始める</a>
+        <div class="mx-auto mt-28 h-24 w-px bg-border" aria-hidden="true"></div>
+      </section>
+
+      <section id="features" class="mx-auto max-w-2xl px-6 pb-44">
+        <h2 class="text-center text-xs tracking-[0.5em] text-muted-foreground">できること</h2>
+        <ol class="mt-20">
+          <li class="grid grid-cols-[4rem_1fr] gap-4 border-t border-border py-14">
+            <span class="font-mono text-xs text-muted-foreground">01</span>
+            <div>
+              <h3 class="font-heading text-lg font-medium tracking-wide">集中モード</h3>
+              <p class="mt-4 text-sm leading-[2.2] text-muted-foreground">通知と装飾を消し、書くことだけを残します。いま書いている段落以外は、うっすらと沈みます。</p>
+            </div>
+          </li>
+          <li class="grid grid-cols-[4rem_1fr] gap-4 border-t border-border py-14">
+            <span class="font-mono text-xs text-muted-foreground">02</span>
+            <div>
+              <h3 class="font-heading text-lg font-medium tracking-wide">すぐ開く</h3>
+              <p class="mt-4 text-sm leading-[2.2] text-muted-foreground">大きなノートでも待たせない軽さで動きます。思いついた瞬間に、もう書き始められます。</p>
+            </div>
+          </li>
+          <li class="grid grid-cols-[4rem_1fr] gap-4 border-t border-border py-14">
+            <span class="font-mono text-xs text-muted-foreground">03</span>
+            <div>
+              <h3 class="font-heading text-lg font-medium tracking-wide">自動の見出し</h3>
+              <p class="mt-4 text-sm leading-[2.2] text-muted-foreground">書いた内容から見出しを組み立て、整理を助けます。決めるのは、いつもあなたです。</p>
+            </div>
+          </li>
+          <li class="grid grid-cols-[4rem_1fr] gap-4 border-y border-border py-14">
+            <span class="font-mono text-xs text-muted-foreground">04</span>
+            <div>
+              <h3 class="font-heading text-lg font-medium tracking-wide">書き出し自由</h3>
+              <p class="mt-4 text-sm leading-[2.2] text-muted-foreground">Markdown とプレーンテキストに対応します。いつでも持ち出せるので、乗り換えの心配はいりません。</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="mx-auto max-w-xl px-6 pb-44 text-center">
+        <p class="font-heading text-2xl font-medium leading-[2] tracking-wide">「画面から何も引かれていないのに、<br>自分の考えがいちばん大きく見える。」</p>
+        <p class="mt-10 text-xs tracking-[0.3em] text-muted-foreground">編集者・Mさん（試用 3 か月）</p>
+      </section>
+
+      <section id="price" class="mx-auto max-w-2xl px-6 pb-44 text-center">
+        <h2 class="text-xs tracking-[0.5em] text-muted-foreground">料金</h2>
+        <p class="font-heading mt-16 text-7xl font-medium tracking-tight md:text-8xl">0<span class="ml-2 text-xl tracking-widest">円</span></p>
+        <p class="mt-8 text-sm leading-[2.2] text-muted-foreground">ノートは 200 冊まで無料です。<br>それ以上は月 480 円。広告はありません。</p>
+        <a href="#top" class="mt-14 inline-block rounded-sm border border-border px-10 py-4 text-sm tracking-[0.3em] transition-colors hover:bg-secondary focus-visible:ring-2 ring-ring">無料で始める</a>
+      </section>
+
+      <section id="faq" class="mx-auto max-w-2xl px-6 pb-44">
+        <h2 class="text-center text-xs tracking-[0.5em] text-muted-foreground">よくある質問</h2>
+        <div class="mt-16">
+          <details class="group border-t border-border py-8">
+            <summary class="cursor-pointer list-none text-sm tracking-wide transition-colors hover:text-muted-foreground">ほかのメモアプリから移せますか。</summary>
+            <p class="mt-5 text-sm leading-[2.2] text-muted-foreground">Markdown かテキストのファイルなら、そのまま取り込めます。見出しの階層も保たれます。</p>
+          </details>
+          <details class="group border-t border-border py-8">
+            <summary class="cursor-pointer list-none text-sm tracking-wide transition-colors hover:text-muted-foreground">オフラインでも使えますか。</summary>
+            <p class="mt-5 text-sm leading-[2.2] text-muted-foreground">使えます。つながったときに、静かに同期します。</p>
+          </details>
+          <details class="group border-y border-border py-8">
+            <summary class="cursor-pointer list-none text-sm tracking-wide transition-colors hover:text-muted-foreground">やめたいときは。</summary>
+            <p class="mt-5 text-sm leading-[2.2] text-muted-foreground">設定から 1 回で書き出せます。残したデータは、30 日後にすべて消えます。</p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mx-auto max-w-2xl px-6 pb-20 text-center">
+      <p class="font-heading text-sm font-medium tracking-[0.4em]">余白</p>
+      <p class="mt-4 text-xs text-muted-foreground">これは架空のサービスの見本です。</p>
+    </footer>
+  </body>
+</html>

@@ -4,8 +4,631 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>design-studio</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f5f5f7;
+        --panel: #ffffff;
+        --fg: #1c1c21;
+        --muted: #5f5f6b;
+        --line: #d8d8de;
+        --accent: #3d4b73;
+        --accent-fg: #ffffff;
+        --notice-bg: #fff3d1;
+        --notice-fg: #4d3c05;
+        --notice-line: #e2c56b;
+        --error-fg: #b3261e;
+        --shadow: 0 1px 2px rgb(0 0 0 / 6%);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16161a;
+          --panel: #1f1f24;
+          --fg: #ececf1;
+          --muted: #a8a8b4;
+          --line: #35353d;
+          --accent: #b9c4e6;
+          --accent-fg: #14141a;
+          --notice-bg: #3a3218;
+          --notice-fg: #f0e3b4;
+          --notice-line: #5f5120;
+          --error-fg: #ffb4ab;
+          --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          "Hiragino Sans",
+          "Noto Sans JP",
+          sans-serif;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5 {
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+
+      p,
+      li {
+        overflow-wrap: anywhere;
+      }
+
+      /* 殻: 上部のアプリ名とタブ、注意の帯 */
+
+      .app-header {
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .app-header-inner {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 12px 16px;
+      }
+
+      .app-name {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .app-lead {
+        margin: 2px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .tab {
+        font: inherit;
+        padding: 6px 14px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .tab:hover {
+        color: var(--fg);
+      }
+
+      .tab[aria-current="page"] {
+        background: var(--bg);
+        border-color: var(--line);
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      .notice {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 10px 16px 0;
+      }
+
+      .notice p {
+        margin: 0 0 6px;
+        padding: 9px 12px;
+        border: 1px solid var(--notice-line);
+        border-radius: 8px;
+        background: var(--notice-bg);
+        color: var(--notice-fg);
+        font-size: 13.5px;
+      }
+
+      .app-main {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      .screen[hidden] {
+        display: none;
+      }
+
+      .screen-title {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+
+      .screen-lead {
+        margin: 0 0 14px;
+        color: var(--muted);
+      }
+
+      .status {
+        min-height: 1.6em;
+        margin: 8px 0;
+        font-size: 13.5px;
+        color: var(--muted);
+      }
+
+      .status-error {
+        color: var(--error-fg);
+      }
+
+      .field {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .btn {
+        font: inherit;
+        font-size: 13px;
+        padding: 4px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--fg);
+        cursor: pointer;
+      }
+
+      .btn[disabled] {
+        opacity: 0.5;
+        cursor: default;
+      }
+
+      .btn-primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--accent-fg);
+        font-weight: 600;
+      }
+
+      /* 台帳 */
+
+      .stage {
+        margin: 0 0 26px;
+      }
+
+      .stage-title {
+        margin: 0 0 2px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--line);
+        font-size: 17px;
+      }
+
+      .stage-note {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13.5px;
+      }
+
+      .role {
+        margin: 16px 0 0;
+      }
+
+      .role-title {
+        margin: 0 0 8px;
+        font-size: 14.5px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .card-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .card-name {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .card-summary {
+        margin: 8px 0;
+      }
+
+      .card-meta {
+        margin: 8px 0;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 8px 0;
+      }
+
+      .badge {
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--bg);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .badge-alert {
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .switch {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .details {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px dashed var(--line);
+      }
+
+      .details summary {
+        font-size: 13.5px;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .details h4 {
+        margin: 12px 0 4px;
+        font-size: 13px;
+      }
+
+      pre {
+        margin: 0;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 12.5px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .notes {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 13px;
+      }
+
+      .prereq {
+        margin: 10px 0 0;
+      }
+
+      .prereq-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        margin: 4px 0 0;
+      }
+
+      .prereq-row code,
+      .install-list code {
+        padding: 2px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--bg);
+        font-size: 12.5px;
+        overflow-wrap: anywhere;
+      }
+
+      .install {
+        margin: 30px 0 0;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+      }
+
+      .install-list {
+        margin: 6px 0 0;
+        padding-left: 20px;
+        font-size: 13.5px;
+      }
+
+      /* 見本帳 */
+
+      .gallery-scroll {
+        overflow-x: auto;
+        padding-bottom: 8px;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: minmax(170px, 210px) repeat(3, 320px);
+        gap: 12px;
+        align-items: start;
+      }
+
+      .gallery-col {
+        padding: 0 2px 6px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .gallery-style {
+        position: sticky;
+        left: 0;
+        z-index: 1;
+        padding: 10px 12px 10px 0;
+        background: var(--bg);
+      }
+
+      .gallery-style h3 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .gallery-style p {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .thumb {
+        position: relative;
+        width: 320px;
+        height: 200px;
+        overflow: hidden;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        cursor: zoom-in;
+      }
+
+      .thumb:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .thumb iframe {
+        width: 1280px;
+        height: 800px;
+        border: 0;
+        transform: scale(0.25);
+        transform-origin: top left;
+        pointer-events: none;
+      }
+
+      .thumb-empty {
+        display: grid;
+        place-items: center;
+        cursor: default;
+        background: var(--panel);
+      }
+
+      .thumb-empty span {
+        color: var(--muted);
+        font-size: 13.5px;
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        background: rgb(0 0 0 / 55%);
+      }
+
+      .overlay-panel {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 1240px;
+        height: 100%;
+        max-height: 960px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+      }
+
+      .overlay-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .overlay-title {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .overlay-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        align-items: center;
+        font-size: 13px;
+      }
+
+      .overlay-controls select {
+        font: inherit;
+        font-size: 13px;
+        padding: 3px 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--fg);
+      }
+
+      .seg {
+        display: inline-flex;
+        gap: 4px;
+      }
+
+      .seg button {
+        font: inherit;
+        font-size: 13px;
+        padding: 3px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .seg button[aria-pressed="true"] {
+        border-color: var(--accent);
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      .overlay-status {
+        margin: 0;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .overlay-body {
+        flex: 1;
+        min-height: 0;
+        background: #fff;
+      }
+
+      .overlay-body iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+    </style>
   </head>
   <body>
-    <p>準備中</p>
+    <header class="app-header">
+      <div class="app-header-inner">
+        <div>
+          <p class="app-name">design-studio</p>
+          <p class="app-lead">曖昧な一言から、ページの見た目を具体化する</p>
+        </div>
+        <nav class="tabs" aria-label="画面">
+          <button type="button" class="tab" data-tab="catalog" aria-current="page">台帳</button>
+          <button type="button" class="tab" data-tab="gallery">見本帳</button>
+          <button type="button" class="tab" data-tab="workbench">作業台</button>
+        </nav>
+      </div>
+      <div class="notice" id="meta-notice" hidden></div>
+    </header>
+    <main class="app-main">
+      <section id="catalog" class="screen" aria-label="台帳"></section>
+      <section id="gallery" class="screen" aria-label="見本帳" hidden></section>
+      <section id="workbench" class="screen" aria-label="作業台" hidden>
+        <p>準備中</p>
+      </section>
+    </main>
+    <script type="module" src="/app/ui-catalog.js"></script>
+    <script type="module" src="/app/ui-gallery.js"></script>
+    <script type="module" src="/app/ui-workbench.js"></script>
+    <script type="module">
+      // 殻の処理: タブの切り替えと、起動時の注意の帯 (style-guide と claude CLI の有無) の表示
+      const tabs = Array.from(document.querySelectorAll("button[data-tab]"));
+      const screens = Array.from(document.querySelectorAll("main .screen"));
+
+      function showTab(tab) {
+        for (const button of tabs) {
+          if (button.dataset.tab === tab) button.setAttribute("aria-current", "page");
+          else button.removeAttribute("aria-current");
+        }
+        for (const screen of screens) {
+          screen.hidden = screen.id !== tab;
+        }
+      }
+
+      for (const button of tabs) {
+        button.addEventListener("click", () => showTab(button.dataset.tab ?? "catalog"));
+      }
+
+      async function checkMeta() {
+        const notice = document.getElementById("meta-notice");
+        if (notice === null) return;
+        let meta = null;
+        try {
+          const res = await fetch("/api/meta");
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          meta = await res.json();
+        } catch {
+          const failed = document.createElement("p");
+          failed.textContent = "起動時の確認に失敗しました。アプリのサーバーが動いているか確かめてください。";
+          notice.append(failed);
+          notice.hidden = false;
+          return;
+        }
+        const info = typeof meta === "object" && meta !== null ? meta : {};
+        const messages = [];
+        if (info.styleGuide !== "ok") {
+          messages.push("style-guide が入っていません。テーマを作るには、Claude Code で /design-studio install を実行してください。");
+        }
+        if (info.llmAvailable !== true) {
+          messages.push("claude CLI が見つかりません。方向性の案とページの作成には claude CLI が必要です (Claude Code と一緒に入ります)。");
+        }
+        for (const message of messages) {
+          const line = document.createElement("p");
+          line.textContent = message;
+          notice.append(line);
+        }
+        if (messages.length > 0) notice.hidden = false;
+      }
+
+      void checkMeta();
+    </script>
   </body>
 </html>

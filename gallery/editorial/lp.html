@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ja" data-theme="editorial" data-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>エディトリアル — LP の見本</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+    <style type="text/tailwindcss" id="theme">
+      @theme inline {
+        --color-background: var(--background);
+        --color-foreground: var(--foreground);
+        --color-card: var(--card);
+        --color-muted: var(--muted);
+        --color-muted-foreground: var(--muted-foreground);
+        --color-border: var(--border);
+        --color-input: var(--input);
+        --color-secondary: var(--secondary);
+        --color-primary: var(--primary);
+        --color-ring: var(--ring);
+        --color-accent: var(--accent);
+        --color-accent-foreground: var(--accent-foreground);
+        --color-brand-accent: var(--brand-accent);
+        --color-destructive: var(--destructive);
+        --color-success: var(--success);
+        --color-warning: var(--warning);
+        --color-card-foreground: var(--card-foreground);
+        --color-secondary-foreground: var(--secondary-foreground);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-destructive-foreground: var(--destructive-foreground);
+        --color-success-foreground: var(--success-foreground);
+        --color-warning-foreground: var(--warning-foreground);
+        --color-brand-accent-foreground: var(--brand-accent-foreground);
+        --radius-sm: calc(var(--theme-radius) * 0.5);
+        --radius-md: var(--theme-radius);
+        --radius-lg: calc(var(--theme-radius) * 1.5);
+        --spacing: calc(0.25rem * var(--theme-spacing-scale));
+        --shadow-md: var(--theme-shadow);
+        --font-sans: var(--theme-font-body);
+        --font-heading: var(--theme-font-heading);
+        --font-mono: var(--theme-font-mono);
+      }
+
+      /* エディトリアル — 紙の質感を思わせる暖かい無彩色と、読み物らしい組版の印象 */
+      [data-theme="editorial"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.012 75.0);
+        --foreground: oklch(0.200 0.015 75.0);
+        --card: oklch(1.000 0.000 75.0);
+        --muted: oklch(0.955 0.015 75.0);
+        --muted-foreground: oklch(0.480 0.015 75.0);
+        --border: oklch(0.900 0.015 75.0);
+        --input: oklch(0.900 0.015 75.0);
+        --secondary: oklch(0.940 0.015 75.0);
+        --primary: oklch(0.550 0.050 45.0);
+        --ring: oklch(0.620 0.050 45.0);
+        --accent: oklch(0.950 0.015 45.0);
+        --accent-foreground: oklch(0.350 0.038 45.0);
+        --brand-accent: oklch(0.600 0.040 20.0);
+        --destructive: oklch(0.550 0.198 25.0);
+        --success: oklch(0.500 0.138 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.200 0.015 75.0);
+        --secondary-foreground: oklch(0.200 0.015 75.0);
+        --primary-foreground: oklch(0.985 0.012 75.0);
+        --destructive-foreground: oklch(0.985 0.012 75.0);
+        --success-foreground: oklch(0.985 0.012 75.0);
+        --warning-foreground: oklch(0.180 0.015 75.0);
+        --brand-accent-foreground: oklch(0.180 0.015 75.0);
+        --theme-radius: 0px;
+        --theme-spacing-scale: 1.15;
+        --theme-shadow: 0 0 #0000;
+        --theme-font-heading: "Playfair Display", serif;
+        --theme-font-body: "Noto Serif JP", serif;
+        --theme-font-mono: "IBM Plex Mono", monospace;
+      }
+      [data-theme="editorial"][data-mode="dark"] {
+        color-scheme: dark;
+        --background: oklch(0.160 0.015 75.0);
+        --foreground: oklch(0.960 0.015 75.0);
+        --card: oklch(0.200 0.015 75.0);
+        --muted: oklch(0.250 0.015 75.0);
+        --muted-foreground: oklch(0.680 0.015 75.0);
+        --border: oklch(0.300 0.015 75.0);
+        --input: oklch(0.300 0.015 75.0);
+        --secondary: oklch(0.270 0.015 75.0);
+        --primary: oklch(0.700 0.048 45.0);
+        --ring: oklch(0.620 0.050 45.0);
+        --accent: oklch(0.280 0.015 45.0);
+        --accent-foreground: oklch(0.850 0.038 45.0);
+        --brand-accent: oklch(0.720 0.038 20.0);
+        --destructive: oklch(0.620 0.200 25.0);
+        --success: oklch(0.650 0.148 150.0);
+        --warning: oklch(0.750 0.136 75.0);
+        --card-foreground: oklch(0.960 0.015 75.0);
+        --secondary-foreground: oklch(0.960 0.015 75.0);
+        --primary-foreground: oklch(0.180 0.015 75.0);
+        --destructive-foreground: oklch(0.180 0.015 75.0);
+        --success-foreground: oklch(0.180 0.015 75.0);
+        --warning-foreground: oklch(0.180 0.015 75.0);
+        --brand-accent-foreground: oklch(0.180 0.015 75.0);
+      }
+    </style>
+  </head>
+  <body class="bg-background font-sans text-foreground" id="top">
+    <div class="mx-auto max-w-7xl px-6 md:px-12">
+      <header>
+        <div class="flex items-center justify-between border-b border-border py-3 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          <span>Vol. 12 ・ 2026 年 秋号</span>
+          <span class="hidden md:inline">毎月第 1 金曜に更新</span>
+          <span>定価 無料</span>
+        </div>
+        <div class="border-b-4 border-double border-foreground py-8 text-center">
+          <a href="#top" class="font-heading text-5xl font-bold tracking-tight focus-visible:ring-2 ring-ring md:text-7xl">紙とインク</a>
+          <p class="mt-3 text-sm tracking-[0.3em] text-muted-foreground">読み物のための、静かなウェブ誌</p>
+        </div>
+        <nav aria-label="目次" class="flex justify-center gap-8 border-b border-border py-3 text-sm md:gap-14">
+          <a href="#essay" class="hover:underline">巻頭</a>
+          <a href="#contents" class="hover:underline">目次</a>
+          <a href="#words" class="hover:underline">読者の声</a>
+          <a href="#subscribe" class="hover:underline">購読</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="grid gap-x-12 gap-y-10 py-20 md:grid-cols-12">
+          <div class="md:col-span-12">
+            <p class="font-mono text-xs uppercase tracking-widest text-brand-accent">特集 ・ 巻頭エッセイ</p>
+            <h1 class="font-heading mt-6 text-[3.25rem] font-bold leading-[0.98] tracking-tight md:text-[9.5rem]">長い文章を、<br><span class="md:ml-[18%]">ゆっくり読む。</span></h1>
+          </div>
+          <p class="border-t-2 border-foreground pt-5 text-lg leading-9 md:col-span-4">紙の本のような組みと余白で、書き手の言葉を届けます。ページをめくる速さで、画面を読んでもらうために。</p>
+          <div id="essay" class="md:col-span-8">
+            <div class="border-t-2 border-foreground pt-5 md:columns-2 md:gap-12">
+              <p class="leading-[2.1] first-letter:float-left first-letter:mr-3 first-letter:font-heading first-letter:text-7xl first-letter:font-bold first-letter:leading-[0.85]">急いで読む文章は、急いで忘れられます。ウェブは長いあいだ、目に入った一瞬のために文字を並べてきました。けれど、夜に机へ向かうとき、私たちが欲しいのは数行の要約ではなく、ひとりの書き手の考えが歩く速さについていく時間です。</p>
+              <p class="mt-5 leading-[2.1]">この雑誌は、1 号に 1 つの主題だけを置きます。行間は広く、段は短く、画面の端には余白を。紙の本が長い時間をかけて磨いた約束事を、そのままウェブへ持ってくることから始めました。</p>
+              <a href="#contents" class="mt-6 inline-block border-b border-foreground font-bold hover:text-brand-accent focus-visible:ring-2 ring-ring">最新号を読む　→</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="contents" class="border-t-4 border-double border-foreground py-20">
+          <div class="flex items-baseline justify-between">
+            <h2 class="font-heading text-4xl font-bold md:text-5xl">Contents</h2>
+            <p class="font-mono text-xs uppercase tracking-widest text-muted-foreground">今号の 4 本</p>
+          </div>
+          <ol class="mt-12 grid divide-y divide-border border-y border-border md:grid-cols-4 md:divide-x md:divide-y-0">
+            <li class="py-8 md:px-6 md:first:pl-0">
+              <p class="font-heading text-6xl font-bold text-brand-accent">1</p>
+              <h3 class="font-heading mt-4 text-xl font-bold">巻頭エッセイ</h3>
+              <p class="mt-3 text-sm leading-8 text-muted-foreground">毎号ひとつの主題を、じっくり掘り下げます。今号の主題は「待つこと」。</p>
+              <p class="mt-4 font-mono text-xs text-muted-foreground">p. 04</p>
+            </li>
+            <li class="py-8 md:px-6">
+              <p class="font-heading text-6xl font-bold text-brand-accent">2</p>
+              <h3 class="font-heading mt-4 text-xl font-bold">連載小説</h3>
+              <p class="mt-3 text-sm leading-8 text-muted-foreground">書き下ろしの短編を、月ごとにお届けします。今月は第 3 話。</p>
+              <p class="mt-4 font-mono text-xs text-muted-foreground">p. 18</p>
+            </li>
+            <li class="py-8 md:px-6">
+              <p class="font-heading text-6xl font-bold text-brand-accent">3</p>
+              <h3 class="font-heading mt-4 text-xl font-bold">書評</h3>
+              <p class="mt-3 text-sm leading-8 text-muted-foreground">話題の一冊を、書店員の言葉で紹介します。</p>
+              <p class="mt-4 font-mono text-xs text-muted-foreground">p. 32</p>
+            </li>
+            <li class="py-8 md:px-6 md:last:pr-0">
+              <p class="font-heading text-6xl font-bold text-brand-accent">4</p>
+              <h3 class="font-heading mt-4 text-xl font-bold">対談</h3>
+              <p class="mt-3 text-sm leading-8 text-muted-foreground">つくる人どうしの、遠慮のない話。</p>
+              <p class="mt-4 font-mono text-xs text-muted-foreground">p. 40</p>
+            </li>
+          </ol>
+        </section>
+
+        <section id="words" class="grid gap-10 border-t border-border py-24 md:grid-cols-12">
+          <p class="font-mono text-xs uppercase tracking-widest text-muted-foreground md:col-span-3">読者の声</p>
+          <blockquote class="md:col-span-9">
+            <p class="font-heading text-3xl font-bold leading-snug md:text-5xl">「通勤の電車で読み始めて、<br>降りる駅を乗り過ごしました。」</p>
+            <footer class="mt-6 border-l-2 border-brand-accent pl-4 text-sm text-muted-foreground">定期購読者　42 歳・校正者</footer>
+          </blockquote>
+        </section>
+      </main>
+    </div>
+
+    <section id="subscribe" class="bg-foreground text-background">
+      <div class="mx-auto grid max-w-7xl gap-8 px-6 py-20 md:grid-cols-[1fr_auto] md:items-end md:px-12">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-widest opacity-70">Subscribe</p>
+          <h2 class="font-heading mt-4 text-4xl font-bold md:text-6xl">次号は、第 1 金曜に。</h2>
+          <p class="mt-5 max-w-lg leading-9 opacity-80">購読は無料です。更新の日に、巻頭の最初の一段落だけをお送りします。</p>
+        </div>
+        <a href="mailto:hello@example.com" class="border-2 border-background px-10 py-4 text-center font-bold tracking-widest transition-colors hover:bg-background hover:text-foreground focus-visible:ring-2 ring-ring">最新号を読む</a>
+      </div>
+    </section>
+
+    <footer class="mx-auto max-w-7xl px-6 py-8 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground md:px-12">
+      紙とインク ・ これは架空のサービスの見本です。
+    </footer>
+  </body>
+</html>
