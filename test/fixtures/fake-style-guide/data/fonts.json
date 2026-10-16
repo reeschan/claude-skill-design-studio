@@ -1,0 +1,18 @@
+[
+  {
+    "id": "noto-sans-jp+noto-sans-jp",
+    "heading": "Noto Sans JP",
+    "body": "Noto Sans JP",
+    "mono": "JetBrains Mono",
+    "mood": "humanist",
+    "japanese": true
+  },
+  {
+    "id": "shippori-mincho+noto-sans-jp",
+    "heading": "Shippori Mincho",
+    "body": "Noto Sans JP",
+    "mono": "JetBrains Mono",
+    "mood": "mincho",
+    "japanese": true
+  }
+]
