@@ -1365,6 +1365,8 @@ function beginFromStyle(style, family) {
   }
   state.pageType = { name: pageTypeName(), family };
   clearFormNote();
+  state.projectId = null; // スタイルから始めた回は、次の保存で新しいプロジェクトになる (開いていたプロジェクトを上書きしない)
+  if (projectPanel !== null) projectPanel.discardPages(); // 前のプロジェクトのページは、新しいプロジェクトには無い
   state.points = freshPoints();
   state.fineTune = {};
   state.editing = -1;

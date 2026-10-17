@@ -128,13 +128,15 @@ export function createProjectPanel(ctx) {
   // 画面の種類ごとに 1 件。同じ名前で作り直したら入れ替える
   function upsertPage(pageType, html) {
     const found = state.pageList.find((entry) => entry.name === pageType.name);
+    // dirty: 作った・作り直したが、まだ保存していない
     if (found === undefined) {
-      const entry = { name: pageType.name, family: pageType.family, key: null, html };
+      const entry = { name: pageType.name, family: pageType.family, key: null, html, dirty: true };
       state.pageList.push(entry);
       return entry;
     }
     found.family = pageType.family;
     found.html = html;
+    found.dirty = true;
     return found;
   }
 
@@ -293,13 +295,12 @@ export function createProjectPanel(ctx) {
     setNote(ui.saveNote, "保存しています…", false);
     try {
       const project = projectForSave(brief, pageType);
-      const body = { project };
-      const page = state.page;
-      if (page !== null) body.page = { pageType: page.pageType, html: page.html };
-      const payload = await requestJson("/api/projects", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
-      const saved = record(record(payload).project);
+      const pending = unsavedPages();
+      // 要求 1 回に添えられるページは 1 枚なので、まだ保存していないページを 1 枚ずつ同じプロジェクトに送る
+      // (サーバーは前に保存したページの一覧に足していく)。ページが無ければプロジェクトだけを送る
+      let saved = await postProject(project, pending[0]);
+      for (const entry of pending.slice(1)) saved = await postProject(project, entry);
       state.projectId = text(saved.id) === "" ? text(project.id) : text(saved.id);
-      syncPageKeys(saved.pages);
       setNote(ui.saveNote, `保存しました: ${state.projectId}`, false);
       await loadProjects();
     } catch (error) {
@@ -308,6 +309,21 @@ export function createProjectPanel(ctx) {
       busy = false;
       ui.save.disabled = false;
     }
+  }
+
+  function unsavedPages() {
+    return state.pageList.filter((entry) => entry.dirty === true && typeof entry.html === "string");
+  }
+
+  // プロジェクトを 1 回保存する。entry があればそのページを添え、保存できたら dirty を外す
+  async function postProject(project, entry) {
+    const body = { project };
+    if (entry !== undefined) body.page = { pageType: { name: entry.name, family: entry.family }, html: entry.html };
+    const payload = await requestJson("/api/projects", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
+    if (entry !== undefined) entry.dirty = false;
+    const saved = record(record(payload).project);
+    syncPageKeys(saved.pages);
+    return saved;
   }
 
   // 保存の応答のページの一覧から、キー (保存の住所) を手元の一覧に写す

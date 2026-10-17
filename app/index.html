@@ -936,12 +936,12 @@
 
       // 明るさの切り替え。押すとダークとライトを入れ替え、選んだものを覚える (保存先が使えなければ覚えない)
       const modeToggle = document.getElementById("mode-toggle");
-      const darkQuery = window.matchMedia("(prefers-color-scheme: light)");
+      const lightQuery = window.matchMedia("(prefers-color-scheme: light)");
 
       function currentMode() {
         const chosen = document.documentElement.dataset.mode;
         if (chosen === "dark" || chosen === "light") return chosen;
-        return darkQuery.matches ? "light" : "dark";
+        return lightQuery.matches ? "light" : "dark";
       }
 
       function syncModeToggle() {
@@ -961,7 +961,7 @@
         }
         syncModeToggle();
       });
-      darkQuery.addEventListener("change", syncModeToggle);
+      lightQuery.addEventListener("change", syncModeToggle);
       syncModeToggle();
     </script>
   </body>

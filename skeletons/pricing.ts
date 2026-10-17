@@ -104,7 +104,7 @@ ${actions}
 ${footer(copy)}`;
 };
 
-/** おすすめ 1 枚: 妙味の 1 プラン (copy.items の 2 番目) を大きく出し、ほかのプランを下に小さく並べる */
+/** おすすめ 1 枚: おすすめの 1 プラン (copy.items の 2 番目) を大きく出し、ほかのプランを下に小さく並べる */
 export const spotlight: Skeleton = ({ copy }) => {
   const picks = copy.items.map((item, index) => ({ item, index }));
   const top = picks

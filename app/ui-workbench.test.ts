@@ -149,3 +149,20 @@ void test("16. トークンは、要求したときと今の見た目が違え�
   assert.match(body, /text\(record\(state\.tuned\)\.id\) !== id/, "返ってきたときに、今の見た目の id と比べていません");
   assert.match(body, /!==\s*id\)\s*(?:\{\s*)?return null/, "古いトークンを捨てていません (出さない・覚えない)");
 });
+
+void test("17. 保存は、まだ保存していないページを 1 枚ずつ全部送る", () => {
+  // 画面の種類を変えて 2 枚作ってから保存しても、両方がプロジェクトに入る (PR #1 のレビュー)
+  const source = sourceOf("ui-workbench-project.js");
+  const save = functionBodyOf(source, "saveProject");
+  assert.match(save, /unsavedPages\(\)/, "保存がまだのページを集めていません");
+  assert.match(save, /for \(const entry of pending\.slice\(1\)\)/, "2 枚目以降のページを送っていません");
+  assert.match(functionBodyOf(source, "upsertPage"), /dirty: true/, "作ったページに保存がまだの印を付けていません");
+  assert.match(functionBodyOf(source, "postProject"), /entry\.dirty = false/, "保存できたページの印を外していません");
+});
+
+void test("18. スタイルから始めたら、開いていたプロジェクトの id とページの一覧を捨てる", () => {
+  // 開いたプロジェクトに、スタイルの回 1 つだけを上書き保存しない (PR #1 のレビュー)
+  const body = functionBodyOf(sourceOf("ui-workbench.js"), "beginFromStyle");
+  assert.match(body, /state\.projectId = null/, "プロジェクトの id が残ります");
+  assert.match(body, /projectPanel\.discardPages\(\)/, "前のプロジェクトのページの一覧が残ります");
+});

@@ -414,11 +414,11 @@ void test("mix は --fine-tune で上書きし、mixed は混ぜただけのま�
 
     for (const fineTune of [{ radiusPx: 99 }, { nope: 1 }, "{oops"]) {
       const res2 = runCli(
-        fineTune === "{oops}" ? [...base, "--fine-tune", fineTune] : [...base, "--fine-tune", JSON.stringify(fineTune)],
+        fineTune === "{oops" ? [...base, "--fine-tune", fineTune] : [...base, "--fine-tune", JSON.stringify(fineTune)],
         env,
       );
       assert.equal(res2.code, 1, JSON.stringify(fineTune));
-      assert.equal(payload(res2.json).error, fineTune === "{oops}" ? "usage" : "input", JSON.stringify(fineTune));
+      assert.equal(payload(res2.json).error, fineTune === "{oops" ? "usage" : "input", JSON.stringify(fineTune));
     }
   } finally {
     cleanup();
