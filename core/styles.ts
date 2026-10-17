@@ -117,12 +117,18 @@ function validateSeed(x: unknown): Seed {
   };
 }
 
+// 骨組みの種類ごとの配置の型。キーが無い種類だけ先頭の配置の型で埋める (前の形の styles.json を読めるように)。
+// キーがあるものは今どおり確かめ、null や知らない値は入力の誤りにする
 function validateLayouts(x: unknown): Layouts {
   if (!isRecord(x)) throw inputError("layouts はオブジェクトで指定してください");
   return {
-    lp: oneOf(x.lp, LAYOUTS.lp, "layouts.lp"),
-    dashboard: oneOf(x.dashboard, LAYOUTS.dashboard, "layouts.dashboard"),
-    blog: oneOf(x.blog, LAYOUTS.blog, "layouts.blog"),
+    lp: Object.hasOwn(x, "lp") ? oneOf(x.lp, LAYOUTS.lp, "layouts.lp") : LAYOUTS.lp[0],
+    dashboard: Object.hasOwn(x, "dashboard") ? oneOf(x.dashboard, LAYOUTS.dashboard, "layouts.dashboard") : LAYOUTS.dashboard[0],
+    blog: Object.hasOwn(x, "blog") ? oneOf(x.blog, LAYOUTS.blog, "layouts.blog") : LAYOUTS.blog[0],
+    pricing: Object.hasOwn(x, "pricing") ? oneOf(x.pricing, LAYOUTS.pricing, "layouts.pricing") : LAYOUTS.pricing[0],
+    product: Object.hasOwn(x, "product") ? oneOf(x.product, LAYOUTS.product, "layouts.product") : LAYOUTS.product[0],
+    portfolio: Object.hasOwn(x, "portfolio") ? oneOf(x.portfolio, LAYOUTS.portfolio, "layouts.portfolio") : LAYOUTS.portfolio[0],
+    settings: Object.hasOwn(x, "settings") ? oneOf(x.settings, LAYOUTS.settings, "layouts.settings") : LAYOUTS.settings[0],
   };
 }
 

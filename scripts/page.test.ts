@@ -4,8 +4,8 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { PAGE_CSP, escapeHtml, findDisallowedUrls, hasPageCsp } from "../core/page-html.ts";
-import { LAYOUTS, PAGE_TYPES } from "../core/types.ts";
-import type { BaseMode, Copy, PageType } from "../core/types.ts";
+import { LAYOUTS } from "../core/types.ts";
+import type { BaseMode, Copy, SkeletonFamily } from "../core/types.ts";
 import { SKELETONS, renderSkeleton } from "../skeletons/index.ts";
 import { runCli, tempEnv } from "./test-helper.ts";
 
@@ -30,6 +30,9 @@ const CSS_FOR_PAGE = "@theme { --color-primary: oklch(0.5 0.15 260); }";
 const TAILWIND_SCRIPT = '<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>';
 const THEME_STYLE = '<style type="text/tailwindcss" id="theme">';
 
+// このテストが見る骨組み (元の 3 種類)。7 種類すべては scripts/skeletons-all.test.ts が見る
+const FAMILIES: readonly SkeletonFamily[] = ["lp", "dashboard", "blog"];
+
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 // 応答の JSON をオブジェクトとして読む
@@ -38,9 +41,9 @@ function payload(json: unknown): Record<string, unknown> {
   return json;
 }
 
-function render(pageType: PageType, layout: string, title = TITLE): string {
+function render(family: SkeletonFamily, layout: string, title = TITLE): string {
   return renderSkeleton({
-    pageType,
+    family,
     layout,
     copy: COPY,
     mode: MODE,
@@ -52,10 +55,10 @@ function render(pageType: PageType, layout: string, title = TITLE): string {
 }
 
 void test("9 つの骨組みが殻どおりの 1 ファイルを返す", () => {
-  for (const pageType of PAGE_TYPES) {
-    for (const layout of LAYOUTS[pageType]) {
-      const label = `${pageType}/${layout}`;
-      const html = render(pageType, layout);
+  for (const family of FAMILIES) {
+    for (const layout of LAYOUTS[family]) {
+      const label = `${family}/${layout}`;
+      const html = render(family, layout);
       assert.ok(html.startsWith("<!doctype html>"), `${label}: <!doctype html> で始まる`);
       assert.ok(html.includes(`data-theme="${THEME_ID}"`), `${label}: data-theme`);
       assert.ok(html.includes(`data-mode="${MODE}"`), `${label}: data-mode`);
@@ -199,7 +202,7 @@ void test("cssForPage の </style は大文字小文字を問わず止まる", (
     assert.throws(
       () =>
         renderSkeleton({
-          pageType: "lp",
+          family: "lp",
           layout: "centered",
           copy: COPY,
           mode: MODE,
@@ -250,10 +253,10 @@ void test("PAGE_CSP は参照の値そのまま", () => {
 
 void test("9 つの骨組みは CSP の meta をほかの link・script・style より前に持つ", () => {
   const meta = `<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`;
-  for (const pageType of PAGE_TYPES) {
-    for (const layout of LAYOUTS[pageType]) {
-      const label = `${pageType}/${layout}`;
-      const html = render(pageType, layout);
+  for (const family of FAMILIES) {
+    for (const layout of LAYOUTS[family]) {
+      const label = `${family}/${layout}`;
+      const html = render(family, layout);
       assert.ok(html.includes(meta), `${label}: 値そのままの CSP の meta`);
       assert.ok(hasPageCsp(html), `${label}: hasPageCsp`);
     }

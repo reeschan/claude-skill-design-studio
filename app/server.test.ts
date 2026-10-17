@@ -10,6 +10,8 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { pageHtml as makePageHtml } from "../core/page-html.ts";
+import { pageKeyOf } from "../core/page-type.ts";
+import { LAYOUTS, PAGE_TYPE_CANDIDATES } from "../core/types.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const MOCK_LLM = join(REPO_ROOT, "app", "mock-llm.mjs");
@@ -18,17 +20,25 @@ const FAKE_STYLE_GUIDE = join(REPO_ROOT, "test", "fixtures", "fake-style-guide")
 const URL_LINE_RE = /^design-studio app: (http:\/\/127\.0\.0\.1:\d+\/)$/;
 // 偽 style-guide の summary が返す fontsUrl の値
 const FAKE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap";
+// パッドの点。色と配置は案 A の隅、フォントは案 B の隅、形は案 C の隅
+const MIX_POINTS = { color: { x: 0, y: 0 }, font: { x: 1, y: 0 }, shape: { x: 0, y: 1 }, layout: { x: 0, y: 0 } };
+// 4 軸とも案 A の隅
+const POINTS_A = { color: { x: 0, y: 0 }, font: { x: 0, y: 0 }, shape: { x: 0, y: 0 }, layout: { x: 0, y: 0 } };
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
 }
 
-// JSON の値をキーの順にたどる。途中がオブジェクトでなければ undefined
-function get(x: unknown, ...path: string[]): unknown {
+// JSON の値をキーの順にたどる。途中がオブジェクトか配列でなければ undefined
+function get(x: unknown, ...path: (string | number)[]): unknown {
   let cur = x;
   for (const key of path) {
+    if (Array.isArray(cur)) {
+      cur = typeof key === "number" ? cur[key] : undefined;
+      continue;
+    }
     if (!isRecord(cur)) return undefined;
-    cur = cur[key];
+    cur = cur[String(key)];
   }
   return cur;
 }
@@ -187,26 +197,42 @@ const tempDirs = (prefix: string): string[] => readdirSync(tmpdir()).filter((nam
 
 let cachedDirections: unknown[] | null = null;
 
+// 4 件の方向性の案。テストで何度も使うので覚える
 async function directionsForTest(): Promise<unknown[]> {
   if (cachedDirections !== null) return cachedDirections;
-  const r = await post("/api/directions", { prompt: "落ち着いた請求書アプリ", pageType: "lp" });
+  const r = await post("/api/directions", { brief: { what: "落ち着いた請求書アプリ" }, pageType: { name: "料金ページ" } });
   assert.equal(r.status, 200, r.text);
   const list = arr(get(r.json, "directions"));
-  assert.equal(list.length, 3, r.text);
+  assert.equal(list.length, 4, r.text);
   cachedDirections = list;
   return list;
 }
 
 let cachedMix: unknown = null;
 
-// 4 軸のミックス。id は mix-0120 (色 A・フォント B・形 C・配置 A)
+// 色と配置は A・フォントは B・形は C を指す点でのミックス。テストで何度も使うので覚える
 async function mixForTest(): Promise<unknown> {
   if (cachedMix !== null) return cachedMix;
   const directions = await directionsForTest();
-  const r = await post("/api/mix", { directions, picks: { color: 0, font: 1, shape: 2, layout: 0 } });
+  const r = await post("/api/mix", { directions, points: MIX_POINTS });
   assert.equal(r.status, 200, r.text);
   cachedMix = get(r.json, "direction");
   return cachedMix;
+}
+
+// 版 2 のプロジェクト (POST /api/projects の入力)。画面の種類は自由な名前
+function projectForTest(id: string, directions: unknown[]): Record<string, unknown> {
+  return {
+    version: 2,
+    id,
+    brief: { what: "落ち着いた請求書アプリ", mood: "", audience: "", mustHave: "" },
+    pageType: { name: "請求書一覧", family: "dashboard" },
+    rounds: [{ drafts: directions, edits: directions.map(() => null) }],
+    roundIndex: 0,
+    points: MIX_POINTS,
+    fineTune: {},
+    pages: [],
+  };
 }
 
 void test("1. GET / が 200 で HTML、/app の不正なパスは 404", async () => {
@@ -214,7 +240,7 @@ void test("1. GET / が 200 で HTML、/app の不正なパスは 404", async ()
   assert.equal(index.status, 200);
   assert.match(index.type, /^text\/html; charset=utf-8/);
   assert.match(index.text, /<title>design-studio<\/title>/);
-  assert.match(index.text, /準備中/);
+  assert.match(index.text, /id="wb-brief"[\s\S]*id="wb-stage"[\s\S]*id="wb-panels"/);
 
   // fetch はパスを正規化するので、生の要求で確かめる
   assert.equal((await rawRequest("GET", "/app/../server.ts", "", {})).status, 404);
@@ -224,11 +250,16 @@ void test("1. GET / が 200 で HTML、/app の不正なパスは 404", async ()
   assert.equal((await fetchPath("/app/nope.js")).status, 404);
 });
 
-void test("2. GET /api/meta が style-guide と LLM の有無を返す", async () => {
+void test("2. GET /api/meta が style-guide・LLM・画面の種類・配置・フォントの組を返す", async () => {
   const r = await fetchPath("/api/meta");
   assert.equal(r.status, 200);
   assert.equal(get(r.json, "llmAvailable"), true);
   assert.equal(get(r.json, "styleGuide"), "ok");
+  assert.deepEqual(get(r.json, "pageTypes"), PAGE_TYPE_CANDIDATES);
+  assert.deepEqual(get(r.json, "layouts"), LAYOUTS);
+  const fontPairs = arr(get(r.json, "fontPairs"));
+  assert.equal(fontPairs.length, 2, r.text);
+  assert.equal(get(fontPairs[0], "japanese"), true);
 });
 
 void test("3. GET /api/catalog が 12 件、POST /api/catalog/enabled が反映される", async () => {
@@ -264,11 +295,11 @@ void test("4. GET /api/install-plan が計画を返し、スキル置き場に�
   assert.equal(existsSync(join(dir, "skills")), false);
 });
 
-void test("5. GET /api/styles が 6 件、GET /api/themes/pop が cssForPage を返す", async () => {
+void test("5. GET /api/styles が 7 件、GET /api/themes/pop が cssForPage を返す", async () => {
   const styles = await fetchPath("/api/styles");
   assert.equal(styles.status, 200);
   const list = arr(get(styles.json, "styles"));
-  assert.equal(list.length, 6, styles.text);
+  assert.equal(list.length, 7, styles.text);
   assert.ok(list.some((style) => get(style, "id") === "pop"));
 
   const theme = await fetchPath("/api/themes/pop");
@@ -298,22 +329,45 @@ void test("6. GET /api/gallery が一時の置き場にある見本だけを返�
   assert.equal((await fetchPath("/gallery/pop/xxx.html")).status, 404);
 });
 
-void test("7. POST /api/directions が方向性の案を 3 つ返す", async () => {
-  const directions = await directionsForTest();
+void test("7. POST /api/directions が依頼から 4 案と family を返す", async () => {
+  // 自由な名前で family を省くと、LLM が答えた骨組みの種類が返る
+  const r = await post("/api/directions", { brief: { what: "落ち着いた請求書アプリ" }, pageType: { name: "請求書アプリ" } });
+  assert.equal(r.status, 200, r.text);
+  const directions = arr(get(r.json, "directions"));
+  assert.equal(directions.length, 4, r.text);
   assert.equal(get(directions[0], "id"), "dir-a");
   assert.equal(get(directions[1], "id"), "dir-b");
   assert.equal(get(directions[2], "id"), "dir-c");
+  assert.equal(get(directions[3], "id"), "dir-d");
   assert.ok(str(get(directions[0], "name")));
   assert.ok(str(get(directions[0], "seed", "tone")));
+  assert.equal(get(r.json, "family"), "pricing");
+
+  // 候補の名前なら、family はその候補のものになる
+  const candidate = await post("/api/directions", { brief: { what: "技術ブログを作る" }, pageType: { name: "ブログ記事" } });
+  assert.equal(candidate.status, 200, candidate.text);
+  assert.equal(get(candidate.json, "family"), "blog");
+
+  // brief.what が空なら 400
+  const empty = await post("/api/directions", { brief: { what: "  " }, pageType: { name: "ブログ記事" } });
+  assert.equal(empty.status, 400);
+  assert.equal(get(empty.json, "error"), "input");
+  assert.equal(get(empty.json, "message"), "作りたいもの (brief.what) を書いてください");
+
+  // 旧 prompt は受けない (brief が無いので入力の誤り)
+  const old = await post("/api/directions", { prompt: "古い依頼", pageType: { name: "ブログ記事" } });
+  assert.equal(old.status, 400);
+  assert.equal(get(old.json, "error"), "input");
 });
 
 void test("8. POST /api/directions が screenshot を一時ファイルで渡し、あとで消す", async () => {
   const beforeScreen = tempDirs("design-studio-screen-");
   const beforeShot = tempDirs("design-studio-shot-");
   const png = `data:image/png;base64,${Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).toString("base64")}`;
-  const r = await post("/api/directions", { prompt: "参考画像つきの依頼", pageType: "blog", screenshot: png });
+  const r = await post("/api/directions", { brief: { what: "参考画像つきの依頼" }, pageType: { name: "ブログ記事" }, screenshot: png });
   assert.equal(r.status, 200, r.text);
-  assert.equal(arr(get(r.json, "directions")).length, 3);
+  assert.equal(arr(get(r.json, "directions")).length, 4);
+  assert.equal(get(r.json, "family"), "blog");
 
   // モックが受け取った引数: 参考画像の 1 ファイルだけを読める指定が入る
   const args: unknown = JSON.parse(readFileSync(join(dir, "llm-args.json"), "utf8"));
@@ -326,46 +380,111 @@ void test("8. POST /api/directions が screenshot を一時ファイルで渡し
   assert.deepEqual(tempDirs("design-studio-screen-"), beforeScreen);
   assert.deepEqual(tempDirs("design-studio-shot-"), beforeShot);
 
-  const bad = await post("/api/directions", { prompt: "参考画像つきの依頼", pageType: "lp", screenshot: "data:image/gif;base64,AAAA" });
+  const bad = await post("/api/directions", {
+    brief: { what: "参考画像つきの依頼" },
+    pageType: { name: "ブログ記事" },
+    screenshot: "data:image/gif;base64,AAAA",
+  });
   assert.equal(bad.status, 400);
   assert.equal(get(bad.json, "error"), "input");
 });
 
-void test("9. POST /api/mix が 4 軸のミックスを返す", async () => {
-  const direction = rec(await mixForTest());
-  assert.equal(get(direction, "id"), "mix-0120");
-  assert.equal(get(direction, "seed", "id"), "mix-0120");
+void test("9. POST /api/mix が点の位置のミックスを返す", async () => {
+  const directions = await directionsForTest();
+  const r = await post("/api/mix", { directions, points: MIX_POINTS });
+  assert.equal(r.status, 200, r.text);
+  const mixed = rec(get(r.json, "mixed"));
+  const direction = rec(get(r.json, "direction"));
+  assert.match(str(get(mixed, "id")), /^mix-[0-9a-f]{12}$/);
+  assert.equal(get(direction, "seed", "id"), get(direction, "id"));
+  assert.deepEqual(direction, mixed);
+  assert.deepEqual(get(r.json, "weights"), {
+    color: [1, 0, 0, 0],
+    font: [0, 1, 0, 0],
+    shape: [0, 0, 1, 0],
+    layout: [1, 0, 0, 0],
+  });
+  assert.deepEqual(get(r.json, "snapped"), { color: 0, font: 1, shape: 2, layout: 0, copy: 0 });
+  // 吸着の案がそのまま効く (フォントは案 B のもの)
+  assert.deepEqual(get(direction, "seed", "font"), get(directions[1], "seed", "font"));
 
-  const missing = await post("/api/mix", { directions: await directionsForTest() });
+  // 微調整を重ねると direction だけが tune- の id に変わる
+  const fine = await post("/api/mix", { directions, points: MIX_POINTS, fineTune: { radiusPx: 12 } });
+  assert.equal(fine.status, 200, fine.text);
+  assert.deepEqual(get(fine.json, "mixed"), get(r.json, "mixed"));
+  const tuned = rec(get(fine.json, "direction"));
+  assert.match(str(get(tuned, "id")), /^tune-[0-9a-f]{12}$/);
+  assert.equal(get(tuned, "seed", "shape", "radiusPx"), 12);
+
+  const missing = await post("/api/mix", { directions });
   assert.equal(missing.status, 400);
   assert.equal(get(missing.json, "error"), "input");
+  const badPoint = await post("/api/mix", { directions, points: { ...MIX_POINTS, color: { x: 1.5, y: 0 } } });
+  assert.equal(badPoint.status, 400);
+  assert.equal(get(badPoint.json, "error"), "input");
 });
 
-void test("10. POST /api/render が骨組みの HTML を返す", async () => {
+void test("10. POST /api/render が family の骨組みの HTML を返す", async () => {
   const direction = rec(await mixForTest());
-  const r = await post("/api/render", { direction, pageType: "lp", mode: "dark" });
+  const r = await post("/api/render", { direction, family: "settings", mode: "dark" });
   assert.equal(r.status, 200, r.text);
   const html = str(get(r.json, "html"));
   assert.ok(html.includes(`data-theme="${str(get(direction, "id"))}"`), html.slice(0, 300));
   assert.match(html, /data-mode="dark"/);
   assert.equal(get(r.json, "themeId"), get(direction, "id"));
-  assert.equal(get(r.json, "layout"), "centered");
+  assert.equal(get(r.json, "layout"), "sidebar"); // ミックスの配置は案 A (dir-a) のもの
   assert.equal(get(r.json, "failed"), 2);
   assert.equal(get(r.json, "checks", "light", "total"), 5);
+
+  // 旧 pageType のキーは受けない (family が無いので入力の誤り)
+  const old = await post("/api/render", { direction, pageType: "settings" });
+  assert.equal(old.status, 400);
+  assert.equal(get(old.json, "error"), "input");
 });
 
-void test("11. POST /api/page が 1 ファイルの HTML を返す", async () => {
+void test("11. POST /api/page が依頼と画面の種類で 1 ファイルの HTML を返す", async () => {
   const direction = rec(await mixForTest());
-  const r = await post("/api/page", { prompt: "落ち着いた請求書アプリ", direction, pageType: "lp" });
+  const r = await post("/api/page", {
+    brief: { what: "料金の比較ページを作る" },
+    direction,
+    pageType: { name: "料金ページ", family: "pricing" },
+  });
   assert.equal(r.status, 200, r.text);
   const html = str(get(r.json, "html"));
   assert.ok(html.includes(`data-theme="${str(get(direction, "id"))}"`), html.slice(0, 300));
   assert.match(html, /id="theme"/);
   assert.ok(html.includes("--fake-radius"), "テーマの cssForPage が差し込まれていません");
+
+  // LLM には画面の種類の名前が渡る
+  const args: unknown = JSON.parse(readFileSync(join(dir, "llm-args.json"), "utf8"));
+  assert.ok(str(get(args, "prompt")).includes("料金ページ"), "prompt に画面の種類の名前がありません");
+
+  // family が無いと 400
+  const noFamily = await post("/api/page", { brief: { what: "料金の比較ページを作る" }, direction, pageType: { name: "料金ページ" } });
+  assert.equal(noFamily.status, 400);
+  assert.equal(get(noFamily.json, "error"), "input");
 });
 
-void test("12. POST /api/projects のあと、一覧・詳細・ページが返る", async () => {
+void test("12. POST /api/tokens が Tailwind・JSON・CSS の 3 形式を返す", async () => {
   const direction = rec(await mixForTest());
+  const r = await post("/api/tokens", { direction });
+  assert.equal(r.status, 200, r.text);
+  const tailwind = str(get(r.json, "tailwind"));
+  const json = str(get(r.json, "json"));
+  const css = str(get(r.json, "css"));
+  assert.ok(tailwind.includes('@import "tailwindcss";'), tailwind);
+  const parsed: unknown = JSON.parse(json);
+  assert.ok(Array.isArray(parsed), "json が JSON として読めません");
+  assert.ok(!css.includes("@import"), css);
+  assert.ok(css.includes("--fake-radius"), css);
+
+  const bad = await post("/api/tokens", {});
+  assert.equal(bad.status, 400);
+  assert.equal(get(bad.json, "error"), "input");
+});
+
+void test("13. POST /api/projects が版 2 を保存し、一覧・詳細・ページが返る", async () => {
+  const directions = await directionsForTest();
   const pageHtml = makePageHtml({
     title: "保存したページ",
     themeId: "test-project",
@@ -374,18 +493,73 @@ void test("12. POST /api/projects のあと、一覧・詳細・ページが返�
     fontsUrl: "https://fonts.googleapis.com/css2?family=Inter",
     body: "<p>保存したページ</p>",
   });
-  const created = await post("/api/projects", {
-    project: { id: "test-project", prompt: "落ち着いた請求書アプリ", pageType: "lp", direction, pages: [] },
-    pageType: "lp",
-    html: pageHtml,
-  });
+  const pageType = { name: "請求書一覧", family: "dashboard" } as const;
+  const key = pageKeyOf(pageType);
+  assert.match(key, /^page-[0-9a-f]{8}$/); // 英数字の無い自由な名前は page-<ハッシュ> になる
+
+  const created = await post("/api/projects", { project: projectForTest("test-project", directions), page: { pageType, html: pageHtml } });
   assert.equal(created.status, 200, created.text);
   assert.equal(get(created.json, "project", "id"), "test-project");
-  assert.deepEqual(get(created.json, "project", "pages"), ["lp"]);
+  assert.equal(get(created.json, "project", "version"), 2);
+  assert.deepEqual(get(created.json, "project", "pages"), [{ key, name: "請求書一覧", family: "dashboard" }]);
 
-  // theme.css はサーバーが direction から作って保存する
+  // theme.css はサーバーが今の回を混ぜ直した方向性の seed で作って保存する
   const themeCss = readFileSync(join(dir, "home", "projects", "test-project", "theme.css"), "utf8");
   assert.ok(themeCss.includes("--fake-radius"), themeCss);
+
+  // 詳細は同じ回・点を返す
+  const one = await fetchPath("/api/projects/test-project");
+  assert.equal(one.status, 200, one.text);
+  assert.equal(get(one.json, "project", "roundIndex"), 0);
+  assert.equal(get(one.json, "project", "rounds", 0, "drafts", 0, "id"), "dir-a");
+  assert.equal(get(one.json, "project", "rounds", 0, "drafts", 3, "id"), "dir-d");
+  assert.deepEqual(get(one.json, "project", "rounds", 0, "edits"), [null, null, null, null]);
+  assert.deepEqual(get(one.json, "project", "points"), MIX_POINTS);
+  assert.equal(get(one.json, "project", "pageType", "name"), "請求書一覧");
+
+  // ページは key で読める (sandbox の CSP つき)
+  const page = await fetchPath(`/api/projects/test-project/pages/${key}`);
+  assert.equal(page.status, 200);
+  assert.match(page.type, /^text\/html; charset=utf-8/);
+  assert.match(page.text, /保存したページ/);
+  assert.equal(page.csp, "sandbox allow-scripts");
+
+  // 形の合わない key と、無い key は 404
+  assert.equal((await fetchPath("/api/projects/test-project/pages/Bad")).status, 404);
+  assert.equal((await fetchPath("/api/projects/test-project/pages/dashboard")).status, 404);
+  assert.equal((await fetchPath("/api/projects/test-project/pages/xxx")).status, 404);
+
+  // 候補の名前のページはキーが family のものになる
+  const pricing = await post("/api/projects", {
+    project: projectForTest("test-project-pricing", directions),
+    page: { pageType: { name: "料金ページ", family: "pricing" }, html: pageHtml },
+  });
+  assert.equal(pricing.status, 200, pricing.text);
+  assert.deepEqual(get(pricing.json, "project", "pages"), [{ key: "pricing", name: "料金ページ", family: "pricing" }]);
+  assert.equal((await fetchPath("/api/projects/test-project-pricing/pages/pricing")).status, 200);
+
+  // CSP の meta より前にスクリプトがある html は 400 で、保存されない
+  const evilHtml = pageHtml.replace("<head>", '<script>fetch(location.origin+"/api/projects")</script><head>');
+  assert.notEqual(evilHtml, pageHtml);
+  const evil = await post("/api/projects", {
+    project: projectForTest("test-project-evil", directions),
+    page: { pageType, html: evilHtml },
+  });
+  assert.equal(evil.status, 400, evil.text);
+  assert.equal(get(evil.json, "error"), "input");
+  assert.equal(get(evil.json, "message"), "html に CSP の meta がありません");
+  assert.equal((await fetchPath("/api/projects/test-project-evil")).status, 404);
+  assert.equal((await fetchPath(`/api/projects/test-project-evil/pages/${key}`)).status, 404);
+
+  // page を省いた保存もできる (アプリは保存するまでページを持たない)
+  const second = await post("/api/projects", { project: projectForTest("test-project-2", directions) });
+  assert.equal(second.status, 200, second.text);
+  assert.deepEqual(get(second.json, "project", "pages"), []);
+
+  // 旧 pageType・html の最上位のキーは使わない (page を省いたのと同じ)
+  const old = await post("/api/projects", { project: projectForTest("test-project-old", directions), pageType: "lp", html: pageHtml });
+  assert.equal(old.status, 200, old.text);
+  assert.deepEqual(get(old.json, "project", "pages"), []);
 
   const list = await fetchPath("/api/projects");
   assert.equal(list.status, 200);
@@ -395,61 +569,32 @@ void test("12. POST /api/projects のあと、一覧・詳細・ページが返�
     list.text,
   );
 
-  const one = await fetchPath("/api/projects/test-project");
-  assert.equal(one.status, 200);
-  assert.equal(get(one.json, "project", "id"), "test-project");
-
-  const page = await fetchPath("/api/projects/test-project/pages/lp");
-  assert.equal(page.status, 200);
-  assert.match(page.type, /^text\/html; charset=utf-8/);
-  assert.match(page.text, /保存したページ/);
-  assert.equal(page.csp, "sandbox allow-scripts");
-
-  // CSP の meta より前にスクリプトがある html は 400 で、保存されない
-  const evilHtml = pageHtml.replace("<head>", '<script>fetch(location.origin+"/api/projects")</script><head>');
-  assert.notEqual(evilHtml, pageHtml);
-  const evil = await post("/api/projects", {
-    project: { id: "test-project-evil", prompt: "x", pageType: "lp", direction, pages: [] },
-    pageType: "lp",
-    html: evilHtml,
-  });
-  assert.equal(evil.status, 400, evil.text);
-  assert.equal(get(evil.json, "error"), "input");
-  assert.equal(get(evil.json, "message"), "html に CSP の meta がありません");
-  assert.equal((await fetchPath("/api/projects/test-project-evil")).status, 404);
-  assert.equal((await fetchPath("/api/projects/test-project-evil/pages/lp")).status, 404);
-
-  // pages を省いた保存もできる (アプリは保存するまでページを持たない)
-  const second = await post("/api/projects", { project: { id: "test-project-2", prompt: "二つ目の依頼", pageType: "blog", direction } });
-  assert.equal(second.status, 200, second.text);
-  assert.deepEqual(get(second.json, "project", "pages"), []);
-
   assert.equal((await fetchPath("/api/projects/nope")).status, 404);
-  assert.equal((await fetchPath("/api/projects/test-project/pages/dashboard")).status, 404);
-  assert.equal((await fetchPath("/api/projects/test-project/pages/xxx")).status, 404);
 });
 
-void test("13. Host / Origin / Content-Type / 壊れた JSON / 欠け / 大きすぎる Content-Length", async () => {
+void test("14. Host / Origin / Content-Type / 壊れた JSON / 欠け / 大きすぎる Content-Length", async () => {
   const directions = await directionsForTest();
-  const picks = { color: 0, font: 0, shape: 0, layout: 0 };
 
-  const evilOrigin = await post("/api/mix", { directions, picks }, { Origin: "http://evil.example" });
+  const evilOrigin = await post("/api/mix", { directions, points: POINTS_A }, { Origin: "http://evil.example" });
   assert.equal(evilOrigin.status, 403);
   assert.equal(get(evilOrigin.json, "error"), "forbidden");
 
-  const localOrigin = await post("/api/mix", { directions, picks }, { Origin: `http://localhost:${String(port)}` });
+  const localOrigin = await post("/api/mix", { directions, points: POINTS_A }, { Origin: `http://localhost:${String(port)}` });
   assert.equal(localOrigin.status, 200, localOrigin.text);
 
-  assert.equal((await rawRequest("POST", "/api/mix", JSON.stringify({ directions, picks }), { Host: "evil.example" })).status, 403);
+  assert.equal(
+    (await rawRequest("POST", "/api/mix", JSON.stringify({ directions, points: POINTS_A }), { Host: "evil.example" })).status,
+    403,
+  );
 
-  const plain = await post("/api/mix", { directions, picks }, { "Content-Type": "text/plain" });
+  const plain = await post("/api/mix", { directions, points: POINTS_A }, { "Content-Type": "text/plain" });
   assert.equal(plain.status, 415);
 
   const broken = await post("/api/mix", "{not json");
   assert.equal(broken.status, 400);
   assert.equal(get(broken.json, "error"), "bad-json");
 
-  const missing = await post("/api/directions", { pageType: "lp" });
+  const missing = await post("/api/directions", { pageType: { name: "ブログ記事" } });
   assert.equal(missing.status, 400);
   assert.equal(get(missing.json, "error"), "input");
 
@@ -458,7 +603,7 @@ void test("13. Host / Origin / Content-Type / 壊れた JSON / 欠け / 大き�
   assert.equal((await rawRequest("POST", "/api/mix", "{}", { "Content-Length": String(1024 * 1024 + 1) })).status, 413);
 });
 
-void test("14. GET も Host / Origin が 127.0.0.1 / localhost 以外なら 403", async () => {
+void test("15. GET も Host / Origin が 127.0.0.1 / localhost 以外なら 403", async () => {
   const evilHost = await rawRequest("GET", "/api/projects", "", { Host: "evil.example" });
   assert.equal(evilHost.status, 403);
   assert.equal(get(evilHost.json, "error"), "forbidden");
@@ -478,17 +623,20 @@ void test("14. GET も Host / Origin が 127.0.0.1 / localhost 以外なら 403"
   assert.equal((await fetchPath("/api/projects")).status, 200);
 });
 
-void test("15. 上限を超える本物の本文の POST も、読み捨ててから 413 を返す", async () => {
+void test("16. 上限を超える本物の本文の POST も、読み捨ててから 413 を返す", async () => {
   // /api/mix の上限 (1MB) を約 1MB 超える本文を、続けて 3 回送る
   const pad = "x".repeat(2 * 1024 * 1024);
   for (let i = 0; i < 3; i += 1) {
-    const r = await post("/api/mix", JSON.stringify({ directions: [], picks: { color: 0, font: 0, shape: 0, layout: 0 }, pad }));
+    const r = await post("/api/mix", JSON.stringify({ directions: [], points: POINTS_A, pad }));
     assert.equal(r.status, 413, r.text);
     assert.equal(get(r.json, "error"), "too-large");
   }
 
-  // レビューの再現手順にあった /api/directions の 9MB も同じ
-  const big = await post("/api/directions", JSON.stringify({ prompt: "x", pageType: "lp", pad: "x".repeat(9 * 1024 * 1024) }));
+  // /api/directions の上限 (8MB) を超える 9MB も同じ
+  const big = await post(
+    "/api/directions",
+    JSON.stringify({ brief: { what: "x" }, pageType: { name: "LP" }, pad: "x".repeat(9 * 1024 * 1024) }),
+  );
   assert.equal(big.status, 413, big.text);
   assert.equal(get(big.json, "error"), "too-large");
 });

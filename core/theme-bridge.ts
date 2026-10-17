@@ -26,6 +26,19 @@ export function stripTailwindImport(css: string): string {
   return css.replace(TAILWIND_IMPORT, "");
 }
 
+// `@theme inline {` と `@theme {` で始まる塊の開きの行頭
+const THEME_BLOCK_OPENER = /^[ \t]*@theme(?:[ \t]+inline)?[ \t]*\{/;
+
+/** Tailwind を含まない素の CSS 変数にする。@import の行を落とし、@theme の塊の開きを `:root {` に変え、先頭の空行を落とす */
+export function plainCssOf(css: string): string {
+  const lines = stripTailwindImport(css)
+    .split("\n")
+    .map((line) => (THEME_BLOCK_OPENER.test(line) ? line.replace(THEME_BLOCK_OPENER, ":root {") : line));
+  const firstNonEmpty = lines.findIndex((line) => line.trim() !== "");
+  const visible = firstNonEmpty === -1 ? [] : lines.slice(firstNonEmpty);
+  return visible.join("\n");
+}
+
 /** style-guide の pipeline.ts を子プロセスで起動する */
 function runPipeline(pipeline: string, seedFile: string, env: NodeJS.ProcessEnv): Promise<PipelineResult> {
   const args = [pipeline, "render", "--seed", seedFile];
@@ -126,4 +139,10 @@ export async function renderTheme(seeds: Seed[], env: NodeJS.ProcessEnv): Promis
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
+}
+
+/** 決めた見た目をページ以外の形でもち出せるよう、Tailwind・JSON・素の CSS 変数の 3 形式の文字列にする */
+export async function tokensOf(seed: Seed, env: NodeJS.ProcessEnv): Promise<{ tailwind: string; json: string; css: string }> {
+  const { css, themes } = await renderTheme([seed], env);
+  return { tailwind: css, json: JSON.stringify(themes, null, 2) + "\n", css: plainCssOf(css) };
 }

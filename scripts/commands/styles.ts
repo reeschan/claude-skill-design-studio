@@ -1,4 +1,4 @@
-// 見本帳のスタイル 6 種を返す
+// 見本帳のスタイル 7 種を返す
 import { usage } from "../../core/cli-exit.ts";
 import { loadStyles } from "../../core/styles.ts";
 

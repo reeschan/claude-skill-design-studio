@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ja" data-theme="blueprint" data-mode="dark">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ブループリント — 料金ページの見本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Murecho:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" id="theme-fonts">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+<style type="text/tailwindcss" id="theme">
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ブループリント — 紺の方眼にシアンの線とオレンジの印。精密で静かな道具の顔 */
+[data-theme="blueprint"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.050 250.0);
+  --foreground: oklch(0.980 0.010 250.0);
+  --card: oklch(0.200 0.050 250.0);
+  --muted: oklch(0.250 0.050 250.0);
+  --muted-foreground: oklch(0.700 0.050 250.0);
+  --border: oklch(0.300 0.050 250.0);
+  --input: oklch(0.300 0.050 250.0);
+  --secondary: oklch(0.270 0.050 250.0);
+  --primary: oklch(0.700 0.133 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.280 0.042 225.0);
+  --accent-foreground: oklch(0.850 0.100 225.0);
+  --brand-accent: oklch(0.720 0.106 55.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.980 0.010 250.0);
+  --secondary-foreground: oklch(0.980 0.010 250.0);
+  --primary-foreground: oklch(0.180 0.050 250.0);
+  --destructive-foreground: oklch(0.180 0.050 250.0);
+  --success-foreground: oklch(0.180 0.050 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+  --theme-radius: 3px;
+  --theme-spacing-scale: 1.1;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Murecho", sans-serif;
+  --theme-font-body: "Murecho", sans-serif;
+  --theme-font-mono: "JetBrains Mono", monospace;
+}
+[data-theme="blueprint"][data-mode="light"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.007 250.0);
+  --foreground: oklch(0.160 0.050 250.0);
+  --card: oklch(1.000 0.000 250.0);
+  --muted: oklch(0.955 0.022 250.0);
+  --muted-foreground: oklch(0.440 0.050 250.0);
+  --border: oklch(0.900 0.050 250.0);
+  --input: oklch(0.900 0.050 250.0);
+  --secondary: oklch(0.940 0.030 250.0);
+  --primary: oklch(0.550 0.105 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.950 0.032 225.0);
+  --accent-foreground: oklch(0.350 0.067 225.0);
+  --brand-accent: oklch(0.600 0.112 55.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.160 0.050 250.0);
+  --secondary-foreground: oklch(0.160 0.050 250.0);
+  --primary-foreground: oklch(0.985 0.007 250.0);
+  --destructive-foreground: oklch(0.985 0.007 250.0);
+  --success-foreground: oklch(0.985 0.007 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+}
+
+    </style>
+<style>
+  .grid-bg{
+    background-image:
+      linear-gradient(to right, color-mix(in oklch, var(--primary) 9%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--primary) 9%, transparent) 1px, transparent 1px),
+      linear-gradient(to right, color-mix(in oklch, var(--primary) 18%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--primary) 18%, transparent) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  }
+  .ruler{
+    background-image: repeating-linear-gradient(to right, var(--muted-foreground) 0 1px, transparent 1px 12px),
+                      repeating-linear-gradient(to right, var(--primary) 0 1px, transparent 1px 60px);
+    background-size: 100% 6px, 100% 12px;
+    background-repeat: no-repeat;
+    background-position: left top, left top;
+  }
+  .num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+  /* 月額 / 年額 の切り替え (CSS のみ) */
+  .bill-toggle:has(#bill-year:checked) ~ * .p-month,
+  body:has(#bill-year:checked) .p-month{display:none}
+  body:has(#bill-month:checked) .p-year{display:none}
+  body:has(#bill-month:checked) label[for="bill-month"],
+  body:has(#bill-year:checked) label[for="bill-year"]{background:var(--primary);color:var(--primary-foreground)}
+  body:has(#bill-month:focus-visible) label[for="bill-month"],
+  body:has(#bill-year:focus-visible) label[for="bill-year"]{outline:2px solid var(--ring);outline-offset:2px}
+  details[open] .chev{transform:rotate(90deg)}
+  details summary::-webkit-details-marker{display:none}
+  .tick-corner::before,.tick-corner::after{content:"";position:absolute;width:10px;height:10px;border-color:var(--primary);border-style:solid}
+  .tick-corner::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+  .tick-corner::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+</style>
+</head>
+<body class="bg-background text-foreground font-sans antialiased">
+<input type="radio" name="bill" id="bill-month" class="sr-only" checked>
+<input type="radio" name="bill" id="bill-year" class="sr-only">
+
+<div id="top" class="grid-bg">
+  <header class="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+    <a href="#top" class="flex items-center gap-3 font-heading text-lg font-bold">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="23" height="23" stroke="currentColor" class="text-primary"/><path d="M5 21 L13 5 L21 21" stroke="currentColor" class="text-brand-accent" stroke-width="1.5"/><circle cx="13" cy="5" r="1.8" fill="currentColor" class="text-primary"/></svg>
+      Draftline
+    </a>
+    <nav class="flex items-center gap-6 text-sm text-muted-foreground" aria-label="ページ内">
+      <a href="#plans" class="hover:text-foreground">プラン</a>
+      <a href="#compare" class="hover:text-foreground">比較</a>
+      <a href="#faq" class="hover:text-foreground">質問</a>
+    </nav>
+  </header>
+
+  <section class="mx-auto max-w-6xl px-6 pb-16 pt-10 md:pt-16">
+    <p class="num text-xs text-primary">SHEET 03 / PRICING &nbsp;·&nbsp; SCALE 1:1</p>
+    <div class="mt-4 grid items-end gap-10 md:grid-cols-[1.4fr_1fr]">
+      <div>
+        <h1 class="font-heading text-4xl font-bold leading-tight md:text-6xl">線の数だけ、<br>払えばいい。</h1>
+        <div class="relative mt-6 h-6 max-w-md" aria-hidden="true">
+          <div class="absolute inset-x-0 top-3 h-px bg-primary"></div>
+          <div class="absolute left-0 top-1 h-5 w-px bg-primary"></div>
+          <div class="absolute right-0 top-1 h-5 w-px bg-primary"></div>
+          <span class="num absolute left-1/2 -top-1 -translate-x-1/2 bg-background px-2 text-[11px] text-primary">3 PLANS</span>
+        </div>
+      </div>
+      <p class="max-w-sm leading-relaxed text-muted-foreground">まずは Free で一枚、描いてみる。チームで同じ図面を見る段になったら Team へ。数字はすべて税込、席ごとの月額です。</p>
+    </div>
+
+    <div class="mt-12 flex flex-wrap items-center gap-4">
+      <div role="group" aria-label="請求の周期" class="inline-flex rounded-md border border-border bg-card p-1 text-sm">
+        <label for="bill-month" class="cursor-pointer rounded-sm px-5 py-2 transition-colors">月額</label>
+        <label for="bill-year" class="cursor-pointer rounded-sm px-5 py-2 transition-colors">年額</label>
+      </div>
+      <span class="num rounded-sm border border-brand-accent px-2 py-1 text-xs text-brand-accent">年額 −20%</span>
+    </div>
+  </section>
+</div>
+
+<main>
+  <section id="plans" class="mx-auto max-w-6xl px-6 pb-20" aria-labelledby="plans-h">
+    <h2 id="plans-h" class="sr-only">プラン</h2>
+    <div class="grid items-stretch gap-6 md:grid-cols-3">
+
+      <article class="relative flex flex-col rounded-md border border-border bg-card p-8 text-card-foreground">
+        <p class="num text-xs text-muted-foreground">A — 個人の一枚目</p>
+        <h3 class="mt-3 font-heading text-2xl font-bold">Free</h3>
+        <p class="mt-1 text-sm text-muted-foreground">ひとりで、まず描いてみる。</p>
+        <p class="mt-8 flex items-baseline gap-2"><span class="num text-5xl">¥0</span><span class="text-sm text-muted-foreground">/ 席・月</span></p>
+        <p class="num mt-1 text-xs text-muted-foreground">ずっと無料</p>
+        <ul class="mt-8 flex-1 space-y-3 border-t border-border pt-6 text-sm">
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>図面 <span class="num">3</span> 枚まで</li>
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>コメントつきの閲覧リンク</li>
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>トークンは JSON で書き出し</li>
+        </ul>
+        <a href="#top" class="mt-8 block rounded-md border border-border px-4 py-3 text-center text-sm hover:bg-secondary">無料ではじめる</a>
+      </article>
+
+      <article class="tick-corner relative flex flex-col rounded-md border border-primary bg-accent p-8 text-card-foreground md:-my-4 md:py-12">
+        <span class="absolute -top-3 left-8 rounded-sm bg-brand-accent px-3 py-1 text-xs font-bold text-brand-accent-foreground">◆ いちばん選ばれています</span>
+        <p class="num text-xs text-accent-foreground">B — チームの基準線</p>
+        <h3 class="mt-3 font-heading text-2xl font-bold">Team</h3>
+        <p class="mt-1 text-sm text-muted-foreground">デザイナーとエンジニアが、同じ図面を見る。</p>
+        <p class="mt-8 flex items-baseline gap-2">
+          <span class="p-month num text-5xl">¥1,200</span>
+          <span class="p-year num text-5xl">¥960</span>
+          <span class="text-sm text-muted-foreground">/ 席・月</span>
+        </p>
+        <p class="num mt-1 text-xs text-muted-foreground"><span class="p-month">月ごとのお支払い</span><span class="p-year">年一括 ¥11,520 / 席</span></p>
+        <ul class="mt-8 flex-1 space-y-3 border-t border-border pt-6 text-sm">
+          <li class="flex gap-3"><span class="text-brand-accent" aria-hidden="true">＋</span>図面 <span class="num">無制限</span></li>
+          <li class="flex gap-3"><span class="text-brand-accent" aria-hidden="true">＋</span>レビュー依頼と承認フロー</li>
+          <li class="flex gap-3"><span class="text-brand-accent" aria-hidden="true">＋</span>トークンを CSS・JSON・Swift で書き出し</li>
+          <li class="flex gap-3"><span class="text-brand-accent" aria-hidden="true">＋</span>編集者・閲覧者の権限</li>
+        </ul>
+        <a href="#top" class="mt-8 block rounded-md bg-primary px-4 py-3 text-center text-sm font-bold text-primary-foreground hover:opacity-90">Team をはじめる</a>
+      </article>
+
+      <article class="relative flex flex-col rounded-md border border-border bg-card p-8 text-card-foreground">
+        <p class="num text-xs text-muted-foreground">C — 組織の製図室</p>
+        <h3 class="mt-3 font-heading text-2xl font-bold">Studio</h3>
+        <p class="mt-1 text-sm text-muted-foreground">複数のプロダクトを、ひとつの規格で。</p>
+        <p class="mt-8 flex items-baseline gap-2">
+          <span class="p-month num text-5xl">¥2,800</span>
+          <span class="p-year num text-5xl">¥2,240</span>
+          <span class="text-sm text-muted-foreground">/ 席・月</span>
+        </p>
+        <p class="num mt-1 text-xs text-muted-foreground"><span class="p-month">月ごとのお支払い</span><span class="p-year">年一括 ¥26,880 / 席</span></p>
+        <ul class="mt-8 flex-1 space-y-3 border-t border-border pt-6 text-sm">
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>Team のすべて</li>
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>複数ワークスペースの横断管理</li>
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>トークンの自動書き出し (API)</li>
+          <li class="flex gap-3"><span class="text-primary" aria-hidden="true">＋</span>管理者権限・監査ログ</li>
+        </ul>
+        <a href="mailto:hello@draftline.example" class="mt-8 block rounded-md border border-border px-4 py-3 text-center text-sm hover:bg-secondary">Studio について相談する</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="compare" class="border-y border-border bg-card" aria-labelledby="compare-h">
+    <div class="mx-auto max-w-6xl px-6 py-20">
+      <p class="num text-xs text-primary">TABLE 01</p>
+      <h2 id="compare-h" class="mt-2 font-heading text-3xl font-bold md:text-4xl">機能の比較</h2>
+      <div class="ruler mt-4 h-4 max-w-xs" aria-hidden="true"></div>
+
+      <div class="mt-10 overflow-x-auto">
+        <table class="w-full min-w-[640px] border-collapse text-left text-sm">
+          <thead>
+            <tr class="border-b border-primary">
+              <th scope="col" class="w-2/5 py-4 pr-4 font-normal text-muted-foreground"><span class="sr-only">項目</span></th>
+              <th scope="col" class="px-4 py-4 font-heading text-base font-bold">Free</th>
+              <th scope="col" class="bg-accent px-4 py-4 font-heading text-base font-bold">Team <span class="ml-1 text-brand-accent" aria-label="おすすめ">◆</span></th>
+              <th scope="col" class="px-4 py-4 font-heading text-base font-bold">Studio</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="colgroup" colspan="4" class="num pb-2 pt-8 text-xs font-normal text-primary">01 — 図面</th></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">図面の数</th><td class="num px-4">3</td><td class="num bg-accent px-4">無制限</td><td class="num px-4">無制限</td></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">版の履歴</th><td class="num px-4">7 日</td><td class="num bg-accent px-4">1 年</td><td class="num px-4">無期限</td></tr>
+
+            <tr><th scope="colgroup" colspan="4" class="num pb-2 pt-8 text-xs font-normal text-primary">02 — レビュー</th></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">コメント</th><td class="px-4">あり</td><td class="bg-accent px-4">あり</td><td class="px-4">あり</td></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">レビュー依頼・承認</th><td class="px-4 text-muted-foreground">—</td><td class="bg-accent px-4">あり</td><td class="px-4">段階承認</td></tr>
+
+            <tr><th scope="colgroup" colspan="4" class="num pb-2 pt-8 text-xs font-normal text-primary">03 — トークンの書き出し</th></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">形式</th><td class="num px-4">JSON</td><td class="num bg-accent px-4">CSS / JSON / Swift</td><td class="num px-4">全形式</td></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">自動書き出し (API)</th><td class="px-4 text-muted-foreground">—</td><td class="bg-accent px-4 text-muted-foreground">—</td><td class="px-4">あり</td></tr>
+
+            <tr><th scope="colgroup" colspan="4" class="num pb-2 pt-8 text-xs font-normal text-primary">04 — 権限</th></tr>
+            <tr class="border-t border-border"><th scope="row" class="py-4 pr-4 font-normal">役割</th><td class="px-4">本人のみ</td><td class="bg-accent px-4">編集者・閲覧者</td><td class="px-4">管理者を含む 4 役</td></tr>
+            <tr class="border-y border-border"><th scope="row" class="py-4 pr-4 font-normal">監査ログ</th><td class="px-4 text-muted-foreground">—</td><td class="bg-accent px-4 text-muted-foreground">—</td><td class="px-4">あり</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="mx-auto max-w-6xl px-6 py-20" aria-labelledby="faq-h">
+    <div class="grid gap-12 md:grid-cols-[1fr_1.6fr]">
+      <div>
+        <p class="num text-xs text-primary">NOTES</p>
+        <h2 id="faq-h" class="mt-2 font-heading text-3xl font-bold md:text-4xl">よくある質問</h2>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">ここにない疑問は、<a href="mailto:hello@draftline.example" class="text-primary underline underline-offset-4">hello@draftline.example</a> まで。</p>
+      </div>
+      <div class="border-t border-border">
+        <details class="group border-b border-border py-5" open>
+          <summary class="flex cursor-pointer items-center gap-4 font-bold"><span class="num text-xs text-primary">Q1</span><span class="flex-1">Free から Team へ、図面は引き継げますか。</span><span class="chev text-primary transition-transform" aria-hidden="true">›</span></summary>
+          <p class="mt-3 pl-10 text-sm leading-relaxed text-muted-foreground">はい。図面も版の履歴もそのまま残ります。アップグレードの操作だけで、描き直しは要りません。</p>
+        </details>
+        <details class="group border-b border-border py-5">
+          <summary class="flex cursor-pointer items-center gap-4 font-bold"><span class="num text-xs text-primary">Q2</span><span class="flex-1">年額から月額に戻せますか。</span><span class="chev text-primary transition-transform" aria-hidden="true">›</span></summary>
+          <p class="mt-3 pl-10 text-sm leading-relaxed text-muted-foreground">契約期間の終わりに切り替えられます。途中での返金はしていませんが、期間いっぱいは今のまま使えます。</p>
+        </details>
+        <details class="group border-b border-border py-5">
+          <summary class="flex cursor-pointer items-center gap-4 font-bold"><span class="num text-xs text-primary">Q3</span><span class="flex-1">閲覧だけの人にも席は必要ですか。</span><span class="chev text-primary transition-transform" aria-hidden="true">›</span></summary>
+          <p class="mt-3 pl-10 text-sm leading-relaxed text-muted-foreground">閲覧リンクで見るだけの方は、何人でも席なしで招待できます。編集者とレビュー担当だけが席の数に入ります。</p>
+        </details>
+        <details class="group border-b border-border py-5">
+          <summary class="flex cursor-pointer items-center gap-4 font-bold"><span class="num text-xs text-primary">Q4</span><span class="flex-1">書き出したトークンは、解約後も使えますか。</span><span class="chev text-primary transition-transform" aria-hidden="true">›</span></summary>
+          <p class="mt-3 pl-10 text-sm leading-relaxed text-muted-foreground">書き出したファイルはあなたのものです。解約後も、実装の中でそのまま使い続けられます。</p>
+        </details>
+        <details class="group border-b border-border py-5">
+          <summary class="flex cursor-pointer items-center gap-4 font-bold"><span class="num text-xs text-primary">Q5</span><span class="flex-1">請求書や見積書は出せますか。</span><span class="chev text-primary transition-transform" aria-hidden="true">›</span></summary>
+          <p class="mt-3 pl-10 text-sm leading-relaxed text-muted-foreground">Team と Studio は、請求書払いと見積書の発行に対応しています。Studio について相談する、からご連絡ください。</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="grid-bg border-t border-border">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-6 py-14">
+    <div>
+      <p class="font-heading text-2xl font-bold">線から、かたちへ。</p>
+      <p class="mt-1 text-sm text-muted-foreground">Draftline — 色・字・余白の設計図。</p>
+    </div>
+    <a href="#top" class="rounded-md bg-brand-accent px-6 py-3 text-sm font-bold text-brand-accent-foreground hover:opacity-90">図面をひらく</a>
+  </div>
+  <div class="border-t border-border">
+    <p class="num mx-auto max-w-6xl px-6 py-4 text-xs text-muted-foreground">© 2026 Draftline · 価格は税込</p>
+  </div>
+</footer>
+</body>
+</html>

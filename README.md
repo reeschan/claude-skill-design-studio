@@ -1,12 +1,12 @@
 # claude-skill-design-studio
 
-曖昧な一言 (「なんとなく、落ち着いた感じで」) から、Web ページの見た目を具体化する Claude Code スキル兼ローカル Web アプリです。
-方向性の案を 3 つ骨組みで見比べて、選ぶか混ぜて調整し、LLM にページを作らせて保存します。スキルの台帳・見本帳も付いています。
+曖昧な依頼 (「なんとなく、落ち着いた感じで」) から、Web ページの見た目を具体化する Claude Code スキル兼ローカル Web アプリです。
+方向性の案を 4 つ骨組みで見比べて、選ぶかパッドの点で混ぜて調整し、LLM にページを作らせて保存します。スキルの台帳・見本帳も付いています。
 テンプレートに頼らず、デザイン系のスキルを段階ごとに振り分ける親スキルです。
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/architecture/architecture-dark.svg">
-  <img src="docs/architecture/architecture-light.svg" alt="design-studio のアーキテクチャ図。利用者の一言が Claude Code のスキルと CLI、または画面とローカルサーバーを通って core に渡り、骨組み・style-guide・claude CLI・保存先を使ってページができる。">
+  <img src="docs/architecture/architecture-light.svg" alt="design-studio のアーキテクチャ図。利用者の依頼が Claude Code のスキルと CLI、または画面とローカルサーバーを通って core に渡り、骨組み・style-guide・claude CLI・保存先を使ってページができる。">
 </picture>
 
 図のソースは `docs/architecture/architecture.d2`。構成が変わったら `python ~/.claude/skills/arch-diagram/versions/v1.1/scripts/render.py docs/architecture/architecture.d2` で描き直します。
@@ -19,13 +19,13 @@
 
 ![台帳の画面。段階ごとに傘下スキルのカードが並ぶ](docs/images/catalog.png)
 
-**見本帳**: スタイル 6 種 × 画面の種類 3 つの見本を並べ、大きく開いて見比べます。
+**見本帳**: スタイル 7 種 × 骨組みの種類の見本 (LP・ダッシュボード・ブログ記事と、見本のある種類。いまは料金ページ) を並べ、大きく開いて見比べます。
 
 ![見本帳の画面。スタイル別に LP・ダッシュボード・ブログ記事の見本が並ぶ](docs/images/gallery.png)
 
-**作業台**: 一言から方向性の案を 3 つ出し、骨組みで見比べて選ぶか混ぜます。
+**作業台**: 依頼から方向性の案を 4 つ出し、骨組みで見比べて選ぶか、軸ごとのパッドで混ぜます。
 
-![作業台の画面。方向性の案が 3 つの骨組みで並ぶ](docs/images/workbench-directions.png)
+![作業台の画面。左に依頼のフォームと案 A〜D、中央に料金ページの骨組みのプレビュー、右に 4 軸のパッドと微調整が並ぶ](docs/images/workbench-directions.png)
 
 **作業台 (ページを作る)**: 決めた方向性で LLM が 1 ファイルのページを作り、別タブで開く・ダウンロードできます。
 
@@ -37,8 +37,8 @@
 
 ## 特長
 
-- 言葉になっていないイメージから始められる。方向性の案を 3 つ、テーマと配置の違う骨組みで見比べる
-- 色・フォント・形・配置の 4 つの軸で、案を混ぜて調整できる
+- 言葉になっていないイメージから始められる。方向性の案を 4 つ、テーマと配置の違う骨組みで見比べる
+- 色・フォント・形・配置の軸ごとに、4 隅 (A=(0,0)・B=(1,0)・C=(0,1)・D=(1,1)) に案を置いたパッドの点 (0〜1 の x, y) で、混ぜる度合いを選べる
 - テーマは style-guide と共通の `theme.css` / `theme.json`。ほかの作業でも使い回せる
 - できるページは 1 ファイルの HTML。外部の画像に頼らず、ダブルクリックで開ける
 - 点検・仕上げのスキル (アクセシビリティ、講評、文言、動きなど) を台帳から選んで呼べる
@@ -74,7 +74,7 @@ Claude Code で呼び出します。
 /design-studio 落ち着いた感じの請求書 SaaS の LP
 ```
 
-一言から、方向性の案 (骨組み) → テーマ → ページ → 点検の順に進みます。ほかの呼び方:
+依頼から、方向性の案 (骨組み) → テーマ → ページ → 点検の順に進みます。ほかの呼び方:
 
 - `/design-studio app`: 同梱アプリ (台帳・見本帳・作業台) をブラウザで開く
 - `/design-studio catalog`: 台帳 (傘下スキルの段階・役割・導入状態) を見る
@@ -115,7 +115,7 @@ fnm exec --using=26 node app/server.ts --port 8790 --no-browser
 
 - `app/`: ローカルの Web アプリ (サーバーと画面)
 - `core/`: 台帳・導入・方向性・テーマの橋渡し・ページの殻・プロジェクト・LLM 呼び出し (純粋な処理)
-- `skeletons/`: 画面の種類 × 配置の型の骨組み
+- `skeletons/`: 骨組みの種類 × 配置の型の骨組み
 - `scripts/`: CLI (`studio.ts` と `scripts/commands/`)、自己インストール (`install-self.ts`)
 - `data/`: 台帳 (`catalog.json`) とスタイル (`styles.json`)
 - `gallery/`: 見本ページ

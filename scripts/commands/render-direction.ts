@@ -5,8 +5,8 @@ import { CliExit, EXIT_INPUT, usage } from "../../core/cli-exit.ts";
 import { renderDirection } from "../../core/direction.ts";
 import { readJsonFile } from "../../core/json-file.ts";
 import { findStyle, validateDirection } from "../../core/styles.ts";
-import { PAGE_TYPES } from "../../core/types.ts";
-import type { BaseMode, Direction, PageType } from "../../core/types.ts";
+import { SKELETON_FAMILIES } from "../../core/types.ts";
+import type { BaseMode, Direction, SkeletonFamily } from "../../core/types.ts";
 
 const BASE_MODES: readonly BaseMode[] = ["light", "dark"];
 
@@ -15,7 +15,7 @@ const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : S
 type RawArgs = {
   direction: string | undefined;
   style: string | undefined;
-  pageType: string | undefined;
+  family: string | undefined;
   mode: string | undefined;
   out: string | undefined;
 };
@@ -30,7 +30,7 @@ function readArgs(args: string[]): RawArgs {
       options: {
         direction: { type: "string" },
         style: { type: "string" },
-        "page-type": { type: "string" },
+        family: { type: "string" },
         mode: { type: "string" },
         out: { type: "string" },
       },
@@ -38,7 +38,7 @@ function readArgs(args: string[]): RawArgs {
     return {
       direction: parsed.values.direction,
       style: parsed.values.style,
-      pageType: parsed.values["page-type"],
+      family: parsed.values.family,
       mode: parsed.values.mode,
       out: parsed.values.out,
     };
@@ -59,15 +59,15 @@ function directionOf(raw: RawArgs): Direction {
   throw usage("--direction <file> か --style <id> を指定してください");
 }
 
-// --page-type を PAGE_TYPES のいずれかにする
-function pageTypeOf(raw: RawArgs): PageType {
-  const value = raw.pageType;
-  if (value === undefined) throw usage("--page-type <lp|dashboard|blog> を指定してください");
-  const pageType = PAGE_TYPES.find((candidate) => candidate === value);
-  if (pageType === undefined) {
-    throw new CliExit(EXIT_INPUT, { error: "input", message: `不明なページの種類です: ${value}`, pageTypes: PAGE_TYPES });
+// --family を SKELETON_FAMILIES のいずれかにする
+function familyOf(raw: RawArgs): SkeletonFamily {
+  const value = raw.family;
+  if (value === undefined) throw usage(`--family <${SKELETON_FAMILIES.join("|")}> を指定してください`);
+  const family = SKELETON_FAMILIES.find((candidate) => candidate === value);
+  if (family === undefined) {
+    throw new CliExit(EXIT_INPUT, { error: "input", message: `不明な骨組みの種類です: ${value}`, families: SKELETON_FAMILIES });
   }
-  return pageType;
+  return family;
 }
 
 // --mode を light / dark のいずれかにする。無ければ undefined (seed.baseMode を使う)
@@ -93,10 +93,10 @@ function writeOut(path: string, html: string): void {
 export async function run(args: string[], env: NodeJS.ProcessEnv): Promise<unknown> {
   const raw = readArgs(args);
   const direction = directionOf(raw);
-  const pageType = pageTypeOf(raw);
+  const family = familyOf(raw);
   const mode = modeOf(raw) ?? direction.seed.baseMode;
-  const { themeId, layout, checks, failed, html } = await renderDirection({ direction, pageType, mode }, env);
-  if (raw.out === undefined) return { themeId, pageType, layout, mode, file: null, html, checks, failed };
+  const { themeId, layout, checks, failed, html } = await renderDirection({ direction, family, mode }, env);
+  if (raw.out === undefined) return { themeId, family, layout, mode, file: null, html, checks, failed };
   writeOut(raw.out, html);
-  return { themeId, pageType, layout, mode, file: raw.out, html: null, checks, failed };
+  return { themeId, family, layout, mode, file: raw.out, html: null, checks, failed };
 }

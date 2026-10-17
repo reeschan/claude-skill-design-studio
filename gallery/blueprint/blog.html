@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="ja" data-theme="blueprint" data-mode="dark">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ブループリント — ブログ記事の見本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Murecho:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" id="theme-fonts">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+<style type="text/tailwindcss" id="theme">
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ブループリント — 紺の方眼にシアンの線とオレンジの印。精密で静かな道具の顔 */
+[data-theme="blueprint"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.050 250.0);
+  --foreground: oklch(0.980 0.010 250.0);
+  --card: oklch(0.200 0.050 250.0);
+  --muted: oklch(0.250 0.050 250.0);
+  --muted-foreground: oklch(0.700 0.050 250.0);
+  --border: oklch(0.300 0.050 250.0);
+  --input: oklch(0.300 0.050 250.0);
+  --secondary: oklch(0.270 0.050 250.0);
+  --primary: oklch(0.700 0.133 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.280 0.042 225.0);
+  --accent-foreground: oklch(0.850 0.100 225.0);
+  --brand-accent: oklch(0.720 0.106 55.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.980 0.010 250.0);
+  --secondary-foreground: oklch(0.980 0.010 250.0);
+  --primary-foreground: oklch(0.180 0.050 250.0);
+  --destructive-foreground: oklch(0.180 0.050 250.0);
+  --success-foreground: oklch(0.180 0.050 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+  --theme-radius: 3px;
+  --theme-spacing-scale: 1.1;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Murecho", sans-serif;
+  --theme-font-body: "Murecho", sans-serif;
+  --theme-font-mono: "JetBrains Mono", monospace;
+}
+[data-theme="blueprint"][data-mode="light"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.007 250.0);
+  --foreground: oklch(0.160 0.050 250.0);
+  --card: oklch(1.000 0.000 250.0);
+  --muted: oklch(0.955 0.022 250.0);
+  --muted-foreground: oklch(0.440 0.050 250.0);
+  --border: oklch(0.900 0.050 250.0);
+  --input: oklch(0.900 0.050 250.0);
+  --secondary: oklch(0.940 0.030 250.0);
+  --primary: oklch(0.550 0.105 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.950 0.032 225.0);
+  --accent-foreground: oklch(0.350 0.067 225.0);
+  --brand-accent: oklch(0.600 0.112 55.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.160 0.050 250.0);
+  --secondary-foreground: oklch(0.160 0.050 250.0);
+  --primary-foreground: oklch(0.985 0.007 250.0);
+  --destructive-foreground: oklch(0.985 0.007 250.0);
+  --success-foreground: oklch(0.985 0.007 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+}
+
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans antialiased leading-relaxed" style="background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:44px 44px;background-attachment:fixed;background-blend-mode:normal">
+<div id="top" class="min-h-screen" style="background:linear-gradient(180deg,transparent,var(--background) 900px)">
+
+<!-- ヘッダー -->
+<header class="border-b border-border bg-background">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-3 font-heading font-bold tracking-wide">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" class="text-primary" aria-hidden="true"><rect x="3.5" y="3.5" width="21" height="21" stroke="currentColor"/><path d="M3.5 20.5L14 10l10.5 10.5" stroke="currentColor"/><circle cx="14" cy="10" r="2" class="fill-brand-accent"/></svg>
+      Draftline <span class="font-mono text-xs text-muted-foreground font-normal">/ 開発ブログ</span>
+    </a>
+    <nav class="hidden sm:flex gap-6 text-sm text-muted-foreground" aria-label="サイト">
+      <a href="#top" class="hover:text-foreground">記事</a>
+      <a href="#related" class="hover:text-foreground">関連記事</a>
+      <a href="#author" class="hover:text-foreground">著者</a>
+    </nav>
+  </div>
+</header>
+
+<!-- タイトル -->
+<section class="relative border-b border-border overflow-hidden">
+  <div class="max-w-6xl mx-auto px-6 pt-16 pb-20 grid lg:grid-cols-[1fr_340px] gap-12 items-end">
+    <div>
+      <p class="font-mono text-xs text-brand-accent tracking-widest mb-6">DESIGN NOTE № 08 ／ 余白と寸法</p>
+      <h1 class="font-heading font-bold leading-[1.08] tracking-tight text-5xl sm:text-7xl">
+        <span class="text-primary">8</span> の倍数で<br>余白を設計する
+      </h1>
+      <p class="mt-8 max-w-xl text-lg text-muted-foreground">なぜ 8 なのか。目盛りをどう刻み、実際の画面でどう使うのか。デザイナーとエンジニアが同じ図面を見るための、余白の話。</p>
+      <dl class="mt-10 flex flex-wrap gap-x-10 gap-y-3 font-mono text-xs text-muted-foreground">
+        <div><dt class="inline">著者</dt> <dd class="inline text-foreground ml-2">水野 澄</dd></div>
+        <div><dt class="inline">公開</dt> <dd class="inline text-foreground ml-2">2026.10.17</dd></div>
+        <div><dt class="inline">読了</dt> <dd class="inline text-foreground ml-2">約 8 分</dd></div>
+      </dl>
+    </div>
+    <!-- 巨大な目盛り図 -->
+    <svg viewBox="0 0 340 260" class="w-full text-primary" role="img" aria-label="8 の倍数の目盛りを示す製図風の図">
+      <g stroke="currentColor" stroke-width="1" fill="none">
+        <rect x="40.5" y="30.5" width="256" height="160" class="stroke-border"/>
+        <path d="M40.5 30.5H296.5M40.5 62.5H296.5M40.5 94.5H296.5M40.5 126.5H296.5M40.5 158.5H296.5" class="stroke-border"/>
+        <path d="M72.5 30.5V190.5M104.5 30.5V190.5M136.5 30.5V190.5M168.5 30.5V190.5M200.5 30.5V190.5M232.5 30.5V190.5M264.5 30.5V190.5" class="stroke-border"/>
+        <rect x="72.5" y="62.5" width="128" height="64" class="stroke-primary" stroke-width="1.5"/>
+        <path d="M72.5 214.5H200.5M72.5 208.5V220.5M200.5 208.5V220.5"/>
+        <path d="M24.5 62.5V126.5M18.5 62.5H30.5M18.5 126.5H30.5"/>
+      </g>
+      <text x="136" y="236" text-anchor="middle" class="fill-primary font-mono" font-size="11">128</text>
+      <text x="14" y="98" text-anchor="middle" class="fill-primary font-mono" font-size="11" transform="rotate(-90 14 98)">64</text>
+      <circle cx="72.5" cy="62.5" r="4" class="fill-brand-accent"/>
+      <text x="80" y="54" class="fill-brand-accent font-mono" font-size="10">0, 0</text>
+      <text x="296" y="22" text-anchor="end" class="fill-muted-foreground font-mono" font-size="10">GRID 32 / UNIT 8</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 本文エリア -->
+<div class="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-[200px_minmax(0,1fr)] gap-14">
+
+  <!-- 目次 -->
+  <aside class="hidden lg:block">
+    <nav aria-label="目次" class="sticky top-8">
+      <p class="font-mono text-xs text-muted-foreground tracking-widest mb-4">CONTENTS</p>
+      <ol class="border-l border-border font-sans text-sm">
+        <li><a href="#why" class="flex gap-3 py-2 pl-4 -ml-px border-l border-transparent hover:border-primary hover:text-primary text-muted-foreground"><span class="font-mono text-brand-accent">01</span>なぜ 8 なのか</a></li>
+        <li><a href="#scale" class="flex gap-3 py-2 pl-4 -ml-px border-l border-transparent hover:border-primary hover:text-primary text-muted-foreground"><span class="font-mono text-brand-accent">02</span>目盛りを刻む</a></li>
+        <li><a href="#use" class="flex gap-3 py-2 pl-4 -ml-px border-l border-transparent hover:border-primary hover:text-primary text-muted-foreground"><span class="font-mono text-brand-accent">03</span>画面で使う</a></li>
+        <li><a href="#code" class="flex gap-3 py-2 pl-4 -ml-px border-l border-transparent hover:border-primary hover:text-primary text-muted-foreground"><span class="font-mono text-brand-accent">04</span>コードに落とす</a></li>
+        <li><a href="#rules" class="flex gap-3 py-2 pl-4 -ml-px border-l border-transparent hover:border-primary hover:text-primary text-muted-foreground"><span class="font-mono text-brand-accent">05</span>崩していい時</a></li>
+      </ol>
+    </nav>
+  </aside>
+
+  <article class="min-w-0 max-w-3xl">
+
+    <section id="why" class="scroll-mt-8">
+      <p class="font-mono text-xs text-brand-accent tracking-widest">01 ／ WHY EIGHT</p>
+      <h2 class="font-heading font-bold text-3xl mt-3 mb-6">なぜ 8 なのか</h2>
+      <p class="mb-5">余白の値を「なんとなく心地よい数字」で決めていくと、画面が増えるたびに 13px、15px、22px が静かに混ざっていきます。ひとつずつは小さな差でも、並べると線がそろわず、デザイナーとエンジニアの間で「この余白は何px?」という確認が増えます。</p>
+      <p class="mb-5">そこで Draftline では、余白の基本単位を <code class="font-mono text-sm bg-accent text-accent-foreground px-1.5 py-0.5 rounded-sm">8px</code> に置いています。理由は 3 つです。</p>
+      <ol class="mb-8 border-t border-border">
+        <li class="grid grid-cols-[48px_1fr] gap-4 py-5 border-b border-border"><span class="font-mono text-2xl text-primary">a</span><div><strong class="font-heading">割り切れる。</strong> 8 は 4、2、1 に割れます。8 の半分の 4 を「細かい調整用」として使え、小数が出ません。</div></li>
+        <li class="grid grid-cols-[48px_1fr] gap-4 py-5 border-b border-border"><span class="font-mono text-2xl text-primary">b</span><div><strong class="font-heading">画面にそろう。</strong> 一般的な画面幅や高さの多くは 8 で割れ、拡大表示 (125%・150%) でも 10px、12px と整数に近い値で収まります。</div></li>
+        <li class="grid grid-cols-[48px_1fr] gap-4 py-5 border-b border-border"><span class="font-mono text-2xl text-primary">c</span><div><strong class="font-heading">差が見える。</strong> 4 では細かすぎて違いが見えず、10 では粗すぎる。8 刻みは、隣の段が「違う」と目で分かる最小の歩幅です。</div></li>
+      </ol>
+      <p>要は、数字の正しさよりも<strong class="font-heading">「選べる値を減らす」</strong>ことが目的です。選択肢が少なければ、議論も少なくなります。</p>
+    </section>
+
+    <section id="scale" class="scroll-mt-8 mt-20">
+      <p class="font-mono text-xs text-brand-accent tracking-widest">02 ／ SCALE</p>
+      <h2 class="font-heading font-bold text-3xl mt-3 mb-6">目盛りを刻む</h2>
+      <p class="mb-8">目盛りは「8 × n」を基本に、細部用の 4 だけを足した 8 段です。名前は数字そのものではなく段の番号 (<code class="font-mono text-sm text-primary">space-1</code> 〜) で呼びます。</p>
+
+      <figure class="bg-card border border-border rounded-md p-4 sm:p-6 mb-3">
+        <svg viewBox="0 0 640 330" class="w-full h-auto text-primary" role="img" aria-label="余白の目盛り。4、8、16、24、32、48、64 ピクセルの長さを横棒と寸法線で示した図">
+          <defs>
+            <pattern id="g8" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" class="stroke-border" stroke-width="0.6"/></pattern>
+          </defs>
+          <rect x="0" y="0" width="640" height="330" fill="url(#g8)"/>
+          <g font-family="JetBrains Mono, monospace" font-size="11">
+            <!-- 行 -->
+            <g>
+              <text x="16" y="34" class="fill-muted-foreground">space-½</text>
+              <rect x="112" y="22" width="16" height="16" class="fill-primary" opacity="0.9"/>
+              <path d="M112.5 48.5H128.5M112.5 44.5V52.5M128.5 44.5V52.5" class="stroke-primary" fill="none"/>
+              <text x="140" y="35" class="fill-foreground">4</text>
+            </g>
+            <g>
+              <text x="16" y="82" class="fill-muted-foreground">space-1</text>
+              <rect x="112" y="68" width="32" height="16" class="fill-primary"/>
+              <text x="156" y="82" class="fill-foreground">8</text>
+            </g>
+            <g>
+              <text x="16" y="122" class="fill-muted-foreground">space-2</text>
+              <rect x="112" y="108" width="64" height="16" class="fill-primary"/>
+              <text x="188" y="122" class="fill-foreground">16</text>
+            </g>
+            <g>
+              <text x="16" y="162" class="fill-muted-foreground">space-3</text>
+              <rect x="112" y="148" width="96" height="16" class="fill-primary"/>
+              <text x="220" y="162" class="fill-foreground">24</text>
+            </g>
+            <g>
+              <text x="16" y="202" class="fill-muted-foreground">space-4</text>
+              <rect x="112" y="188" width="128" height="16" class="fill-primary"/>
+              <text x="252" y="202" class="fill-foreground">32</text>
+            </g>
+            <g>
+              <text x="16" y="242" class="fill-muted-foreground">space-6</text>
+              <rect x="112" y="228" width="192" height="16" class="fill-primary"/>
+              <text x="316" y="242" class="fill-foreground">48</text>
+            </g>
+            <g>
+              <text x="16" y="282" class="fill-muted-foreground">space-8</text>
+              <rect x="112" y="268" width="256" height="16" class="fill-primary"/>
+              <text x="380" y="282" class="fill-foreground">64</text>
+            </g>
+            <!-- 目盛りの定規 -->
+            <path d="M112.5 308.5H496.5" class="stroke-muted-foreground" fill="none"/>
+            <g class="stroke-muted-foreground" fill="none">
+              <path d="M112.5 304V313M144.5 304V313M176.5 304V313M208.5 304V313M240.5 304V313M272.5 304V313M304.5 304V313M336.5 304V313M368.5 304V313M400.5 304V313M432.5 304V313M464.5 304V313M496.5 304V313"/>
+            </g>
+            <text x="112" y="326" class="fill-brand-accent" font-size="10">0</text>
+            <text x="368" y="326" class="fill-brand-accent" font-size="10" text-anchor="middle">64</text>
+            <text x="624" y="30" text-anchor="end" class="fill-muted-foreground" font-size="10">1 マス = 8px (図は 1:0.5)</text>
+          </g>
+        </svg>
+        <figcaption class="font-mono text-xs text-muted-foreground mt-4 flex gap-3"><span class="text-brand-accent">FIG.1</span>余白の目盛り。space-½ だけが 8 の約数で、細部の調整用。</figcaption>
+      </figure>
+
+      <p class="mt-8">段が進むほど間隔を広げる (4 → 8 → 16 → 24 → 32 → 48 → 64) のも意図したものです。大きな余白ほど「あと 4px」の誤差は意味を持たなくなるので、増分も大きくしています。</p>
+    </section>
+
+    <section id="use" class="scroll-mt-8 mt-20">
+      <p class="font-mono text-xs text-brand-accent tracking-widest">03 ／ IN PRACTICE</p>
+      <h2 class="font-heading font-bold text-3xl mt-3 mb-6">画面で使う</h2>
+      <p class="mb-8">実際のカードで見てみましょう。外側の余白は内側より大きく、近いものほど小さい間隔で。この「内 &lt; 外」の関係だけで、情報のまとまりが自然に見えます。</p>
+
+      <figure class="bg-card border border-border rounded-md p-4 sm:p-6 mb-3">
+        <svg viewBox="0 0 640 340" class="w-full h-auto" role="img" aria-label="カードの余白の寸法図。内側の余白は 24、要素間は 8 と 16、外側は 32">
+          <defs>
+            <pattern id="g8b" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" class="stroke-border" stroke-width="0.6"/></pattern>
+          </defs>
+          <rect width="640" height="340" fill="url(#g8b)"/>
+          <!-- 外枠 (32) -->
+          <rect x="112.5" y="32.5" width="416" height="272" fill="none" class="stroke-muted-foreground" stroke-dasharray="4 4"/>
+          <!-- カード -->
+          <rect x="144.5" y="64.5" width="352" height="208" class="fill-accent stroke-primary"/>
+          <!-- 内側 padding 24 -->
+          <rect x="168.5" y="88.5" width="304" height="160" fill="none" class="stroke-brand-accent" stroke-dasharray="2 3"/>
+          <!-- 中身 -->
+          <rect x="168" y="88" width="120" height="12" class="fill-muted-foreground" opacity="0.8"/>
+          <rect x="168" y="108" width="304" height="20" class="fill-foreground"/>
+          <rect x="168" y="144" width="304" height="8" class="fill-muted-foreground" opacity="0.6"/>
+          <rect x="168" y="160" width="248" height="8" class="fill-muted-foreground" opacity="0.6"/>
+          <rect x="168" y="208" width="96" height="40" class="fill-primary"/>
+          <!-- 寸法線 -->
+          <g class="stroke-brand-accent" fill="none" stroke-width="1">
+            <path d="M144.5 76.5H168.5M144.5 72V81M168.5 72V81"/>
+            <path d="M112.5 168.5H144.5M112.5 164V173M144.5 164V173"/>
+            <path d="M296.5 100V108M292 100H301M292 108H301" transform="translate(190 0)"/>
+          </g>
+          <g class="stroke-primary" fill="none">
+            <path d="M480.5 100V108M476 100H485M476 108H485" transform="translate(0 0)"/>
+            <path d="M480.5 128V144M476 128H485M476 144H485"/>
+            <path d="M480.5 168V208M476 168H485M476 208H485"/>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="11">
+            <text x="156" y="60" text-anchor="middle" class="fill-brand-accent">24</text>
+            <text x="128" y="160" text-anchor="middle" class="fill-brand-accent">32</text>
+            <text x="494" y="108" class="fill-primary">8</text>
+            <text x="494" y="140" class="fill-primary">16</text>
+            <text x="494" y="192" class="fill-primary">40</text>
+            <text x="112" y="322" class="fill-muted-foreground" font-size="10">padding: 24　gap: 8 / 16 / 40　margin: 32</text>
+          </g>
+        </svg>
+        <figcaption class="font-mono text-xs text-muted-foreground mt-4 flex gap-3"><span class="text-brand-accent">FIG.2</span>カードの寸法。オレンジは外側と内側、シアンは要素どうしの間隔。</figcaption>
+      </figure>
+
+      <blockquote class="my-12 relative pl-8 border-l-2 border-brand-accent">
+        <span class="absolute -left-px -top-1 font-mono text-xs text-brand-accent bg-background pr-2 -translate-y-full" aria-hidden="true">QUOTE</span>
+        <p class="font-heading font-bold text-2xl sm:text-3xl leading-snug">「迷う余地のある数字は、<br>いつか誰かが迷う。」</p>
+        <footer class="mt-4 font-mono text-xs text-muted-foreground">— Draftline デザインチームの内部ガイドより</footer>
+      </blockquote>
+
+      <p>この「迷わない」感覚はレビューにも効きます。「ここ 20px では?」と指摘する代わりに、「space-3 (24) と space-2 (16) のどちらか」という選び方に会話が変わります。</p>
+    </section>
+
+    <section id="code" class="scroll-mt-8 mt-20">
+      <p class="font-mono text-xs text-brand-accent tracking-widest">04 ／ CODE</p>
+      <h2 class="font-heading font-bold text-3xl mt-3 mb-6">コードに落とす</h2>
+      <p class="mb-6">目盛りは CSS のカスタムプロパティとして一か所に定義します。値の直書きは禁止、必ず変数を通す。それだけです。</p>
+
+      <figure class="mb-8">
+        <div class="flex items-center justify-between bg-muted border border-border border-b-0 rounded-t-md px-4 py-2 font-mono text-xs text-muted-foreground"><span>tokens.css</span><span class="text-brand-accent">CSS</span></div>
+        <pre class="bg-card border border-border rounded-b-md p-5 overflow-x-auto font-mono text-sm leading-7"><code><span class="text-muted-foreground">/* 基本単位は 8px。space-½ だけが細部用 */</span>
+:root {
+  --unit: 8px;
+  --space-half: calc(var(--unit) * 0.5);  <span class="text-muted-foreground">/*  4 */</span>
+  --space-1: var(--unit);                 <span class="text-muted-foreground">/*  8 */</span>
+  --space-2: calc(var(--unit) * 2);       <span class="text-muted-foreground">/* 16 */</span>
+  --space-3: calc(var(--unit) * 3);       <span class="text-muted-foreground">/* 24 */</span>
+  --space-4: calc(var(--unit) * 4);       <span class="text-muted-foreground">/* 32 */</span>
+  --space-6: calc(var(--unit) * 6);       <span class="text-muted-foreground">/* 48 */</span>
+  --space-8: calc(var(--unit) * 8);       <span class="text-muted-foreground">/* 64 */</span>
+}</code></pre>
+      </figure>
+
+      <figure class="mb-8">
+        <div class="flex items-center justify-between bg-muted border border-border border-b-0 rounded-t-md px-4 py-2 font-mono text-xs text-muted-foreground"><span>card.css</span><span class="text-brand-accent">CSS</span></div>
+        <pre class="bg-card border border-border rounded-b-md p-5 overflow-x-auto font-mono text-sm leading-7"><code>.card {
+  padding: var(--space-3);          <span class="text-muted-foreground">/* 内側 24 */</span>
+  margin-block: var(--space-4);     <span class="text-muted-foreground">/* 外側 32 */</span>
+  display: grid;
+  gap: var(--space-2);              <span class="text-muted-foreground">/* 要素間 16 */</span>
+}
+.card__eyebrow { margin-block-end: calc(var(--space-1) * -1); }</code></pre>
+      </figure>
+
+      <p>デザイン側のツールでも同じ名前の変数を使います。図面の「space-3」と、コードの <code class="font-mono text-sm text-primary">var(--space-3)</code> が同じ線を指すので、受け渡しで値を読み替える必要がありません。</p>
+    </section>
+
+    <section id="rules" class="scroll-mt-8 mt-20">
+      <p class="font-mono text-xs text-brand-accent tracking-widest">05 ／ EXCEPTIONS</p>
+      <h2 class="font-heading font-bold text-3xl mt-3 mb-6">崩していい時</h2>
+      <p class="mb-6">8 の倍数は目的ではなく道具です。次の場合は、迷わず外してかまいません。</p>
+      <ul class="grid sm:grid-cols-3 gap-px bg-border border border-border rounded-md overflow-hidden mb-6">
+        <li class="bg-card p-5"><p class="font-mono text-xs text-brand-accent mb-2">TEXT</p><p class="text-sm">文字の行間は、字の大きさに対する比で決める。1.7 倍の行間は 8 の倍数にならなくていい。</p></li>
+        <li class="bg-card p-5"><p class="font-mono text-xs text-brand-accent mb-2">ICON</p><p class="text-sm">アイコンの内部は、見た目の釣り合いを優先。外形の箱だけを 8 の倍数にそろえる。</p></li>
+        <li class="bg-card p-5"><p class="font-mono text-xs text-brand-accent mb-2">LINE</p><p class="text-sm">罫線は 1px。余白の目盛りには含めない。</p></li>
+      </ul>
+      <p>外す時は理由をコメントに一行残す。それが次の人への寸法注記になります。</p>
+    </section>
+
+    <!-- 著者 -->
+    <section id="author" class="mt-20 border border-border bg-card rounded-md p-6 flex gap-6 items-start scroll-mt-8">
+      <svg width="72" height="72" viewBox="0 0 72 72" class="shrink-0" aria-hidden="true"><rect x="0.5" y="0.5" width="71" height="71" fill="none" class="stroke-primary"/><path d="M0 36H72M36 0V72" class="stroke-border"/><circle cx="36" cy="36" r="16" fill="none" class="stroke-brand-accent"/><text x="36" y="42" text-anchor="middle" class="fill-foreground font-heading" font-size="18" font-weight="700">澄</text></svg>
+      <div>
+        <p class="font-mono text-xs text-muted-foreground tracking-widest">AUTHOR</p>
+        <p class="font-heading font-bold text-xl mt-1">水野 澄</p>
+        <p class="text-sm text-primary">プロダクトデザイナー ／ Draftline デザインシステム担当</p>
+        <p class="text-sm text-muted-foreground mt-3">余白、色、字組みの「決まりごと」を、チーム全員が読める図面にする仕事をしています。好きな道具は 0.3mm のシャープペンシル。</p>
+      </div>
+    </section>
+  </article>
+</div>
+
+<!-- 関連記事 -->
+<section id="related" class="border-t border-border bg-background scroll-mt-8">
+  <div class="max-w-6xl mx-auto px-6 py-16">
+    <div class="flex items-end justify-between mb-8">
+      <h2 class="font-heading font-bold text-2xl">関連記事</h2>
+      <span class="font-mono text-xs text-muted-foreground">RELATED / 03</span>
+    </div>
+    <div class="grid md:grid-cols-3 gap-px bg-border border border-border rounded-md overflow-hidden">
+      <a href="#top" class="bg-card p-6 block hover:bg-accent">
+        <p class="font-mono text-xs text-brand-accent mb-3">№ 07 ／ COLOR</p>
+        <h3 class="font-heading font-bold text-lg leading-snug mb-3">色を「明るさ」から決める</h3>
+        <p class="text-sm text-muted-foreground">紺の地に、シアンとオレンジをのせるまで。</p>
+        <p class="font-mono text-xs text-primary mt-5">読む →</p>
+      </a>
+      <a href="#top" class="bg-card p-6 block hover:bg-accent">
+        <p class="font-mono text-xs text-brand-accent mb-3">№ 09 ／ TYPE</p>
+        <h3 class="font-heading font-bold text-lg leading-snug mb-3">日本語の行間を数える</h3>
+        <p class="text-sm text-muted-foreground">字の大きさと行間の比を、表にした。</p>
+        <p class="font-mono text-xs text-primary mt-5">読む →</p>
+      </a>
+      <a href="#top" class="bg-card p-6 block hover:bg-accent">
+        <p class="font-mono text-xs text-brand-accent mb-3">№ 05 ／ TOKENS</p>
+        <h3 class="font-heading font-bold text-lg leading-snug mb-3">書き出したトークンで実装する</h3>
+        <p class="text-sm text-muted-foreground">図面の値を、そのままコードの変数に。</p>
+        <p class="font-mono text-xs text-primary mt-5">読む →</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-border">
+  <div class="max-w-6xl mx-auto px-6 py-8 flex flex-wrap justify-between gap-4 font-mono text-xs text-muted-foreground">
+    <span>Draftline — 線から、かたちへ。</span>
+    <a href="#top" class="text-primary hover:underline">↑ ページの先頭へ</a>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

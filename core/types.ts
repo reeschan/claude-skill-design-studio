@@ -12,21 +12,55 @@ export type Seed = {
   font: { mood: FontMood; heading: string; body: string; mono: string; pairId?: string };
 };
 
-export const PAGE_TYPES = ["lp", "dashboard", "blog"] as const;
-export type PageType = (typeof PAGE_TYPES)[number];
+// 骨組みの種類 (骨組みを用意してある画面の種類)。LAYOUTS は種類ごとの配置の型 (3 つずつ)
+export const SKELETON_FAMILIES = ["lp", "dashboard", "blog", "pricing", "product", "portfolio", "settings"] as const;
+export type SkeletonFamily = (typeof SKELETON_FAMILIES)[number];
 export const LAYOUTS = {
   lp: ["centered", "split", "fullbleed"],
   dashboard: ["sidebar", "topnav", "cards"],
   blog: ["classic", "magazine", "minimal"],
+  pricing: ["tiers", "table", "spotlight"],
+  product: ["split", "gallery", "story"],
+  portfolio: ["grid", "list", "showcase"],
+  settings: ["sidebar", "tabs", "stacked"],
 } as const;
-export type Layouts = {
-  lp: (typeof LAYOUTS.lp)[number];
-  dashboard: (typeof LAYOUTS.dashboard)[number];
-  blog: (typeof LAYOUTS.blog)[number];
-};
+export type Layouts = { [F in SkeletonFamily]: (typeof LAYOUTS)[F][number] };
+
+// 画面の種類 = 利用者に見せる名前と、当てた骨組みの種類の組
+export type PageType = { name: string; family: SkeletonFamily };
+// 候補の 7 つ (この順で並べる)
+export const PAGE_TYPE_CANDIDATES: readonly PageType[] = [
+  { name: "LP", family: "lp" },
+  { name: "ダッシュボード", family: "dashboard" },
+  { name: "ブログ記事", family: "blog" },
+  { name: "料金ページ", family: "pricing" },
+  { name: "商品詳細", family: "product" },
+  { name: "ポートフォリオ", family: "portfolio" },
+  { name: "設定画面", family: "settings" },
+];
+
+// 依頼。what は必須 (trim 後 1〜2000 文字)、ほかは任意 (無ければ空文字、trim 後 0〜500 文字)
+export type Brief = { what: string; mood: string; audience: string; mustHave: string };
+
 export const MIX_AXES = ["color", "font", "shape", "layout"] as const;
 export type MixAxis = (typeof MIX_AXES)[number];
-export type MixPicks = Record<MixAxis, number>; // 方向性の配列の添字
+// パッドの点。x, y は 0〜1。隅は A=(0,0) 左上・B=(1,0) 右上・C=(0,1) 左下・D=(1,1) 右下
+export type MixPoint = { x: number; y: number };
+export type MixPoints = Record<MixAxis, MixPoint>;
+// 微調整。項目ごとに有無を持つ (キーが無い = 混ぜた値のまま)
+export type FineTune = {
+  brandHue?: number;
+  brandChroma?: number;
+  accentHue?: number | null;
+  contrast?: number;
+  radiusPx?: number;
+  spacingScale?: number;
+  shadow?: ShadowKind;
+  baseMode?: BaseMode;
+  font?: Seed["font"];
+  layouts?: Partial<Layouts>;
+  copy?: Copy;
+};
 
 // 骨組みに差し込む文章。items は 3〜6 件
 export type Copy = {
@@ -65,12 +99,22 @@ export type CatalogEntry = {
 };
 export type CatalogView = CatalogEntry & { installed: boolean; enabled: boolean; origin: "bundled" | "local" };
 
+// プロジェクトの 1 回。drafts は 1〜4 件の原案で、edits は同じ長さ (原案は書き換えない。null は原案のまま)
+export type Round = { drafts: Direction[]; edits: (Direction | null)[] };
+// 保存したページの 1 件。key は pageKeyOf、name は画面の種類の名前、family は当てた骨組みの種類
+export type PageEntry = { key: string; name: string; family: SkeletonFamily };
+
+// 保存の形 (版 2)。開き直したときに作業台の続きから作業できるようにする
 export type Project = {
+  version: 2;
   id: string;
-  prompt: string;
+  brief: Brief;
   pageType: PageType;
-  direction: Direction;
-  pages: PageType[];
+  rounds: Round[];
+  roundIndex: number;
+  points: MixPoints;
+  fineTune: FineTune;
+  pages: PageEntry[];
   createdAt: string;
   updatedAt: string;
 };

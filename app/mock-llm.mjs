@@ -32,7 +32,7 @@ const parsedSchema = schema();
 const properties = typeof parsedSchema === "object" && parsedSchema !== null ? (parsedSchema.properties ?? {}) : {};
 const isPage = typeof properties === "object" && properties !== null && Object.hasOwn(properties, "html");
 
-// MOCK_LLM_ARGS_FILE があれば、受け取った引数と --add-dir の中身を書く (テストが見る)
+// MOCK_LLM_ARGS_FILE があれば、受け取った引数・標準入力 (プロンプト) と --add-dir の中身を書く (テストが見る)
 const argsFile = process.env.MOCK_LLM_ARGS_FILE;
 if (argsFile) {
   const i = argv.indexOf("--add-dir");
@@ -45,7 +45,7 @@ if (argsFile) {
       addDirFiles = null;
     }
   }
-  fs.writeFileSync(argsFile, JSON.stringify({ argv, addDir, addDirFiles }));
+  fs.writeFileSync(argsFile, JSON.stringify({ argv, addDir, addDirFiles, prompt: stdin }));
 }
 
 // bad-then-good 用の回数。プロセスは毎回別なので、ファイルに数える
@@ -62,7 +62,8 @@ function counter() {
   return n;
 }
 
-// 方向性の案 3 つ。どれも core/styles.ts の validateDirection を通る形
+// 方向性の案 4 つと family。どれも core/styles.ts の validateDirection を通る形。
+// family は決めて "pricing" と答える (family 付きで呼ばれたときは呼び出し側が LLM の答えを使わない)
 function directions() {
   return {
     directions: [
@@ -85,7 +86,15 @@ function directions() {
             pairId: "noto-sans-jp+noto-sans-jp",
           },
         },
-        layouts: { lp: "centered", dashboard: "sidebar", blog: "classic" },
+        layouts: {
+          lp: "centered",
+          dashboard: "sidebar",
+          blog: "classic",
+          pricing: "tiers",
+          product: "split",
+          portfolio: "grid",
+          settings: "sidebar",
+        },
         copy: {
           brand: "ツクリ",
           tagline: "考えを、かたちに。",
@@ -118,7 +127,15 @@ function directions() {
             pairId: "noto-sans-jp+noto-sans-jp",
           },
         },
-        layouts: { lp: "fullbleed", dashboard: "topnav", blog: "magazine" },
+        layouts: {
+          lp: "fullbleed",
+          dashboard: "topnav",
+          blog: "magazine",
+          pricing: "spotlight",
+          product: "story",
+          portfolio: "showcase",
+          settings: "tabs",
+        },
         copy: {
           brand: "ネオン社",
           tagline: "夜を、もっと自由に。",
@@ -151,7 +168,15 @@ function directions() {
             pairId: "noto-sans-jp+noto-sans-jp",
           },
         },
-        layouts: { lp: "split", dashboard: "cards", blog: "minimal" },
+        layouts: {
+          lp: "split",
+          dashboard: "cards",
+          blog: "minimal",
+          pricing: "table",
+          product: "gallery",
+          portfolio: "list",
+          settings: "stacked",
+        },
         copy: {
           brand: "ひだまり",
           tagline: "やさしさを、まいにち。",
@@ -165,7 +190,49 @@ function directions() {
           ],
         },
       },
+      {
+        id: "dir-d",
+        name: "設計の帳面",
+        rationale: "細い罫線と味わい深い字組みで、誠実さを出すため。",
+        seed: {
+          id: "dir-d",
+          name: "設計の帳面",
+          tone: "誠実と味わい。",
+          baseMode: "light",
+          color: { brandHue: 340, brandChroma: 0.2, accentHue: null, neutralHue: 10, neutralChroma: 0.01, contrast: 3 },
+          shape: { radiusPx: 2, spacingScale: 0.75, shadow: "none" },
+          font: {
+            mood: "serif",
+            heading: "Noto Sans JP",
+            body: "Noto Sans JP",
+            mono: "JetBrains Mono",
+            pairId: "noto-sans-jp+noto-sans-jp",
+          },
+        },
+        layouts: {
+          lp: "fullbleed",
+          dashboard: "cards",
+          blog: "classic",
+          pricing: "spotlight",
+          product: "gallery",
+          portfolio: "showcase",
+          settings: "stacked",
+        },
+        copy: {
+          brand: "設計所",
+          tagline: "丁寧に、確かめる。",
+          headline: "確かめられた誠実さ。",
+          lead: "細い罫線と味わいのある字で、信頼を形にする。",
+          cta: "くわしく見る",
+          items: [
+            { title: "誠実", body: "むだを省き、確かめる。" },
+            { title: "罫線", body: "細い線で、整然と。" },
+            { title: "味わい", body: "字のあじで、しみじみと。" },
+          ],
+        },
+      },
     ],
+    family: "pricing",
   };
 }
 

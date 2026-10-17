@@ -5,7 +5,7 @@
 // API (応答は JSON。エラーは {"error": ..., "message": ...} と適切な状態コード):
 //   GET  /                                    → app/index.html
 //   GET  /app/<名前>.js                       → app/ の JS (名前は /^[a-z][a-z0-9-]*$/)
-//   GET  /api/meta                            → {llmAvailable, styleGuide: "ok" | "missing"}
+//   GET  /api/meta                            → {llmAvailable, styleGuide: "ok" | "missing", pageTypes, layouts, fontPairs}
 //   GET  /api/catalog                         → {entries}
 //   POST /api/catalog/enabled   {id, enabled} → {entry}
 //   GET  /api/install-plan                    → {plan} (導入はしない)
@@ -13,33 +13,37 @@
 //   GET  /api/themes/<styleId>                → {themeId, cssForPage, fontsUrl} (結果はメモリに保持)
 //   GET  /api/gallery                         → {items: [{styleId, pageType, url}]}
 //   GET  /gallery/<styleId>/<pageType>.html   → 見本の HTML
-//   POST /api/directions  {prompt, pageType, screenshot?} → {directions}
-//   POST /api/mix         {directions, picks} → {direction}
-//   POST /api/render      {direction, pageType, mode?} → {html, themeId, layout, checks, failed}
-//   POST /api/page        {prompt, direction, pageType} → {html}
-//   POST /api/projects    {project, pageType?, html?} → {project}
+//   POST /api/directions  {brief, pageType, screenshot?} → {directions, family}
+//   POST /api/mix         {directions, points, fineTune?} → {mixed, direction, weights, snapped}
+//   POST /api/render      {direction, family, mode?} → {html, themeId, layout, checks, failed}
+//   POST /api/page        {brief, direction, pageType: {name, family}} → {html}
+//   POST /api/tokens      {direction}         → {tailwind, json, css}
+//   POST /api/projects    {project, page?: {pageType: {name, family}, html}} → {project}
 //   GET  /api/projects                        → {projects}
 //   GET  /api/projects/<id>                   → {project}
-//   GET  /api/projects/<id>/pages/<pageType>  → text/html
+//   GET  /api/projects/<id>/pages/<key>       → text/html
 import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateBrief } from "../core/brief.ts";
 import { listCatalog, setEnabled } from "../core/catalog.ts";
 import { CliExit, EXIT_ACTION, EXIT_EXTERNAL, EXIT_INPUT } from "../core/cli-exit.ts";
-import { mixDirections, renderDirection, validatePicks } from "../core/direction.ts";
+import { applyFineTune, mixDirections, renderDirection, validateFineTune, validatePoints } from "../core/direction.ts";
+import type { MixSnapped, MixWeights } from "../core/direction.ts";
 import { planInstall } from "../core/installer.ts";
 import { generateDirections, generatePage, llmAvailable, LlmError } from "../core/llm.ts";
 import type { FontPair } from "../core/llm.ts";
 import { hasPageCsp } from "../core/page-html.ts";
+import { candidateOf, validatePageType } from "../core/page-type.ts";
 import { galleryDir, styleGuideDir } from "../core/paths.ts";
 import { listProjects, readPage, readProject, saveProject } from "../core/project.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
-import { renderTheme, stripTailwindImport } from "../core/theme-bridge.ts";
-import { PAGE_TYPES } from "../core/types.ts";
-import type { BaseMode, Direction, FontMood, PageType, Seed } from "../core/types.ts";
+import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
+import { LAYOUTS, PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "../core/types.ts";
+import type { BaseMode, Direction, FontMood, PageType, Seed, SkeletonFamily } from "../core/types.ts";
 
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 const INDEX_FILE = join(APP_DIR, "index.html");
@@ -48,12 +52,13 @@ const JSON_TYPE = "application/json; charset=utf-8";
 const JS_TYPE = "text/javascript; charset=utf-8";
 // 保存したページの配信に付ける CSP。不透明なオリジンになり、スクリプトは動くがアプリの API には届かない
 const PAGE_SANDBOX = "sandbox allow-scripts";
+// ページの保存のキーの形 (core/project.ts の SLUG_RE と同じ)。形が合わないキーは無いものとして扱う
+const PAGE_KEY_RE = /^[a-z0-9][a-z0-9-]{0,39}$/;
 
 // 本文の上限。screenshot (5MB) を data URL で受ける /api/directions だけ大きくする
 const BODY_LIMIT = 1024 * 1024;
 const DIRECTIONS_LIMIT = 8 * 1024 * 1024;
 const SCREENSHOT_LIMIT = 5 * 1024 * 1024;
-const PROMPT_MAX = 2000;
 // 上限を超えた本文の読み捨てを待つ時間。嘘の Content-Length で止まらないための線引き
 const DRAIN_TIMEOUT_MS = 1000;
 
@@ -237,22 +242,24 @@ function bodyBoolean(value: unknown, label: string): boolean {
   return value;
 }
 
-// 1〜2000 文字の依頼文。前後の空白は落とす (core/project.ts の validatePrompt と同じ)
-function promptOf(value: unknown): string {
-  if (typeof value !== "string") throw inputError("prompt は文字列で指定してください");
-  const prompt = value.trim();
-  if (prompt.length < 1 || prompt.length > PROMPT_MAX) throw inputError(`prompt は trim 後 1〜${PROMPT_MAX} 文字で指定してください`);
-  return prompt;
+// 骨組みの種類 (SKELETON_FAMILIES) のいずれかなら返す
+function familyOrUndefined(value: unknown): SkeletonFamily | undefined {
+  return typeof value === "string" ? SKELETON_FAMILIES.find((candidate) => candidate === value) : undefined;
 }
 
-function pageTypeOrUndefined(value: unknown): PageType | undefined {
-  return typeof value === "string" ? PAGE_TYPES.find((candidate) => candidate === value) : undefined;
+function familyOf(value: unknown): SkeletonFamily {
+  const family = familyOrUndefined(value);
+  if (family === undefined) throw inputError(`family は ${SKELETON_FAMILIES.join(" / ")} のいずれかで指定してください`);
+  return family;
 }
 
-function pageTypeOf(value: unknown): PageType {
-  const pageType = pageTypeOrUndefined(value);
-  if (pageType === undefined) throw inputError(`pageType は ${PAGE_TYPES.join(" / ")} のいずれかで指定してください`);
-  return pageType;
+// 画面の種類 (名前と骨組みの種類)。保存とページ作成では family まで要る (validatePageType の family は任意なので足りない分をここで止める)
+function pageTypeWithFamily(value: unknown): PageType {
+  const parsed = validatePageType(value);
+  if (parsed.family === undefined) {
+    throw inputError(`pageType.family は ${SKELETON_FAMILIES.join(" / ")} のいずれかで指定してください`);
+  }
+  return { name: parsed.name, family: parsed.family };
 }
 
 function modeOf(value: unknown): BaseMode | undefined {
@@ -264,7 +271,7 @@ function modeOf(value: unknown): BaseMode | undefined {
 
 function directionsOf(value: unknown): Direction[] {
   if (!Array.isArray(value)) throw inputError("directions は配列で指定してください");
-  if (value.length < 1 || value.length > 3) throw inputError(`directions は 1〜3 件の配列で指定してください (${String(value.length)} 件)`);
+  if (value.length < 1 || value.length > 4) throw inputError(`directions は 1〜4 件の配列で指定してください (${String(value.length)} 件)`);
   return value.map((entry) => validateDirection(entry));
 }
 
@@ -364,7 +371,22 @@ function serveAppJs(ctx: RouteContext): void {
 function serveMeta(ctx: RouteContext): void {
   const dir = styleGuideDir(ctx.env);
   const styleGuide = existsSync(join(dir, "scripts", "pipeline.ts")) ? "ok" : "missing";
-  sendJson(ctx.res, 200, { llmAvailable: llmAvailable(ctx.env), styleGuide });
+  sendJson(ctx.res, 200, {
+    llmAvailable: llmAvailable(ctx.env),
+    styleGuide,
+    pageTypes: PAGE_TYPE_CANDIDATES,
+    layouts: LAYOUTS,
+    fontPairs: fontPairsOrEmpty(ctx.env),
+  });
+}
+
+// フォントの組。style-guide が無い・読めないときは [] (作業台はフォントの選択を隠せる)
+function fontPairsOrEmpty(env: NodeJS.ProcessEnv): FontPair[] {
+  try {
+    return loadFontPairs(env);
+  } catch {
+    return [];
+  }
 }
 
 function serveCatalog(ctx: RouteContext): void {
@@ -393,14 +415,14 @@ async function serveTheme(ctx: RouteContext): Promise<void> {
   sendJson(ctx.res, 200, themeResponse(theme));
 }
 
-type GalleryItem = { styleId: string; pageType: PageType; url: string };
+type GalleryItem = { styleId: string; pageType: SkeletonFamily; url: string };
 
 // 一時の置き場 (DESIGN_STUDIO_GALLERY_DIR) に実際にある見本だけを返す
 function galleryItems(env: NodeJS.ProcessEnv): GalleryItem[] {
   const dir = galleryDir(env);
   const items: GalleryItem[] = [];
   for (const style of loadStyles()) {
-    for (const pageType of PAGE_TYPES) {
+    for (const pageType of SKELETON_FAMILIES) {
       if (!existsSync(join(dir, style.id, `${pageType}.html`))) continue;
       items.push({ styleId: style.id, pageType, url: `/gallery/${style.id}/${pageType}.html` });
     }
@@ -414,7 +436,7 @@ function serveGallery(ctx: RouteContext): void {
 
 function serveGalleryPage(ctx: RouteContext): void {
   const styleId = ctx.params[0] ?? "";
-  const pageType = pageTypeOrUndefined(ctx.params[1]);
+  const pageType = familyOrUndefined(ctx.params[1]);
   if (findStyle(styleId) === undefined || pageType === undefined) throw notFound();
   serveFile(ctx.res, join(galleryDir(ctx.env), styleId, `${pageType}.html`), HTML_TYPE);
 }
@@ -430,9 +452,10 @@ function serveProject(ctx: RouteContext): void {
 }
 
 function serveProjectPage(ctx: RouteContext): void {
-  const pageType = pageTypeOrUndefined(ctx.params[1]);
-  if (pageType === undefined) throw notFound();
-  const html = readPage(ctx.env, ctx.params[0] ?? "", pageType);
+  // キーの形が合わないときは、無いページとして扱う
+  const key = ctx.params[1] ?? "";
+  if (!PAGE_KEY_RE.test(key)) throw notFound();
+  const html = readPage(ctx.env, ctx.params[0] ?? "", key);
   if (html === null) throw notFound();
   // LLM が書いたページなので、不透明なオリジンで動かす (同じオリジンの /api を叩けない)
   sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
@@ -448,52 +471,99 @@ function postCatalogEnabled(ctx: RouteContext): void {
 }
 
 async function postDirections(ctx: RouteContext): Promise<void> {
-  const prompt = promptOf(ctx.body.prompt);
-  const pageType = pageTypeOf(ctx.body.pageType);
+  const brief = validateBrief(ctx.body.brief);
+  const parsed = validatePageType(ctx.body.pageType);
+  // 候補の名前なら、当てる骨組みの種類はその候補のものにする
+  const candidate = candidateOf(parsed.name);
+  const pageType = { name: parsed.name, family: candidate?.family ?? parsed.family };
   const screenshot = screenshotOf(ctx.body.screenshot);
   const fontPairs = loadFontPairs(ctx.env);
   const shot = screenshot === null ? null : writeScreenshot(screenshot);
   try {
-    const directions = await generateDirections({ prompt, pageType, screenshotPath: shot?.path, fontPairs }, ctx.env);
-    sendJson(ctx.res, 200, { directions });
+    const result = await generateDirections({ brief, pageType, screenshotPath: shot?.path, fontPairs }, ctx.env);
+    sendJson(ctx.res, 200, { directions: result.directions, family: result.family });
   } finally {
     shot?.cleanup();
   }
 }
 
+type MixedForClient = { mixed: Direction; direction: Direction; weights: MixWeights; snapped: MixSnapped };
+
+// 点で混ぜ、微調整があれば重ねる。混ぜただけの mixed と、重ねた direction をいっしょに返す (/api/mix と /api/projects で同じ道)
+function mixAndTune(directions: Direction[], points: unknown, fineTune: unknown): MixedForClient {
+  const mixed = mixDirections(directions, validatePoints(points));
+  const direction = fineTune === undefined ? mixed.direction : applyFineTune(mixed.direction, validateFineTune(fineTune));
+  return { mixed: mixed.direction, direction, weights: mixed.weights, snapped: mixed.snapped };
+}
+
 function postMix(ctx: RouteContext): void {
   const directions = directionsOf(ctx.body.directions);
-  const picks = validatePicks(ctx.body.picks, directions.length);
-  sendJson(ctx.res, 200, { direction: mixDirections(directions, picks) });
+  sendJson(ctx.res, 200, mixAndTune(directions, ctx.body.points, ctx.body.fineTune));
 }
 
 async function postRender(ctx: RouteContext): Promise<void> {
   const direction = validateDirection(ctx.body.direction);
-  const pageType = pageTypeOf(ctx.body.pageType);
+  const family = familyOf(ctx.body.family);
   const mode = modeOf(ctx.body.mode);
-  sendJson(ctx.res, 200, await renderDirection({ direction, pageType, mode }, ctx.env));
+  sendJson(ctx.res, 200, await renderDirection({ direction, family, mode }, ctx.env));
 }
 
 async function postPage(ctx: RouteContext): Promise<void> {
-  const prompt = promptOf(ctx.body.prompt);
+  const brief = validateBrief(ctx.body.brief);
   const direction = validateDirection(ctx.body.direction);
-  const pageType = pageTypeOf(ctx.body.pageType);
+  const pageType = pageTypeWithFamily(ctx.body.pageType);
   const theme = await themeOfSeed(direction.seed, ctx.env);
-  const html = await generatePage({ prompt, direction, pageType, cssForPage: theme.cssForPage, fontsUrl: theme.fontsUrl }, ctx.env);
+  const html = await generatePage({ brief, direction, pageType, cssForPage: theme.cssForPage, fontsUrl: theme.fontsUrl }, ctx.env);
   sendJson(ctx.res, 200, { html });
+}
+
+async function postTokens(ctx: RouteContext): Promise<void> {
+  const direction = validateDirection(ctx.body.direction);
+  sendJson(ctx.res, 200, await tokensOf(direction.seed, ctx.env));
+}
+
+// 版 2 の入力から、今の回の案 (編集があれば編集後) を取り出す。案の検証はここでする
+function currentDirectionsOf(project: Record<string, unknown>): Direction[] {
+  const rounds = project.rounds;
+  if (!Array.isArray(rounds) || rounds.length === 0) throw inputError("project.rounds は 1 件以上の配列で指定してください");
+  const roundIndex = roundIndexOf(project.roundIndex, rounds.length);
+  const round = recordOf(rounds[roundIndex], `project.rounds[${String(roundIndex)}]`);
+  const drafts = round.drafts;
+  if (!Array.isArray(drafts) || drafts.length < 1 || drafts.length > 4) {
+    throw inputError(`project.rounds[${String(roundIndex)}].drafts は 1〜4 件の配列で指定してください`);
+  }
+  const edits = round.edits;
+  if (!Array.isArray(edits) || edits.length !== drafts.length) {
+    throw inputError(`project.rounds[${String(roundIndex)}].edits は drafts と同じ ${String(drafts.length)} 件の配列で指定してください`);
+  }
+  return drafts.map((draft, index) => validateDirection(edits[index] ?? draft));
+}
+
+// 今の回の添字。rounds の中の整数 (core/project.ts の validateRoundIndex と同じ)
+function roundIndexOf(value: unknown, count: number): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value >= count) {
+    throw inputError(`project.roundIndex は 0〜${String(count - 1)} の整数で指定してください`);
+  }
+  return value;
+}
+
+// 保存するページ (省略できる)。html は CSP の meta のある 1 ファイルだけ
+function pageInputOf(value: unknown): { pageType: PageType; html: string } | undefined {
+  if (value === undefined) return undefined;
+  const page = recordOf(value, "page");
+  const pageType = pageTypeWithFamily(page.pageType);
+  const html = bodyString(page.html, "page.html");
+  if (!hasPageCsp(html)) throw inputError("html に CSP の meta がありません");
+  return { pageType, html };
 }
 
 async function postProjects(ctx: RouteContext): Promise<void> {
   const project = recordOf(ctx.body.project, "project");
-  const pageType = ctx.body.pageType === undefined ? undefined : pageTypeOf(ctx.body.pageType);
-  const html = ctx.body.html === undefined ? undefined : bodyString(ctx.body.html, "html");
-  if ((pageType === undefined) !== (html === undefined)) throw inputError("pageType と html は両方いっしょに指定してください");
-  if (html !== undefined && !hasPageCsp(html)) throw inputError("html に CSP の meta がありません");
-  const direction = validateDirection(project.direction);
-  const theme = await themeOfSeed(direction.seed, ctx.env);
-  const page = pageType === undefined || html === undefined ? undefined : { pageType, html };
-  // pages を省いた保存は初回として扱う (アプリは保存するまでページを持たない)
-  const saved = saveProject(ctx.env, { project: { pages: [], ...project }, themeCss: theme.css, page });
+  const page = pageInputOf(ctx.body.page);
+  // 旧 pageType・html の最上位のキーは読まない。テーマの css は今の回を混ぜ直した方向性の seed から作る
+  const mixed = mixAndTune(currentDirectionsOf(project), project.points, project.fineTune);
+  const theme = await themeOfSeed(mixed.direction.seed, ctx.env);
+  const saved = saveProject(ctx.env, { project, themeCss: theme.css, page });
   sendJson(ctx.res, 200, { project: saved });
 }
 
@@ -515,6 +585,7 @@ const ROUTES: Route[] = [
   { method: "POST", pattern: /^\/api\/mix$/, limit: BODY_LIMIT, handle: postMix },
   { method: "POST", pattern: /^\/api\/render$/, limit: BODY_LIMIT, handle: postRender },
   { method: "POST", pattern: /^\/api\/page$/, limit: BODY_LIMIT, handle: postPage },
+  { method: "POST", pattern: /^\/api\/tokens$/, limit: BODY_LIMIT, handle: postTokens },
   { method: "POST", pattern: /^\/api\/projects$/, limit: BODY_LIMIT, handle: postProjects },
 ];
 

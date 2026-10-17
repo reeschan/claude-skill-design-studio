@@ -4,37 +4,116 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>design-studio</title>
+    <script>
+      // 明るさ (ダーク / ライト) を描画の前に決める。選んだものがあればそれ、無ければ OS の設定 (既定はダーク)
+      try {
+        const saved = localStorage.getItem("design-studio:mode");
+        if (saved === "dark" || saved === "light") document.documentElement.dataset.mode = saved;
+      } catch {
+        // 保存先が使えないときは OS の設定に従う
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Murecho:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
     <style>
+      /* 見た目は見本帳のスタイル「ブループリント」(data/styles.json の blueprint) のトークン。
+         紺の方眼にシアンの線とオレンジの印を置く。ダークを基本にし、ライトは data-mode="light" か、
+         選んでいないときの OS の設定で使う */
       :root {
-        color-scheme: light dark;
-        --bg: #f5f5f7;
-        --panel: #ffffff;
-        --fg: #1c1c21;
-        --muted: #5f5f6b;
-        --line: #d8d8de;
-        --accent: #3d4b73;
-        --accent-fg: #ffffff;
-        --notice-bg: #fff3d1;
-        --notice-fg: #4d3c05;
-        --notice-line: #e2c56b;
-        --error-fg: #b3261e;
-        --shadow: 0 1px 2px rgb(0 0 0 / 6%);
+        color-scheme: dark;
+        --background: oklch(0.16 0.05 250);
+        --foreground: oklch(0.98 0.01 250);
+        --card: oklch(0.2 0.05 250);
+        --surface: oklch(0.25 0.05 250);
+        --muted-foreground: oklch(0.7 0.05 250);
+        --border: oklch(0.3 0.05 250);
+        --primary: oklch(0.7 0.133 225);
+        --primary-foreground: oklch(0.18 0.05 250);
+        --marker: oklch(0.72 0.106 55);
+        --ring: oklch(0.62 0.118 225);
+        --accent-soft: oklch(0.28 0.042 225);
+        --accent-soft-fg: oklch(0.85 0.1 225);
+        --warning: oklch(0.75 0.136 75);
+        --destructive: oklch(0.62 0.2 25);
+        --grid-minor: oklch(0.7 0.133 225 / 5%);
+        --grid-major: oklch(0.7 0.133 225 / 11%);
+        --glow-a: oklch(0.7 0.133 225 / 12%);
+        --glow-b: oklch(0.72 0.106 55 / 9%);
+        --header-bg: oklch(0.16 0.05 250 / 82%);
+        --shadow: 3px 3px 0 0 oklch(0.98 0.01 250 / 12%);
+        --shadow-pop: 3px 3px 0 0 var(--marker);
+        --gradient: linear-gradient(var(--primary), var(--primary));
+        --radius: 4px;
+        --radius-sm: 3px;
+        --font-heading: "Murecho", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --font-body: "Murecho", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+
+        /* 画面の JS (作業台など) が使う名前。上のトークンに結び付ける */
+        --bg: var(--background);
+        --panel: var(--card);
+        --fg: var(--foreground);
+        --muted: var(--muted-foreground);
+        --line: var(--border);
+        --accent: var(--primary);
+        --accent-fg: var(--primary-foreground);
+        --notice-bg: color-mix(in oklch, var(--warning) 14%, var(--card));
+        --notice-fg: var(--warning);
+        --notice-line: color-mix(in oklch, var(--warning) 45%, transparent);
+        --error-fg: var(--destructive);
       }
 
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #16161a;
-          --panel: #1f1f24;
-          --fg: #ececf1;
-          --muted: #a8a8b4;
-          --line: #35353d;
-          --accent: #b9c4e6;
-          --accent-fg: #14141a;
-          --notice-bg: #3a3218;
-          --notice-fg: #f0e3b4;
-          --notice-line: #5f5120;
-          --error-fg: #ffb4ab;
-          --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+      :root[data-mode="light"] {
+        color-scheme: light;
+        --background: oklch(0.985 0.007 250);
+        --foreground: oklch(0.16 0.05 250);
+        --card: oklch(1 0 250);
+        --surface: oklch(0.955 0.022 250);
+        --muted-foreground: oklch(0.44 0.05 250);
+        --border: oklch(0.9 0.05 250);
+        --primary: oklch(0.55 0.105 225);
+        --primary-foreground: oklch(0.985 0.007 250);
+        --marker: oklch(0.6 0.112 55);
+        --accent-soft: oklch(0.95 0.032 225);
+        --accent-soft-fg: oklch(0.35 0.067 225);
+        --warning: oklch(0.55 0.13 75);
+        --destructive: oklch(0.55 0.198 25);
+        --grid-minor: oklch(0.55 0.105 225 / 6%);
+        --grid-major: oklch(0.55 0.105 225 / 12%);
+        --glow-a: oklch(0.55 0.105 225 / 10%);
+        --glow-b: oklch(0.6 0.112 55 / 8%);
+        --header-bg: oklch(0.985 0.007 250 / 82%);
+        --shadow: 3px 3px 0 0 oklch(0.16 0.05 250 / 10%);
+        --notice-bg: color-mix(in oklch, var(--warning) 12%, var(--card));
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root:not([data-mode]) {
+          color-scheme: light;
+          --background: oklch(0.985 0.007 250);
+          --foreground: oklch(0.16 0.05 250);
+          --card: oklch(1 0 250);
+          --surface: oklch(0.955 0.022 250);
+          --muted-foreground: oklch(0.44 0.05 250);
+          --border: oklch(0.9 0.05 250);
+          --primary: oklch(0.55 0.105 225);
+          --primary-foreground: oklch(0.985 0.007 250);
+          --marker: oklch(0.6 0.112 55);
+          --accent-soft: oklch(0.95 0.032 225);
+          --accent-soft-fg: oklch(0.35 0.067 225);
+          --warning: oklch(0.55 0.13 75);
+          --destructive: oklch(0.55 0.198 25);
+          --grid-minor: oklch(0.55 0.105 225 / 6%);
+          --grid-major: oklch(0.55 0.105 225 / 12%);
+          --glow-a: oklch(0.55 0.105 225 / 10%);
+          --glow-b: oklch(0.6 0.112 55 / 8%);
+          --header-bg: oklch(0.985 0.007 250 / 82%);
+          --shadow: 3px 3px 0 0 oklch(0.16 0.05 250 / 10%);
+          --notice-bg: color-mix(in oklch, var(--warning) 12%, var(--card));
         }
       }
 
@@ -44,15 +123,17 @@
 
       body {
         margin: 0;
-        background: var(--bg);
+        min-height: 100vh;
+        /* 方眼: 8px の細い線と 40px の太い線 */
+        background:
+          linear-gradient(var(--grid-major) 1px, transparent 1px) 0 0 / 40px 40px,
+          linear-gradient(90deg, var(--grid-major) 1px, transparent 1px) 0 0 / 40px 40px,
+          linear-gradient(var(--grid-minor) 1px, transparent 1px) 0 0 / 8px 8px,
+          linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px) 0 0 / 8px 8px,
+          var(--background);
+        background-attachment: fixed;
         color: var(--fg);
-        font-family:
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          "Hiragino Sans",
-          "Noto Sans JP",
-          sans-serif;
+        font-family: var(--font-body);
         font-size: 15px;
         line-height: 1.7;
       }
@@ -62,8 +143,26 @@
       h3,
       h4,
       h5 {
-        line-height: 1.4;
+        font-family: var(--font-heading);
+        line-height: 1.35;
+        letter-spacing: -0.005em;
         overflow-wrap: anywhere;
+      }
+
+      ::selection {
+        background: var(--accent-soft);
+        color: var(--accent-soft-fg);
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
+
+      input,
+      select,
+      textarea {
+        accent-color: var(--primary);
       }
 
       p,
@@ -74,8 +173,12 @@
       /* 殻: 上部のアプリ名とタブ、注意の帯 */
 
       .app-header {
-        background: var(--panel);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--header-bg);
         border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(14px) saturate(1.2);
       }
 
       .app-header-inner {
@@ -89,44 +192,112 @@
         padding: 12px 16px;
       }
 
+      .brand {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .brand-mark {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        border: 1.5px solid var(--primary);
+        border-radius: var(--radius-sm);
+        /* 製図の印: 中心の十字と 4 等分の方眼、オレンジの点 */
+        background:
+          radial-gradient(circle at 50% 50%, var(--marker) 0 3px, transparent 3.5px),
+          linear-gradient(var(--primary), var(--primary)) 50% 50% / 1px 100% no-repeat,
+          linear-gradient(var(--primary), var(--primary)) 50% 50% / 100% 1px no-repeat,
+          linear-gradient(var(--grid-major) 1px, transparent 1px) 0 0 / 8px 8px,
+          linear-gradient(90deg, var(--grid-major) 1px, transparent 1px) 0 0 / 8px 8px,
+          var(--card);
+      }
+
       .app-name {
         margin: 0;
-        font-size: 17px;
+        font-family: var(--font-heading);
+        font-size: 19px;
         font-weight: 700;
         letter-spacing: 0.01em;
+        line-height: 1.3;
+        color: var(--fg);
+      }
+
+      .app-name::after {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-left: 3px;
+        background: var(--marker);
       }
 
       .app-lead {
-        margin: 2px 0 0;
-        font-size: 13px;
+        margin: 1px 0 0;
+        font-size: 12.5px;
         color: var(--muted);
+      }
+
+      .header-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        align-items: center;
       }
 
       .tabs {
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--panel);
       }
 
       .tab {
         font: inherit;
-        padding: 6px 14px;
-        border: 1px solid transparent;
-        border-radius: 999px;
+        font-size: 14px;
+        padding: 5px 16px;
+        border: 0;
+        border-radius: var(--radius-sm);
         background: transparent;
         color: var(--muted);
         cursor: pointer;
+        transition:
+          color 0.15s,
+          background-color 0.15s;
       }
 
       .tab:hover {
         color: var(--fg);
+        background: var(--surface);
       }
 
       .tab[aria-current="page"] {
-        background: var(--bg);
-        border-color: var(--line);
+        background: var(--gradient);
+        color: var(--primary-foreground);
+        font-weight: 700;
+      }
+
+      .mode-toggle {
+        font: inherit;
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--panel);
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .mode-toggle:hover {
         color: var(--fg);
-        font-weight: 600;
+        border-color: var(--primary);
       }
 
       .notice {
@@ -139,7 +310,7 @@
         margin: 0 0 6px;
         padding: 9px 12px;
         border: 1px solid var(--notice-line);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         background: var(--notice-bg);
         color: var(--notice-fg);
         font-size: 13.5px;
@@ -148,7 +319,7 @@
       .app-main {
         max-width: 1240px;
         margin: 0 auto;
-        padding: 16px;
+        padding: 22px 16px 40px;
       }
 
       .screen[hidden] {
@@ -157,7 +328,9 @@
 
       .screen-title {
         margin: 0 0 4px;
-        font-size: 20px;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
       }
 
       .screen-lead {
@@ -185,12 +358,19 @@
       .btn {
         font: inherit;
         font-size: 13px;
-        padding: 4px 12px;
+        padding: 5px 13px;
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
         color: var(--fg);
         cursor: pointer;
+        transition:
+          border-color 0.15s,
+          filter 0.15s;
+      }
+
+      .btn:hover:not([disabled]) {
+        border-color: var(--primary);
       }
 
       .btn[disabled] {
@@ -199,10 +379,15 @@
       }
 
       .btn-primary {
-        border-color: var(--accent);
-        background: var(--accent);
-        color: var(--accent-fg);
-        font-weight: 600;
+        border-color: transparent;
+        background: var(--gradient);
+        color: var(--primary-foreground);
+        font-weight: 700;
+      }
+
+      .btn-primary:hover:not([disabled]) {
+        border-color: transparent;
+        filter: brightness(1.08);
       }
 
       /* 台帳 */
@@ -213,9 +398,21 @@
 
       .stage-title {
         margin: 0 0 2px;
-        padding-bottom: 6px;
+        padding-bottom: 8px;
         border-bottom: 1px solid var(--line);
-        font-size: 17px;
+        font-size: 19px;
+        font-weight: 700;
+      }
+
+      .stage-title::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 10px;
+        border-radius: 1px;
+        background: var(--marker);
+        vertical-align: 0.08em;
       }
 
       .stage-note {
@@ -229,10 +426,13 @@
       }
 
       .role-title {
-        margin: 0 0 8px;
-        font-size: 14.5px;
-        font-weight: 600;
-        color: var(--muted);
+        margin: 0 0 10px;
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent-soft-fg);
       }
 
       .cards {
@@ -242,11 +442,18 @@
       }
 
       .card {
-        padding: 12px 14px;
+        padding: 14px 16px;
         border: 1px solid var(--line);
-        border-radius: 10px;
+        border-radius: var(--radius);
         background: var(--panel);
         box-shadow: var(--shadow);
+        transition:
+          border-color 0.15s,
+          transform 0.15s;
+      }
+
+      .card:hover {
+        border-color: color-mix(in oklch, var(--primary) 55%, var(--line));
       }
 
       .card-head {
@@ -259,7 +466,8 @@
 
       .card-name {
         margin: 0;
-        font-size: 15px;
+        font-family: var(--font-heading);
+        font-size: 16px;
         font-weight: 700;
       }
 
@@ -281,18 +489,21 @@
       }
 
       .badge {
-        padding: 0 8px;
+        padding: 1px 9px;
         border: 1px solid var(--line);
-        border-radius: 999px;
-        background: var(--bg);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
         color: var(--muted);
-        font-size: 12px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.02em;
         line-height: 1.6;
       }
 
       .badge-alert {
-        border-color: var(--accent);
-        color: var(--accent);
+        border-color: transparent;
+        background: var(--accent-soft);
+        color: var(--accent-soft-fg);
         font-weight: 700;
       }
 
@@ -327,7 +538,7 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--bg);
-        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-family: var(--font-mono);
         font-size: 12.5px;
         line-height: 1.55;
         white-space: pre-wrap;
@@ -358,15 +569,16 @@
         border: 1px solid var(--line);
         border-radius: 6px;
         background: var(--bg);
-        font-size: 12.5px;
+        font-family: var(--font-mono);
+        font-size: 12px;
         overflow-wrap: anywhere;
       }
 
       .install {
         margin: 30px 0 0;
-        padding: 14px;
+        padding: 16px;
         border: 1px solid var(--line);
-        border-radius: 10px;
+        border-radius: var(--radius);
         background: var(--panel);
       }
 
@@ -385,16 +597,19 @@
 
       .gallery-grid {
         display: grid;
-        grid-template-columns: minmax(170px, 210px) repeat(3, 320px);
+        grid-template-columns: minmax(170px, 210px) repeat(var(--gallery-cols, 3), 320px);
         gap: 12px;
         align-items: start;
       }
 
       .gallery-col {
         padding: 0 2px 6px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent-soft-fg);
       }
 
       .gallery-style {
@@ -403,6 +618,7 @@
         z-index: 1;
         padding: 10px 12px 10px 0;
         background: var(--bg);
+        border-radius: var(--radius-sm);
       }
 
       .gallery-style h3 {
@@ -423,13 +639,22 @@
         overflow: hidden;
         padding: 0;
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         background: #fff;
         cursor: zoom-in;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.15s,
+          border-color 0.15s;
+      }
+
+      .thumb:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
       }
 
       .thumb:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--ring);
         outline-offset: 2px;
       }
 
@@ -462,7 +687,8 @@
         align-items: center;
         justify-content: center;
         padding: 12px;
-        background: rgb(0 0 0 / 55%);
+        background: oklch(0.1 0.02 295 / 70%);
+        backdrop-filter: blur(6px);
       }
 
       .overlay-panel {
@@ -474,8 +700,9 @@
         max-height: 960px;
         overflow: hidden;
         border: 1px solid var(--line);
-        border-radius: 12px;
+        border-radius: var(--radius);
         background: var(--panel);
+        box-shadow: var(--shadow);
       }
 
       .overlay-bar {
@@ -490,7 +717,7 @@
 
       .overlay-title {
         margin: 0;
-        font-size: 15px;
+        font-size: 16px;
       }
 
       .overlay-controls {
@@ -506,8 +733,8 @@
         font-size: 13px;
         padding: 3px 6px;
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
         color: var(--fg);
       }
 
@@ -519,18 +746,23 @@
       .seg button {
         font: inherit;
         font-size: 13px;
-        padding: 3px 10px;
+        padding: 3px 11px;
         border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
         color: var(--muted);
         cursor: pointer;
       }
 
-      .seg button[aria-pressed="true"] {
-        border-color: var(--accent);
+      .seg button:hover {
         color: var(--fg);
-        font-weight: 600;
+      }
+
+      .seg button[aria-pressed="true"] {
+        border-color: transparent;
+        background: var(--accent-soft);
+        color: var(--accent-soft-fg);
+        font-weight: 700;
       }
 
       .overlay-status {
@@ -551,20 +783,84 @@
         height: 100%;
         border: 0;
       }
+
+      /* 作業台: 左に依頼と案、中央にプレビュー、右に調整の区画を並べる 3 列。
+         幅 1280px 以上で 3 列にし、それより狭いときは右の列を中央の下に回す */
+
+      .wb-grid {
+        display: grid;
+        grid-template-columns: 340px minmax(0, 1fr) 380px;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .wb-col {
+        min-width: 0;
+      }
+
+      /* 3 列のときは、右の列で設定をスクロールしてもプレビューが見えるよう、中央の列をヘッダーの下に付いてこさせる */
+      @media (min-width: 1280px) {
+        #wb-stage {
+          position: sticky;
+          top: 84px;
+          max-height: calc(100vh - 96px);
+          overflow-y: auto;
+          overscroll-behavior: contain;
+        }
+      }
+
+      @media (max-width: 1279px) {
+        .wb-grid {
+          grid-template-columns: 340px minmax(0, 1fr);
+          /* 左の列の余った高さを 2 行目に回し、右の列をプレビューのすぐ下に寄せる */
+          grid-template-rows: auto 1fr;
+        }
+
+        /* 左の列を 2 行にまたがらせ、右の列をプレビューのすぐ下 (間は gap だけ) に出す */
+        #wb-brief {
+          grid-row: 1 / span 2;
+        }
+
+        #wb-panels {
+          grid-column: 2;
+        }
+      }
+
+      /* さらに狭い幅 (スマホ・細い窓) では 1 列に積む: 依頼と案 → プレビュー → 調整 */
+      @media (max-width: 760px) {
+        .wb-grid {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: none;
+        }
+
+        #wb-brief {
+          grid-row: auto;
+        }
+
+        #wb-panels {
+          grid-column: auto;
+        }
+      }
     </style>
   </head>
   <body>
     <header class="app-header">
       <div class="app-header-inner">
-        <div>
-          <p class="app-name">design-studio</p>
-          <p class="app-lead">曖昧な一言から、ページの見た目を具体化する</p>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <p class="app-name">design-studio</p>
+            <p class="app-lead">曖昧な一言から、ページの見た目を具体化する</p>
+          </div>
         </div>
-        <nav class="tabs" aria-label="画面">
-          <button type="button" class="tab" data-tab="catalog" aria-current="page">台帳</button>
-          <button type="button" class="tab" data-tab="gallery">見本帳</button>
-          <button type="button" class="tab" data-tab="workbench">作業台</button>
-        </nav>
+        <div class="header-tools">
+          <nav class="tabs" aria-label="画面">
+            <button type="button" class="tab" data-tab="catalog" aria-current="page">台帳</button>
+            <button type="button" class="tab" data-tab="gallery">見本帳</button>
+            <button type="button" class="tab" data-tab="workbench">作業台</button>
+          </nav>
+          <button type="button" class="mode-toggle" id="mode-toggle" aria-label="明るさを切り替える">Light</button>
+        </div>
       </div>
       <div class="notice" id="meta-notice" hidden></div>
     </header>
@@ -572,7 +868,15 @@
       <section id="catalog" class="screen" aria-label="台帳"></section>
       <section id="gallery" class="screen" aria-label="見本帳" hidden></section>
       <section id="workbench" class="screen" aria-label="作業台" hidden>
-        <p>準備中</p>
+        <h2 class="screen-title">作業台</h2>
+        <p class="screen-lead">依頼から案を出し、見比べて編集し、混ぜた見た目をプレビューで確かめます。</p>
+        <p class="status" id="wb-status"></p>
+        <p class="wb-waiting">作業台を組み立てています…</p>
+        <div class="wb-grid">
+          <div class="wb-col" id="wb-brief"></div>
+          <div class="wb-col" id="wb-stage"></div>
+          <div class="wb-col" id="wb-panels"></div>
+        </div>
       </section>
     </main>
     <script type="module" src="/app/ui-catalog.js"></script>
@@ -629,6 +933,36 @@
       }
 
       void checkMeta();
+
+      // 明るさの切り替え。押すとダークとライトを入れ替え、選んだものを覚える (保存先が使えなければ覚えない)
+      const modeToggle = document.getElementById("mode-toggle");
+      const lightQuery = window.matchMedia("(prefers-color-scheme: light)");
+
+      function currentMode() {
+        const chosen = document.documentElement.dataset.mode;
+        if (chosen === "dark" || chosen === "light") return chosen;
+        return lightQuery.matches ? "light" : "dark";
+      }
+
+      function syncModeToggle() {
+        if (modeToggle === null) return;
+        const next = currentMode() === "dark" ? "light" : "dark";
+        modeToggle.textContent = next === "light" ? "Light" : "Dark";
+        modeToggle.setAttribute("aria-label", next === "light" ? "ライトにする" : "ダークにする");
+      }
+
+      modeToggle?.addEventListener("click", () => {
+        const next = currentMode() === "dark" ? "light" : "dark";
+        document.documentElement.dataset.mode = next;
+        try {
+          localStorage.setItem("design-studio:mode", next);
+        } catch {
+          // 覚えられなくても、この表示の間は切り替わる
+        }
+        syncModeToggle();
+      });
+      lightQuery.addEventListener("change", syncModeToggle);
+      syncModeToggle();
     </script>
   </body>
 </html>
