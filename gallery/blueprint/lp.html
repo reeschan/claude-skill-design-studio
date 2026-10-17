@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="blueprint" data-mode="dark">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ブループリント — LP の見本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Murecho:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" id="theme-fonts">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+<style type="text/tailwindcss" id="theme">
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ブループリント — 紺の方眼にシアンの線とオレンジの印。精密で静かな道具の顔 */
+[data-theme="blueprint"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.050 250.0);
+  --foreground: oklch(0.980 0.010 250.0);
+  --card: oklch(0.200 0.050 250.0);
+  --muted: oklch(0.250 0.050 250.0);
+  --muted-foreground: oklch(0.700 0.050 250.0);
+  --border: oklch(0.300 0.050 250.0);
+  --input: oklch(0.300 0.050 250.0);
+  --secondary: oklch(0.270 0.050 250.0);
+  --primary: oklch(0.700 0.133 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.280 0.042 225.0);
+  --accent-foreground: oklch(0.850 0.100 225.0);
+  --brand-accent: oklch(0.720 0.106 55.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.980 0.010 250.0);
+  --secondary-foreground: oklch(0.980 0.010 250.0);
+  --primary-foreground: oklch(0.180 0.050 250.0);
+  --destructive-foreground: oklch(0.180 0.050 250.0);
+  --success-foreground: oklch(0.180 0.050 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+  --theme-radius: 3px;
+  --theme-spacing-scale: 1.1;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Murecho", sans-serif;
+  --theme-font-body: "Murecho", sans-serif;
+  --theme-font-mono: "JetBrains Mono", monospace;
+}
+[data-theme="blueprint"][data-mode="light"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.007 250.0);
+  --foreground: oklch(0.160 0.050 250.0);
+  --card: oklch(1.000 0.000 250.0);
+  --muted: oklch(0.955 0.022 250.0);
+  --muted-foreground: oklch(0.440 0.050 250.0);
+  --border: oklch(0.900 0.050 250.0);
+  --input: oklch(0.900 0.050 250.0);
+  --secondary: oklch(0.940 0.030 250.0);
+  --primary: oklch(0.550 0.105 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.950 0.032 225.0);
+  --accent-foreground: oklch(0.350 0.067 225.0);
+  --brand-accent: oklch(0.600 0.112 55.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.160 0.050 250.0);
+  --secondary-foreground: oklch(0.160 0.050 250.0);
+  --primary-foreground: oklch(0.985 0.007 250.0);
+  --destructive-foreground: oklch(0.985 0.007 250.0);
+  --success-foreground: oklch(0.985 0.007 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+}
+
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans antialiased" id="top" style="background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:44px 44px;background-attachment:fixed">
+
+<!-- header -->
+<header class="border-b border-border bg-background">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a href="#top" class="flex items-center gap-3 font-heading font-bold tracking-wide">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="stroke-primary" stroke-width="1.5" aria-hidden="true"><path d="M2 20 L2 2 L20 2"/><path d="M2 20 L20 2" class="stroke-brand-accent"/><circle cx="20" cy="2" r="1.8" class="fill-brand-accent stroke-none"/></svg>
+      Draftline
+    </a>
+    <nav class="hidden items-center gap-8 font-mono text-xs text-muted-foreground md:flex" aria-label="主要">
+      <a href="#features" class="hover:text-foreground">01 特徴</a>
+      <a href="#steps" class="hover:text-foreground">02 使い方</a>
+      <a href="#voices" class="hover:text-foreground">03 利用者の声</a>
+      <a href="#pricing" class="hover:text-foreground">04 料金</a>
+    </nav>
+    <a href="#pricing" class="rounded-sm border border-primary px-4 py-2 text-sm text-primary hover:bg-accent">無料で始める</a>
+  </div>
+</header>
+
+<main>
+<!-- hero -->
+<section class="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.05fr_1fr] lg:py-28">
+  <div>
+    <p class="mb-6 flex items-center gap-3 font-mono text-xs text-muted-foreground">
+      <span class="inline-block h-px w-10 bg-brand-accent"></span>
+      SHEET 01 / 線から、かたちへ。
+    </p>
+    <h1 class="font-heading text-4xl font-bold leading-[1.25] tracking-tight sm:text-5xl lg:text-6xl">
+      最初の一本の線から、<br><span class="text-primary">画面が</span>立ち上がる。
+    </h1>
+    <p class="mt-8 max-w-lg text-base leading-8 text-muted-foreground">
+      曖昧な言葉を、色・字・余白の設計図に。チームで同じ図面を見ながら、迷わず作れます。
+    </p>
+    <div class="mt-10 flex flex-wrap items-center gap-4">
+      <a href="#pricing" class="rounded-md bg-primary px-7 py-3.5 font-bold text-primary-foreground hover:opacity-90">図面をひらく</a>
+      <span class="inline-flex items-center gap-2 rounded-sm border border-border bg-card px-3 py-2 font-mono text-xs text-muted-foreground">
+        <span class="inline-block size-2 bg-brand-accent"></span>無料で始められます・カード不要
+      </span>
+    </div>
+    <dl class="mt-14 grid max-w-md grid-cols-3 border-t border-border pt-5 font-mono text-xs">
+      <div><dt class="text-muted-foreground">GRID</dt><dd class="mt-1 text-lg text-foreground">8px</dd></div>
+      <div><dt class="text-muted-foreground">TOKENS</dt><dd class="mt-1 text-lg text-foreground">3 軸</dd></div>
+      <div><dt class="text-muted-foreground">REV.</dt><dd class="mt-1 text-lg text-brand-accent">∞</dd></div>
+    </dl>
+  </div>
+
+  <!-- drawing -->
+  <figure class="relative rounded-md border border-border bg-card p-4">
+    <svg viewBox="0 0 480 400" class="h-auto w-full" role="img" aria-label="方眼の上に置かれたカードと、その幅・高さ・余白を示す寸法線の図面">
+      <defs>
+        <pattern id="g8" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" class="stroke-border" stroke-width="0.6"/></pattern>
+        <pattern id="g64" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" class="stroke-muted-foreground" stroke-width="0.6" opacity="0.5"/></pattern>
+      </defs>
+      <rect x="0" y="0" width="480" height="400" fill="url(#g8)"/>
+      <rect x="0" y="0" width="480" height="400" fill="url(#g64)"/>
+      <!-- ruler top -->
+      <g class="stroke-muted-foreground" stroke-width="1">
+        <path d="M32 24H448"/>
+        <path d="M32 18V30M96 20V28M160 20V28M224 20V28M288 20V28M352 20V28M416 20V28M448 18V30"/>
+      </g>
+      <g class="fill-muted-foreground font-mono" font-size="9"><text x="30" y="14">0</text><text x="214" y="14">192</text><text x="436" y="14">416</text></g>
+
+      <!-- card -->
+      <rect x="96" y="96" width="256" height="176" rx="3" class="fill-accent stroke-primary" stroke-width="1.5"/>
+      <rect x="112" y="112" width="96" height="10" class="fill-primary" opacity="0.9"/>
+      <rect x="112" y="136" width="200" height="6" class="fill-muted-foreground" opacity="0.6"/>
+      <rect x="112" y="150" width="160" height="6" class="fill-muted-foreground" opacity="0.6"/>
+      <rect x="112" y="222" width="72" height="32" rx="3" class="fill-brand-accent"/>
+      <rect x="196" y="222" width="72" height="32" rx="3" fill="none" class="stroke-primary" stroke-width="1"/>
+      <!-- inner padding guide -->
+      <rect x="112" y="112" width="224" height="144" fill="none" class="stroke-primary" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.7"/>
+
+      <!-- width dimension -->
+      <g class="stroke-brand-accent" stroke-width="1" fill="none">
+        <path d="M96 296V340M352 296V340"/>
+        <path d="M96 328H352"/>
+        <path d="M96 328l7-3.5v7zM352 328l-7-3.5v7z" class="fill-brand-accent"/>
+      </g>
+      <g class="fill-brand-accent font-mono" font-size="11"><rect x="198" y="318" width="52" height="16" class="fill-card stroke-none"/><text x="204" y="330">W 256</text></g>
+
+      <!-- height dimension -->
+      <g class="stroke-brand-accent" stroke-width="1" fill="none">
+        <path d="M376 96H420M376 272H420"/>
+        <path d="M408 96V272"/>
+        <path d="M408 96l-3.5 7h7zM408 272l-3.5-7h7z" class="fill-brand-accent"/>
+      </g>
+      <g class="font-mono" font-size="11"><rect x="394" y="170" width="28" height="30" class="fill-card"/><text x="396" y="182" class="fill-brand-accent">H</text><text x="396" y="195" class="fill-brand-accent">176</text></g>
+
+      <!-- padding dimension -->
+      <g class="stroke-primary" stroke-width="1" fill="none">
+        <path d="M96 76V92M112 76V92"/><path d="M80 84H128"/>
+      </g>
+      <g class="fill-primary font-mono" font-size="10"><text x="132" y="87">pad 16</text></g>
+
+      <!-- radius callout -->
+      <path d="M352 96 L372 70 L430 70" fill="none" class="stroke-muted-foreground" stroke-width="0.8"/>
+      <text x="376" y="64" class="fill-muted-foreground font-mono" font-size="10">R 3</text>
+
+      <!-- title block -->
+      <g class="stroke-muted-foreground" stroke-width="0.8" fill="none"><rect x="32" y="352" width="48" height="32"/></g>
+      <text x="38" y="366" class="fill-muted-foreground font-mono" font-size="8">SCALE</text>
+      <text x="38" y="378" class="fill-foreground font-mono" font-size="9">1 : 1</text>
+    </svg>
+    <figcaption class="mt-3 flex justify-between font-mono text-[11px] text-muted-foreground">
+      <span>FIG.1 カードの寸法</span><span>単位 px / 8 の倍数</span>
+    </figcaption>
+  </figure>
+</section>
+
+<!-- features -->
+<section id="features" class="border-y border-border bg-background">
+  <div class="mx-auto max-w-6xl px-6 py-24">
+    <div class="mb-14 flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <p class="font-mono text-xs text-brand-accent">01 — FEATURES</p>
+        <h2 class="mt-3 font-heading text-3xl font-bold sm:text-4xl">図面に必要なものを、四つに絞った。</h2>
+      </div>
+      <p class="max-w-xs text-sm leading-7 text-muted-foreground">言葉で始まった方向性が、値になり、版になり、実装になるまで。</p>
+    </div>
+    <div class="grid gap-px border border-border bg-border sm:grid-cols-2">
+      <article class="bg-card p-8">
+        <div class="flex items-start justify-between"><span class="font-mono text-xs text-muted-foreground">A-01</span>
+          <svg width="56" height="40" viewBox="0 0 56 40" fill="none" class="stroke-primary" stroke-width="1" aria-hidden="true"><path d="M0 8H56M0 24H56M0 40H56M8 0V40M24 0V40M40 0V40"/><rect x="8" y="8" width="32" height="16" class="stroke-brand-accent" stroke-width="1.5"/></svg></div>
+        <h3 class="mt-6 font-heading text-xl font-bold">方眼の上で考える</h3>
+        <p class="mt-3 text-sm leading-7 text-muted-foreground">8 の倍数の目盛りで、余白と寸法がそろいます。</p>
+      </article>
+      <article class="bg-card p-8">
+        <div class="flex items-start justify-between"><span class="font-mono text-xs text-muted-foreground">A-02</span>
+          <svg width="56" height="40" viewBox="0 0 56 40" fill="none" class="stroke-primary" stroke-width="1" aria-hidden="true"><path d="M4 8V32M52 8V32M4 20H52"/><path d="M4 20l6-3v6zM52 20l-6-3v6z" class="fill-primary"/><path d="M20 14h16v12H20z" class="stroke-brand-accent fill-card"/></svg></div>
+        <h3 class="mt-6 font-heading text-xl font-bold">寸法を共有する</h3>
+        <p class="mt-3 text-sm leading-7 text-muted-foreground">色・字・角の値を、そのまま仕様として渡せます。</p>
+      </article>
+      <article class="bg-card p-8">
+        <div class="flex items-start justify-between"><span class="font-mono text-xs text-muted-foreground">A-03</span>
+          <svg width="56" height="40" viewBox="0 0 56 40" fill="none" class="stroke-primary" stroke-width="1" aria-hidden="true"><rect x="4" y="4" width="32" height="22"/><rect x="12" y="10" width="32" height="22" class="stroke-muted-foreground"/><rect x="20" y="16" width="32" height="22" class="stroke-brand-accent" stroke-width="1.5"/></svg></div>
+        <h3 class="mt-6 font-heading text-xl font-bold">版を重ねる</h3>
+        <p class="mt-3 text-sm leading-7 text-muted-foreground">案を残したまま描き直し、いつでも前の線に戻れます。</p>
+      </article>
+      <article class="bg-card p-8">
+        <div class="flex items-start justify-between"><span class="font-mono text-xs text-muted-foreground">A-04</span>
+          <svg width="56" height="40" viewBox="0 0 56 40" fill="none" class="stroke-primary" stroke-width="1" aria-hidden="true"><path d="M4 6l-3 14 3 14M52 6l3 14-3 14" /><path d="M16 14l-6 6 6 6M40 14l6 6-6 6" class="stroke-brand-accent" stroke-width="1.5"/><path d="M32 12l-8 16"/></svg></div>
+        <h3 class="mt-6 font-heading text-xl font-bold">そのまま組める</h3>
+        <p class="mt-3 text-sm leading-7 text-muted-foreground">書き出したトークンで、実装の画面に同じ線を引けます。</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- steps -->
+<section id="steps" class="mx-auto max-w-6xl px-6 py-24">
+  <p class="font-mono text-xs text-brand-accent">02 — PROCEDURE</p>
+  <h2 class="mt-3 font-heading text-3xl font-bold sm:text-4xl">三つの手順で、図面になる。</h2>
+  <ol class="relative mt-14 grid gap-10 md:grid-cols-3">
+    <li class="relative border-t border-primary pt-6">
+      <span class="absolute -top-1.5 left-0 size-3 bg-primary"></span>
+      <span class="font-mono text-sm text-primary">STEP 1</span>
+      <h3 class="mt-3 font-heading text-xl font-bold">言葉を置く</h3>
+      <p class="mt-3 text-sm leading-7 text-muted-foreground">「静か」「精密」など、チームの曖昧な言葉をそのまま書き出します。</p>
+    </li>
+    <li class="relative border-t border-primary pt-6">
+      <span class="absolute -top-1.5 left-0 size-3 bg-primary"></span>
+      <span class="font-mono text-sm text-primary">STEP 2</span>
+      <h3 class="mt-3 font-heading text-xl font-bold">線を引く</h3>
+      <p class="mt-3 text-sm leading-7 text-muted-foreground">色・字・余白の値に変換。方眼の上で、案を並べて見比べます。</p>
+    </li>
+    <li class="relative border-t border-brand-accent pt-6">
+      <span class="absolute -top-1.5 left-0 size-3 bg-brand-accent"></span>
+      <span class="font-mono text-sm text-brand-accent">STEP 3</span>
+      <h3 class="mt-3 font-heading text-xl font-bold">図面を渡す</h3>
+      <p class="mt-3 text-sm leading-7 text-muted-foreground">決まった版をトークンで書き出し、エンジニアがそのまま実装します。</p>
+    </li>
+  </ol>
+  <div class="mt-10 flex justify-between font-mono text-[11px] text-muted-foreground" aria-hidden="true"><span>|← 0</span><span class="flex-1 mx-3 border-b border-dashed border-border translate-y-[-6px]"></span><span>完成 →|</span></div>
+</section>
+
+<!-- voices -->
+<section id="voices" class="border-y border-border bg-background">
+  <div class="mx-auto max-w-6xl px-6 py-24">
+    <p class="font-mono text-xs text-brand-accent">03 — NOTES</p>
+    <h2 class="mt-3 font-heading text-3xl font-bold sm:text-4xl">現場からの書き込み。</h2>
+    <div class="mt-12 grid gap-6 md:grid-cols-[1.3fr_1fr]">
+      <blockquote class="rounded-md border border-border bg-card p-8">
+        <p class="font-heading text-xl leading-9">「『もう少し静かに』が、余白 24 と文字色の一段で話せるようになった。レビューの往復が目に見えて減りました。」</p>
+        <footer class="mt-6 font-mono text-xs text-muted-foreground">— 田村 遥 / プロダクトデザイナー</footer>
+      </blockquote>
+      <div class="grid gap-6">
+        <blockquote class="rounded-md border border-border bg-card p-6">
+          <p class="text-sm leading-7">「書き出されたトークンを読むだけで実装に入れる。デザイン待ちの時間がなくなった。」</p>
+          <footer class="mt-4 font-mono text-xs text-muted-foreground">— 森川 慎 / フロントエンドエンジニア</footer>
+        </blockquote>
+        <blockquote class="rounded-md border border-border bg-card p-6">
+          <p class="text-sm leading-7">「版が残るので、却下した案にも安心して戻れます。」</p>
+          <footer class="mt-4 font-mono text-xs text-muted-foreground">— 石井 美帆 / プロダクトマネージャー</footer>
+        </blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- pricing -->
+<section id="pricing" class="mx-auto max-w-6xl px-6 py-24">
+  <div class="relative overflow-hidden rounded-lg border border-primary bg-card p-10 sm:p-14" style="background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:22px 22px">
+    <p class="font-mono text-xs text-brand-accent">04 — PRICING</p>
+    <h2 class="mt-3 max-w-2xl font-heading text-3xl font-bold leading-snug sm:text-4xl">まずは無料で、一枚目の図面を。</h2>
+    <p class="mt-5 max-w-xl text-sm leading-7 text-muted-foreground">個人と小さなチームは無料のまま使えます。人数や版が増えたら、プランを選べます。</p>
+    <div class="mt-10 flex flex-wrap items-center gap-4">
+      <a href="mailto:hello@draftline.example" class="rounded-md bg-brand-accent px-7 py-3.5 font-bold text-brand-accent-foreground hover:opacity-90">無料で始める</a>
+      <a href="#features" class="rounded-md border border-border bg-background px-7 py-3.5 text-sm hover:bg-accent">料金プランを見る</a>
+    </div>
+    <p class="mt-6 font-mono text-xs text-muted-foreground">カード登録なし ・ いつでも有料プランへ</p>
+  </div>
+</section>
+</main>
+
+<footer class="border-t border-border bg-background">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 font-mono text-xs text-muted-foreground">
+    <span>Draftline — 線から、かたちへ。</span>
+    <a href="#top" class="hover:text-foreground">↑ ページの先頭へ</a>
+  </div>
+</footer>
+</body>
+</html>

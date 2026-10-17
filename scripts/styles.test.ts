@@ -11,7 +11,7 @@ import { runCli, tempEnv } from "./test-helper.ts";
 
 const FAKE_GUIDE = fileURLToPath(new URL("../test/fixtures/fake-style-guide", import.meta.url));
 
-const STYLE_IDS = ["minimal", "wa-modern", "pop", "corporate", "dark-tech", "editorial"];
+const STYLE_IDS = ["minimal", "wa-modern", "pop", "corporate", "dark-tech", "editorial", "blueprint"];
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
@@ -44,7 +44,7 @@ function stylesOf(env: NodeJS.ProcessEnv): Record<string, unknown>[] {
   return records(payload(res.json).styles);
 }
 
-void test("styles は 6 件を決まった並びで返す", () => {
+void test("styles は 7 件を決まった並びで返す", () => {
   const { env, cleanup } = tempEnv();
   try {
     const styles = stylesOf(env);

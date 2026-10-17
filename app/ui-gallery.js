@@ -1,10 +1,15 @@
 // 見本帳の画面。スタイル × 画面の種類の見本 (/gallery/<styleId>/<pageType>.html) を
 // 縮小した iframe で並べ、マスを押すと大きく開いてテーマとライト/ダークを見比べられる。
 // 「これに近いもので作る」で studio:start-from-style を投げ、作業台 (PBI-015) に渡す
+// 骨組みの種類と列の見出し。always の 3 つはいつも列を出し、ほかは見本が 1 枚でもあれば列を出す
 const PAGE_TYPES = [
-  { key: "lp", label: "LP" },
-  { key: "dashboard", label: "ダッシュボード" },
-  { key: "blog", label: "ブログ記事" },
+  { key: "lp", label: "LP", always: true },
+  { key: "dashboard", label: "ダッシュボード", always: true },
+  { key: "blog", label: "ブログ記事", always: true },
+  { key: "pricing", label: "料金ページ", always: false },
+  { key: "product", label: "商品詳細", always: false },
+  { key: "portfolio", label: "ポートフォリオ", always: false },
+  { key: "settings", label: "設定画面", always: false },
 ];
 
 const state = { styles: [], items: [], overlay: null };
@@ -252,16 +257,23 @@ function cell(style, pageType) {
   return box;
 }
 
+// 列に出す骨組みの種類 (いつも出す 3 つと、見本が 1 枚でもある種類)
+function visiblePageTypes() {
+  return PAGE_TYPES.filter((page) => page.always || state.items.some((item) => item.pageType === page.key));
+}
+
 function buildGrid() {
   const scroll = el("div", "gallery-scroll");
   const grid = el("div", "gallery-grid");
+  const pages = visiblePageTypes();
+  grid.style.setProperty("--gallery-cols", String(pages.length));
   grid.append(el("div", null, ""));
-  for (const page of PAGE_TYPES) grid.append(el("div", "gallery-col", page.label));
+  for (const page of pages) grid.append(el("div", "gallery-col", page.label));
   for (const style of state.styles) {
     const head = el("div", "gallery-style");
     head.append(el("h3", null, style.name), el("p", null, style.description));
     grid.append(head);
-    for (const page of PAGE_TYPES) grid.append(cell(style, page.key));
+    for (const page of pages) grid.append(cell(style, page.key));
   }
   scroll.append(grid);
   return scroll;

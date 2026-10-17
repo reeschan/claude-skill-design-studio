@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="blueprint" data-mode="dark">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ブループリント — ダッシュボードの見本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Murecho:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" id="theme-fonts">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+<style type="text/tailwindcss" id="theme">
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ブループリント — 紺の方眼にシアンの線とオレンジの印。精密で静かな道具の顔 */
+[data-theme="blueprint"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.050 250.0);
+  --foreground: oklch(0.980 0.010 250.0);
+  --card: oklch(0.200 0.050 250.0);
+  --muted: oklch(0.250 0.050 250.0);
+  --muted-foreground: oklch(0.700 0.050 250.0);
+  --border: oklch(0.300 0.050 250.0);
+  --input: oklch(0.300 0.050 250.0);
+  --secondary: oklch(0.270 0.050 250.0);
+  --primary: oklch(0.700 0.133 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.280 0.042 225.0);
+  --accent-foreground: oklch(0.850 0.100 225.0);
+  --brand-accent: oklch(0.720 0.106 55.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.980 0.010 250.0);
+  --secondary-foreground: oklch(0.980 0.010 250.0);
+  --primary-foreground: oklch(0.180 0.050 250.0);
+  --destructive-foreground: oklch(0.180 0.050 250.0);
+  --success-foreground: oklch(0.180 0.050 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+  --theme-radius: 3px;
+  --theme-spacing-scale: 1.1;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Murecho", sans-serif;
+  --theme-font-body: "Murecho", sans-serif;
+  --theme-font-mono: "JetBrains Mono", monospace;
+}
+[data-theme="blueprint"][data-mode="light"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.007 250.0);
+  --foreground: oklch(0.160 0.050 250.0);
+  --card: oklch(1.000 0.000 250.0);
+  --muted: oklch(0.955 0.022 250.0);
+  --muted-foreground: oklch(0.440 0.050 250.0);
+  --border: oklch(0.900 0.050 250.0);
+  --input: oklch(0.900 0.050 250.0);
+  --secondary: oklch(0.940 0.030 250.0);
+  --primary: oklch(0.550 0.105 225.0);
+  --ring: oklch(0.620 0.118 225.0);
+  --accent: oklch(0.950 0.032 225.0);
+  --accent-foreground: oklch(0.350 0.067 225.0);
+  --brand-accent: oklch(0.600 0.112 55.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.160 0.050 250.0);
+  --secondary-foreground: oklch(0.160 0.050 250.0);
+  --primary-foreground: oklch(0.985 0.007 250.0);
+  --destructive-foreground: oklch(0.985 0.007 250.0);
+  --success-foreground: oklch(0.985 0.007 250.0);
+  --warning-foreground: oklch(0.180 0.050 250.0);
+  --brand-accent-foreground: oklch(0.180 0.050 250.0);
+}
+
+    </style>
+<style>
+  body{
+    background-image:
+      linear-gradient(color-mix(in oklch, var(--border) 45%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, var(--border) 45%, transparent) 1px, transparent 1px),
+      linear-gradient(color-mix(in oklch, var(--border) 80%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, var(--border) 80%, transparent) 1px, transparent 1px);
+    background-size:16px 16px,16px 16px,80px 80px,80px 80px;
+    background-position:-1px -1px;
+  }
+  .num{font-family:var(--theme-font-mono);font-variant-numeric:tabular-nums;font-feature-settings:"zero" 1}
+  .dim{display:flex;align-items:center;gap:.75rem;color:var(--muted-foreground);font-family:var(--theme-font-mono);font-size:11px;letter-spacing:.08em;white-space:nowrap}
+  .dim::before,.dim::after{content:"";flex:1;height:9px;border-left:1px solid var(--muted-foreground);border-right:1px solid var(--muted-foreground);background:linear-gradient(var(--muted-foreground),var(--muted-foreground)) center/100% 1px no-repeat;opacity:.7}
+  .scale{position:relative;height:10px;background:var(--muted);border:1px solid var(--border)}
+  .scale>.fill{position:absolute;inset:0 auto 0 0;background:var(--primary)}
+  .scale>.ticks{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--background) calc(10% - 1px),var(--background) 10%);opacity:.75}
+  .scale-lab{display:flex;justify-content:space-between;font-family:var(--theme-font-mono);font-size:9px;color:var(--muted-foreground);margin-top:2px}
+  .corner{position:relative}
+  .corner::before,.corner::after{content:"";position:absolute;width:9px;height:9px;border:1px solid var(--primary)}
+  .corner::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+  .corner::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+  .bar-grow{transform-origin:left;animation:grow .9s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  @media (prefers-reduced-motion:reduce){.bar-grow{animation:none}}
+</style>
+</head>
+<body class="bg-background text-foreground font-sans antialiased">
+<a id="top"></a>
+
+<!-- topnav -->
+<header class="border-b border-border bg-background/90 backdrop-blur sticky top-0 z-10">
+  <div class="mx-auto max-w-[1280px] px-6 h-14 flex items-center gap-8">
+    <a href="#top" class="flex items-center gap-2.5 font-heading font-bold tracking-wide">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" class="stroke-primary" stroke-width="1.2" aria-hidden="true">
+        <rect x="2.5" y="2.5" width="17" height="17"/><path d="M2.5 19.5 19.5 2.5"/><circle cx="11" cy="11" r="3.2" class="stroke-brand-accent"/>
+      </svg>
+      Draftline
+    </a>
+    <nav class="hidden md:flex items-center gap-1 text-sm" aria-label="主要">
+      <a href="#projects" class="px-3 py-1.5 rounded-sm bg-accent text-accent-foreground">案件</a>
+      <a href="#review" class="px-3 py-1.5 rounded-sm text-muted-foreground hover:text-foreground">レビュー</a>
+      <a href="#exports" class="px-3 py-1.5 rounded-sm text-muted-foreground hover:text-foreground">書き出し</a>
+      <a href="#load" class="px-3 py-1.5 rounded-sm text-muted-foreground hover:text-foreground">稼働</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-4">
+      <span class="num text-xs text-muted-foreground hidden sm:inline">2026-10-17 SAT</span>
+      <span class="num size-8 rounded-sm border border-border bg-card grid place-items-center text-xs text-primary" aria-label="ログイン中: ミナ">MN</span>
+    </div>
+  </div>
+</header>
+
+<main class="mx-auto max-w-[1280px] px-6 pb-20">
+
+  <!-- title block -->
+  <section class="pt-12 pb-8">
+    <div class="num text-[11px] tracking-[.2em] text-primary mb-3">SHEET 01 / TEAM OVERVIEW / W42</div>
+    <div class="grid lg:grid-cols-[1fr_auto] gap-8 items-end">
+      <h1 class="font-heading font-bold text-4xl md:text-6xl leading-[1.08] tracking-tight">
+        今週の図面を、<br><span class="text-primary">一枚</span>で見渡す。
+      </h1>
+      <dl class="corner border border-border bg-card/80 grid grid-cols-3 divide-x divide-border text-center min-w-[320px]">
+        <div class="px-5 py-3"><dt class="text-[11px] text-muted-foreground">進行中</dt><dd class="num text-2xl text-foreground">06</dd></div>
+        <div class="px-5 py-3"><dt class="text-[11px] text-muted-foreground">レビュー待ち</dt><dd class="num text-2xl text-brand-accent">05</dd></div>
+        <div class="px-5 py-3"><dt class="text-[11px] text-muted-foreground">今週の稼働</dt><dd class="num text-2xl text-foreground">78%</dd></div>
+      </dl>
+    </div>
+    <div class="dim mt-8"><span>第42週 · 10.12 — 10.18</span></div>
+  </section>
+
+  <!-- projects -->
+  <section id="projects" class="mb-12">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-heading font-bold text-xl"><span class="num text-primary text-sm mr-2">A</span>進行中の案件</h2>
+      <span class="num text-xs text-muted-foreground">SCALE 1:1 · 0—100%</span>
+    </div>
+    <div class="border border-border bg-card rounded-sm divide-y divide-border">
+      <!-- row -->
+      <article class="grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_auto] gap-x-8 gap-y-3 items-center px-5 py-4">
+        <div>
+          <h3 class="font-bold">モバイル決済アプリ 再設計</h3>
+          <p class="text-xs text-muted-foreground mt-0.5">担当 ミナ · 河野 <span class="num">/ PRJ-0412</span></p>
+        </div>
+        <div>
+          <div class="scale"><div class="fill bar-grow" style="width:72%"></div><div class="ticks"></div></div>
+          <div class="scale-lab"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="flex md:flex-col md:items-end gap-3 md:gap-1 items-baseline"><span class="num text-2xl">72%</span><span class="num text-xs text-muted-foreground">期限 10.31</span></div>
+      </article>
+      <article class="grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_auto] gap-x-8 gap-y-3 items-center px-5 py-4">
+        <div>
+          <h3 class="font-bold">デザインシステム v3 トークン整理</h3>
+          <p class="text-xs text-muted-foreground mt-0.5">担当 佐伯 · ライ <span class="num">/ PRJ-0398</span></p>
+        </div>
+        <div>
+          <div class="scale"><div class="fill bar-grow" style="width:88%"></div><div class="ticks"></div></div>
+          <div class="scale-lab"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="flex md:flex-col md:items-end gap-3 md:gap-1 items-baseline"><span class="num text-2xl">88%</span><span class="num text-xs text-success">期限 10.24</span></div>
+      </article>
+      <article class="grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_auto] gap-x-8 gap-y-3 items-center px-5 py-4">
+        <div>
+          <h3 class="font-bold">会員サイト 管理画面</h3>
+          <p class="text-xs text-muted-foreground mt-0.5">担当 河野 · タクミ <span class="num">/ PRJ-0421</span></p>
+        </div>
+        <div>
+          <div class="scale"><div class="fill bar-grow" style="width:45%"></div><div class="ticks"></div></div>
+          <div class="scale-lab"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="flex md:flex-col md:items-end gap-3 md:gap-1 items-baseline"><span class="num text-2xl">45%</span><span class="num text-xs text-muted-foreground">期限 11.14</span></div>
+      </article>
+      <article class="grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_auto] gap-x-8 gap-y-3 items-center px-5 py-4">
+        <div>
+          <h3 class="font-bold">予約フロー 改善</h3>
+          <p class="text-xs text-muted-foreground mt-0.5">担当 ライ <span class="num">/ PRJ-0405</span></p>
+        </div>
+        <div>
+          <div class="scale"><div class="fill bar-grow" style="width:31%"></div><div class="ticks"></div></div>
+          <div class="scale-lab"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="flex md:flex-col md:items-end gap-3 md:gap-1 items-baseline"><span class="num text-2xl">31%</span><span class="num text-xs text-warning">期限 10.28 · 遅れ気味</span></div>
+      </article>
+      <article class="grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_auto] gap-x-8 gap-y-3 items-center px-5 py-4">
+        <div>
+          <h3 class="font-bold">ブランドサイト リニューアル</h3>
+          <p class="text-xs text-muted-foreground mt-0.5">担当 ミナ · 佐伯 <span class="num">/ PRJ-0377</span></p>
+        </div>
+        <div>
+          <div class="scale"><div class="fill bar-grow" style="width:96%"></div><div class="ticks"></div></div>
+          <div class="scale-lab"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="flex md:flex-col md:items-end gap-3 md:gap-1 items-baseline"><span class="num text-2xl">96%</span><span class="num text-xs text-success">期限 10.20</span></div>
+      </article>
+      <article class="grid md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_auto] gap-x-8 gap-y-3 items-center px-5 py-4">
+        <div>
+          <h3 class="font-bold">通知センター 新設</h3>
+          <p class="text-xs text-muted-foreground mt-0.5">担当 タクミ <span class="num">/ PRJ-0430</span></p>
+        </div>
+        <div>
+          <div class="scale"><div class="fill bar-grow" style="width:12%"></div><div class="ticks"></div></div>
+          <div class="scale-lab"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+        </div>
+        <div class="flex md:flex-col md:items-end gap-3 md:gap-1 items-baseline"><span class="num text-2xl">12%</span><span class="num text-xs text-muted-foreground">期限 12.05</span></div>
+      </article>
+    </div>
+  </section>
+
+  <div class="grid lg:grid-cols-2 gap-8 mb-12">
+    <!-- review -->
+    <section id="review">
+      <div class="flex items-baseline justify-between mb-4">
+        <h2 class="font-heading font-bold text-xl"><span class="num text-primary text-sm mr-2">B</span>レビュー待ちの図面</h2>
+        <span class="num text-xs text-brand-accent">05 件</span>
+      </div>
+      <ul class="border border-border bg-card rounded-sm divide-y divide-border">
+        <li class="flex items-center gap-4 px-4 py-3">
+          <svg width="40" height="30" viewBox="0 0 40 30" fill="none" class="stroke-primary shrink-0" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="39" height="29"/><path d="M5 8h18M5 13h12M5 22h30" class="stroke-muted-foreground"/><circle cx="31" cy="11" r="4"/></svg>
+          <div class="min-w-0 flex-1"><p class="font-bold truncate">決済完了画面 v7</p><p class="text-xs text-muted-foreground">依頼 ミナ → 河野</p></div>
+          <span class="num text-xs text-warning">待ち 2日</span>
+        </li>
+        <li class="flex items-center gap-4 px-4 py-3">
+          <svg width="40" height="30" viewBox="0 0 40 30" fill="none" class="stroke-primary shrink-0" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="39" height="29"/><path d="M5 6h30M5 12h30M5 18h30M5 24h14" class="stroke-muted-foreground"/></svg>
+          <div class="min-w-0 flex-1"><p class="font-bold truncate">テーブル コンポーネント仕様</p><p class="text-xs text-muted-foreground">依頼 佐伯 → ライ</p></div>
+          <span class="num text-xs text-muted-foreground">待ち 1日</span>
+        </li>
+        <li class="flex items-center gap-4 px-4 py-3">
+          <svg width="40" height="30" viewBox="0 0 40 30" fill="none" class="stroke-primary shrink-0" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="39" height="29"/><path d="M4 26 14 14l7 6 15-16" class="stroke-muted-foreground"/></svg>
+          <div class="min-w-0 flex-1"><p class="font-bold truncate">ダッシュボード 集計グラフ</p><p class="text-xs text-muted-foreground">依頼 タクミ → ミナ</p></div>
+          <span class="num text-xs text-destructive">待ち 4日</span>
+        </li>
+        <li class="flex items-center gap-4 px-4 py-3">
+          <svg width="40" height="30" viewBox="0 0 40 30" fill="none" class="stroke-primary shrink-0" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="39" height="29"/><rect x="6" y="6" width="12" height="18" class="stroke-muted-foreground"/><rect x="22" y="6" width="12" height="8" class="stroke-muted-foreground"/></svg>
+          <div class="min-w-0 flex-1"><p class="font-bold truncate">予約カレンダー 空き枠表示</p><p class="text-xs text-muted-foreground">依頼 ライ → 佐伯</p></div>
+          <span class="num text-xs text-muted-foreground">待ち 0日</span>
+        </li>
+        <li class="flex items-center gap-4 px-4 py-3">
+          <svg width="40" height="30" viewBox="0 0 40 30" fill="none" class="stroke-primary shrink-0" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="39" height="29"/><circle cx="20" cy="15" r="8" class="stroke-muted-foreground"/><path d="M20 7v16M12 15h16" class="stroke-muted-foreground"/></svg>
+          <div class="min-w-0 flex-1"><p class="font-bold truncate">アイコンセット 24px グリッド</p><p class="text-xs text-muted-foreground">依頼 河野 → タクミ</p></div>
+          <span class="num text-xs text-warning">待ち 2日</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- exports -->
+    <section id="exports">
+      <div class="flex items-baseline justify-between mb-4">
+        <h2 class="font-heading font-bold text-xl"><span class="num text-primary text-sm mr-2">C</span>トークンの書き出し履歴</h2>
+        <span class="num text-xs text-muted-foreground">直近 5 件</span>
+      </div>
+      <div class="border border-border bg-card rounded-sm overflow-x-auto">
+        <table class="w-full text-sm">
+          <caption class="sr-only">トークンの書き出し履歴</caption>
+          <thead>
+            <tr class="text-left text-[11px] text-muted-foreground border-b border-border">
+              <th scope="col" class="font-normal px-4 py-2.5">日時</th>
+              <th scope="col" class="font-normal px-2 py-2.5">セット</th>
+              <th scope="col" class="font-normal px-2 py-2.5">形式</th>
+              <th scope="col" class="font-normal px-4 py-2.5 text-right">結果</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            <tr><td class="num px-4 py-3 text-xs text-muted-foreground">10.17 09:42</td><td class="px-2 py-3">core v3.2.0</td><td class="num px-2 py-3 text-xs">CSS</td><td class="px-4 py-3 text-right"><span class="num text-xs text-success">● 成功</span></td></tr>
+            <tr><td class="num px-4 py-3 text-xs text-muted-foreground">10.16 18:05</td><td class="px-2 py-3">core v3.2.0</td><td class="num px-2 py-3 text-xs">JSON</td><td class="px-4 py-3 text-right"><span class="num text-xs text-success">● 成功</span></td></tr>
+            <tr><td class="num px-4 py-3 text-xs text-muted-foreground">10.16 11:20</td><td class="px-2 py-3">brand-site</td><td class="num px-2 py-3 text-xs">Swift</td><td class="px-4 py-3 text-right"><span class="num text-xs text-destructive">● 失敗</span></td></tr>
+            <tr><td class="num px-4 py-3 text-xs text-muted-foreground">10.15 15:33</td><td class="px-2 py-3">payments-app</td><td class="num px-2 py-3 text-xs">Kotlin</td><td class="px-4 py-3 text-right"><span class="num text-xs text-success">● 成功</span></td></tr>
+            <tr><td class="num px-4 py-3 text-xs text-muted-foreground">10.14 10:12</td><td class="px-2 py-3">core v3.1.4</td><td class="num px-2 py-3 text-xs">CSS</td><td class="px-4 py-3 text-right"><span class="num text-xs text-warning">● 警告 2</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- workload -->
+  <section id="load">
+    <div class="flex items-baseline justify-between mb-4">
+      <h2 class="font-heading font-bold text-xl"><span class="num text-primary text-sm mr-2">D</span>今週のチームの稼働</h2>
+      <span class="num text-xs text-muted-foreground">単位 h / 日 · 上限 8</span>
+    </div>
+    <div class="border border-border bg-card rounded-sm p-5 overflow-x-auto">
+      <div class="min-w-[560px]">
+        <div class="grid grid-cols-[88px_repeat(5,1fr)_72px] gap-1.5 num text-[11px] text-muted-foreground mb-1.5">
+          <span></span><span class="text-center">MON 12</span><span class="text-center">TUE 13</span><span class="text-center">WED 14</span><span class="text-center">THU 15</span><span class="text-center">FRI 16</span><span class="text-right">合計</span>
+        </div>
+        <div class="grid grid-cols-[88px_repeat(5,1fr)_72px] gap-1.5 items-center mb-1.5">
+          <span class="text-sm">ミナ</span>
+          <span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span><span class="num text-xs text-center py-2 rounded-sm bg-brand-accent text-brand-accent-foreground">9</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/40">5</span>
+          <span class="num text-sm text-right">34</span>
+        </div>
+        <div class="grid grid-cols-[88px_repeat(5,1fr)_72px] gap-1.5 items-center mb-1.5">
+          <span class="text-sm">河野</span>
+          <span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">8</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span>
+          <span class="num text-sm text-right">34</span>
+        </div>
+        <div class="grid grid-cols-[88px_repeat(5,1fr)_72px] gap-1.5 items-center mb-1.5">
+          <span class="text-sm">佐伯</span>
+          <span class="num text-xs text-center py-2 rounded-sm bg-primary/40">4</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/40">5</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/20">3</span>
+          <span class="num text-sm text-right">24</span>
+        </div>
+        <div class="grid grid-cols-[88px_repeat(5,1fr)_72px] gap-1.5 items-center mb-1.5">
+          <span class="text-sm">ライ</span>
+          <span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span><span class="num text-xs text-center py-2 rounded-sm bg-brand-accent text-brand-accent-foreground">9</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">8</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span>
+          <span class="num text-sm text-right">37</span>
+        </div>
+        <div class="grid grid-cols-[88px_repeat(5,1fr)_72px] gap-1.5 items-center">
+          <span class="text-sm">タクミ</span>
+          <span class="num text-xs text-center py-2 rounded-sm bg-primary/60">5</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/40">4</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/80">7</span><span class="num text-xs text-center py-2 rounded-sm bg-primary/60">6</span>
+          <span class="num text-sm text-right">28</span>
+        </div>
+        <div class="dim mt-6"><span>チーム合計 157 / 200 h = 78%</span></div>
+        <div class="flex gap-5 mt-4 text-[11px] text-muted-foreground">
+          <span class="flex items-center gap-1.5"><i class="size-3 rounded-sm bg-primary/30 inline-block"></i>余裕あり</span>
+          <span class="flex items-center gap-1.5"><i class="size-3 rounded-sm bg-primary/80 inline-block"></i>適正</span>
+          <span class="flex items-center gap-1.5"><i class="size-3 rounded-sm bg-brand-accent inline-block"></i>上限超え</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mt-14">
+    <div class="dim"><span>Draftline · 線から、かたちへ。</span></div>
+    <p class="num text-[11px] text-muted-foreground text-center mt-3">DWG NO. DL-0042 · REV C · 作図 2026-10-17</p>
+  </footer>
+</main>
+</body>
+</html>

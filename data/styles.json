@@ -250,5 +250,71 @@
         { "title": "対談", "body": "つくる人どうしの、遠慮のない話。" }
       ]
     }
+  },
+  {
+    "id": "blueprint",
+    "name": "ブループリント",
+    "description": "深い紺の方眼に、シアンの線と信号色のオレンジを置いた、設計図のようなスタイル。精密で、ものを作る道具らしい印象。",
+    "rationale": "線と寸法で語る見た目は、作る過程そのものを見せられる。暗い面に細い線を重ね、情報の多い画面でも静かに読める。",
+    "seed": {
+      "id": "blueprint",
+      "name": "ブループリント",
+      "tone": "紺の方眼にシアンの線とオレンジの印。精密で静かな道具の顔",
+      "baseMode": "dark",
+      "color": {
+        "brandHue": 225,
+        "brandChroma": 0.14,
+        "accentHue": 55,
+        "neutralHue": 250,
+        "neutralChroma": 0.05,
+        "contrast": 4.5
+      },
+      "shape": {
+        "radiusPx": 3,
+        "spacingScale": 1.1,
+        "shadow": "none"
+      },
+      "font": {
+        "mood": "humanist",
+        "heading": "Murecho",
+        "body": "Murecho",
+        "mono": "JetBrains Mono",
+        "pairId": "murecho+murecho"
+      }
+    },
+    "layouts": {
+      "lp": "split",
+      "dashboard": "topnav",
+      "blog": "magazine",
+      "pricing": "table",
+      "product": "story",
+      "portfolio": "grid",
+      "settings": "tabs"
+    },
+    "copy": {
+      "brand": "Draftline",
+      "tagline": "線から、かたちへ。",
+      "headline": "最初の一本の線から、画面が立ち上がる。",
+      "lead": "曖昧な言葉を、色・字・余白の設計図に。チームで同じ図面を見ながら、迷わず作れます。",
+      "cta": "図面をひらく",
+      "items": [
+        {
+          "title": "方眼の上で考える",
+          "body": "8 の倍数の目盛りで、余白と寸法がそろいます。"
+        },
+        {
+          "title": "寸法を共有する",
+          "body": "色・字・角の値を、そのまま仕様として渡せます。"
+        },
+        {
+          "title": "版を重ねる",
+          "body": "案を残したまま描き直し、いつでも前の線に戻れます。"
+        },
+        {
+          "title": "そのまま組める",
+          "body": "書き出したトークンで、実装の画面に同じ線を引けます。"
+        }
+      ]
+    }
   }
 ]

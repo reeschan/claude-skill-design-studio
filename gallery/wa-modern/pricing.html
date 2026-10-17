@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="wa-modern" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>和モダン — 料金ページの見本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=IBM+Plex+Mono:wght@400&display=swap" id="theme-fonts">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+<style type="text/tailwindcss" id="theme">
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* 和モダン — 藍と朱、明朝体。落ち着いた和の趣と現代的な読みやすさ */
+[data-theme="wa-modern"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.011 70.0);
+  --foreground: oklch(0.240 0.012 70.0);
+  --card: oklch(1.000 0.000 70.0);
+  --muted: oklch(0.955 0.012 70.0);
+  --muted-foreground: oklch(0.520 0.012 70.0);
+  --border: oklch(0.900 0.012 70.0);
+  --input: oklch(0.900 0.012 70.0);
+  --secondary: oklch(0.940 0.012 70.0);
+  --primary: oklch(0.550 0.119 255.0);
+  --ring: oklch(0.620 0.120 255.0);
+  --accent: oklch(0.950 0.024 255.0);
+  --accent-foreground: oklch(0.350 0.090 255.0);
+  --brand-accent: oklch(0.600 0.096 40.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.240 0.012 70.0);
+  --secondary-foreground: oklch(0.240 0.012 70.0);
+  --primary-foreground: oklch(0.985 0.011 70.0);
+  --destructive-foreground: oklch(0.985 0.011 70.0);
+  --success-foreground: oklch(0.985 0.011 70.0);
+  --warning-foreground: oklch(0.180 0.012 70.0);
+  --brand-accent-foreground: oklch(0.180 0.012 70.0);
+  --theme-radius: 2px;
+  --theme-spacing-scale: 1.05;
+  --theme-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.14);
+  --theme-font-heading: "Shippori Mincho", serif;
+  --theme-font-body: "Shippori Mincho", serif;
+  --theme-font-mono: "IBM Plex Mono", monospace;
+}
+[data-theme="wa-modern"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.012 70.0);
+  --foreground: oklch(0.940 0.012 70.0);
+  --card: oklch(0.200 0.012 70.0);
+  --muted: oklch(0.250 0.012 70.0);
+  --muted-foreground: oklch(0.660 0.012 70.0);
+  --border: oklch(0.300 0.012 70.0);
+  --input: oklch(0.300 0.012 70.0);
+  --secondary: oklch(0.270 0.012 70.0);
+  --primary: oklch(0.700 0.115 255.0);
+  --ring: oklch(0.620 0.120 255.0);
+  --accent: oklch(0.280 0.036 255.0);
+  --accent-foreground: oklch(0.850 0.075 255.0);
+  --brand-accent: oklch(0.720 0.090 40.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.940 0.012 70.0);
+  --secondary-foreground: oklch(0.940 0.012 70.0);
+  --primary-foreground: oklch(0.180 0.012 70.0);
+  --destructive-foreground: oklch(0.180 0.012 70.0);
+  --success-foreground: oklch(0.180 0.012 70.0);
+  --warning-foreground: oklch(0.180 0.012 70.0);
+  --brand-accent-foreground: oklch(0.180 0.012 70.0);
+}
+
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans leading-loose antialiased">
+<a id="top"></a>
+
+<header class="mx-auto flex max-w-6xl items-center justify-between px-6 py-8 md:px-10">
+  <a href="#top" class="flex items-center gap-3">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true" class="text-brand-accent"><circle cx="14" cy="14" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 17c2 3 8 3 12 0M14 7v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <span class="font-heading text-lg font-bold tracking-[0.3em]">小路茶舗</span>
+  </a>
+  <nav class="hidden gap-8 text-sm tracking-widest text-muted-foreground md:flex" aria-label="ページ内">
+    <a href="#plans" class="hover:text-foreground">プラン</a>
+    <a href="#flow" class="hover:text-foreground">流れ</a>
+    <a href="#faq" class="hover:text-foreground">よくある質問</a>
+  </nav>
+</header>
+
+<main>
+<!-- hero -->
+<section class="relative mx-auto max-w-6xl px-6 pb-24 pt-10 md:px-10 md:pb-36 md:pt-20">
+  <div class="grid items-start gap-14 md:grid-cols-[1fr_auto]">
+    <div class="order-2 md:order-1 md:pt-10">
+      <p class="mb-8 text-sm tracking-[0.4em] text-brand-accent">季節の茶葉の定期便 ・ 料金</p>
+      <h1 class="font-heading text-5xl font-bold leading-[1.35] tracking-wider md:text-7xl">茶の季節が、<br>毎月ひとつ<br>届きます。</h1>
+      <p class="mt-10 max-w-md text-base leading-[2.2] text-muted-foreground">京都の小さな茶舗が、その月いちばんおいしい茶葉を選んでお届けします。急須で淹れる時間を、日々のささやかな楽しみに。</p>
+      <ul class="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-sm tracking-widest">
+        <li class="flex items-center gap-2"><span class="inline-block size-1.5 rounded-sm bg-brand-accent"></span>解約はいつでも</li>
+        <li class="flex items-center gap-2"><span class="inline-block size-1.5 rounded-sm bg-brand-accent"></span>定番以上は送料無料</li>
+        <li class="flex items-center gap-2"><span class="inline-block size-1.5 rounded-sm bg-brand-accent"></span>月額・税込</li>
+      </ul>
+    </div>
+    <div class="order-1 flex justify-center md:order-2 md:justify-end" aria-hidden="true">
+      <div class="relative flex h-72 w-44 justify-center rounded-lg bg-gradient-to-b from-accent to-background pt-8 md:h-[26rem] md:w-56">
+        <span class="font-heading text-6xl font-bold tracking-[0.4em] text-primary [writing-mode:vertical-rl] md:text-7xl">季の便り</span>
+        <span class="absolute bottom-6 right-6 flex size-10 items-center justify-center rounded-sm bg-brand-accent font-heading text-sm font-bold text-brand-accent-foreground [writing-mode:vertical-rl]">茶舗</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- plans -->
+<section id="plans" class="bg-muted py-24 md:py-36">
+  <div class="mx-auto max-w-6xl px-6 md:px-10">
+    <div class="mb-16 md:mb-24">
+      <p class="text-sm tracking-[0.4em] text-brand-accent">壱 ・ 三つのプラン</p>
+      <h2 class="mt-4 font-heading text-3xl font-bold tracking-wider md:text-5xl">暮らしに合わせて、選ぶ。</h2>
+    </div>
+
+    <div class="grid items-stretch gap-8 md:grid-cols-3 md:gap-6">
+      <!-- trial -->
+      <article class="flex flex-col rounded-md border border-border bg-card p-8 text-card-foreground md:my-8 md:p-10">
+        <p class="text-sm tracking-[0.3em] text-muted-foreground">はじめての方に</p>
+        <h3 class="mt-2 font-heading text-3xl font-bold tracking-widest">お試し</h3>
+        <p class="mt-8 flex items-baseline gap-1"><span class="text-sm">月額</span><span class="font-heading text-5xl font-bold">1,500</span><span class="text-sm">円</span></p>
+        <p class="mt-1 text-sm text-muted-foreground">茶葉 50g ・ 送料 330円</p>
+        <hr class="my-8 border-border">
+        <ul class="space-y-3 text-sm leading-relaxed">
+          <li>季節の煎茶 50g(約 10 杯分)</li>
+          <li>淹れ方のしおり付き</li>
+          <li>プラン変更はいつでも</li>
+        </ul>
+        <a href="mailto:order@koji-chaho.example?subject=お試しプランの申し込み" class="mt-auto block rounded-md border border-primary px-6 py-3 text-center tracking-[0.3em] text-primary hover:bg-accent">お試しではじめる</a>
+      </article>
+
+      <!-- standard -->
+      <article class="relative flex flex-col rounded-md border-2 border-primary bg-card p-8 text-card-foreground shadow-md md:p-10">
+        <span class="absolute -top-4 left-8 rounded-sm bg-brand-accent px-4 py-1 text-xs font-bold tracking-[0.3em] text-brand-accent-foreground md:left-10">いちばん人気</span>
+        <p class="text-sm tracking-[0.3em] text-muted-foreground">毎日の一服に</p>
+        <h3 class="mt-2 font-heading text-3xl font-bold tracking-widest text-primary">定番</h3>
+        <p class="mt-8 flex items-baseline gap-1"><span class="text-sm">月額</span><span class="font-heading text-6xl font-bold">2,800</span><span class="text-sm">円</span></p>
+        <p class="mt-1 text-sm text-primary">送料無料</p>
+        <hr class="my-8 border-border">
+        <ul class="space-y-3 text-sm leading-relaxed">
+          <li>季節の煎茶 100g ・ ほうじ茶 50g</li>
+          <li>茶菓子の小袋つき</li>
+          <li>送料は毎月無料</li>
+          <li>茶師の手書きひとこと添え</li>
+        </ul>
+        <a href="mailto:order@koji-chaho.example?subject=定番プランの申し込み" class="mt-auto block rounded-md bg-primary px-6 py-3 text-center tracking-[0.3em] text-primary-foreground hover:opacity-90">定番ではじめる</a>
+      </article>
+
+      <!-- premium -->
+      <article class="flex flex-col rounded-md border border-border bg-card p-8 text-card-foreground md:my-8 md:p-10">
+        <p class="text-sm tracking-[0.3em] text-muted-foreground">とっておきの時間に</p>
+        <h3 class="mt-2 font-heading text-3xl font-bold tracking-widest">極み</h3>
+        <p class="mt-8 flex items-baseline gap-1"><span class="text-sm">月額</span><span class="font-heading text-5xl font-bold">5,200</span><span class="text-sm">円</span></p>
+        <p class="mt-1 text-sm text-primary">送料無料</p>
+        <hr class="my-8 border-border">
+        <ul class="space-y-3 text-sm leading-relaxed">
+          <li>その月の最上位の玉露または抹茶 60g</li>
+          <li>季節の煎茶 100g</li>
+          <li>数量限定の茶葉を優先してご案内</li>
+          <li>送料は毎月無料</li>
+        </ul>
+        <a href="mailto:order@koji-chaho.example?subject=極みプランの申し込み" class="mt-auto block rounded-md border border-primary px-6 py-3 text-center tracking-[0.3em] text-primary hover:bg-accent">極みではじめる</a>
+      </article>
+    </div>
+
+    <div class="mt-16 grid gap-6 border-t border-border pt-10 text-sm leading-loose md:grid-cols-3 md:gap-10">
+      <p><span class="mb-1 block font-bold tracking-widest text-primary">送料無料の条件</span>「定番」「極み」は毎月送料無料。「お試し」は 1 回 330円です。</p>
+      <p><span class="mb-1 block font-bold tracking-widest text-primary">解約はいつでも</span>違約金・最低利用期間はありません。次回発送の 5 日前までにご連絡ください。</p>
+      <p><span class="mb-1 block font-bold tracking-widest text-primary">お支払い</span>表示はすべて税込。毎月、発送時にお支払いいただきます。</p>
+    </div>
+  </div>
+</section>
+
+<!-- compare -->
+<section class="mx-auto max-w-4xl px-6 py-24 md:px-10 md:py-36">
+  <h2 class="font-heading text-2xl font-bold tracking-wider md:text-3xl">見くらべる</h2>
+  <div class="mt-10 overflow-x-auto">
+    <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+      <thead>
+        <tr class="border-b-2 border-foreground tracking-widest">
+          <th class="py-4 pr-4 font-normal text-muted-foreground"><span class="sr-only">項目</span></th>
+          <th class="px-4 py-4">お試し</th>
+          <th class="px-4 py-4 text-primary">定番</th>
+          <th class="px-4 py-4">極み</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-border"><th class="py-5 pr-4 font-normal text-muted-foreground">月額(税込)</th><td class="px-4">1,500円</td><td class="px-4">2,800円</td><td class="px-4">5,200円</td></tr>
+        <tr class="border-b border-border"><th class="py-5 pr-4 font-normal text-muted-foreground">茶葉の量</th><td class="px-4">50g</td><td class="px-4">150g</td><td class="px-4">160g</td></tr>
+        <tr class="border-b border-border"><th class="py-5 pr-4 font-normal text-muted-foreground">送料</th><td class="px-4">330円</td><td class="px-4">無料</td><td class="px-4">無料</td></tr>
+        <tr class="border-b border-border"><th class="py-5 pr-4 font-normal text-muted-foreground">茶菓子</th><td class="px-4">—</td><td class="px-4">あり</td><td class="px-4">あり</td></tr>
+        <tr class="border-b border-border"><th class="py-5 pr-4 font-normal text-muted-foreground">解約</th><td class="px-4">いつでも</td><td class="px-4">いつでも</td><td class="px-4">いつでも</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- flow -->
+<section id="flow" class="bg-accent py-24 text-accent-foreground md:py-36">
+  <div class="mx-auto max-w-6xl px-6 md:px-10">
+    <p class="text-sm tracking-[0.4em] text-brand-accent">弐 ・ 申し込みの流れ</p>
+    <h2 class="mt-4 font-heading text-3xl font-bold tracking-wider md:text-5xl">四つの手順で、はじまります。</h2>
+    <ol class="mt-16 grid gap-12 md:grid-cols-4 md:gap-8">
+      <li class="relative border-t border-primary pt-6">
+        <span class="font-heading text-5xl font-bold text-primary">一</span>
+        <h3 class="mt-4 font-bold tracking-widest">プランを選ぶ</h3>
+        <p class="mt-2 text-sm leading-relaxed">お試し・定番・極みから、暮らしに合うものを。</p>
+      </li>
+      <li class="relative border-t border-primary pt-6">
+        <span class="font-heading text-5xl font-bold text-primary">二</span>
+        <h3 class="mt-4 font-bold tracking-widest">メールで申し込む</h3>
+        <p class="mt-2 text-sm leading-relaxed">お名前・お届け先・プランをお知らせください。</p>
+      </li>
+      <li class="relative border-t border-primary pt-6">
+        <span class="font-heading text-5xl font-bold text-primary">三</span>
+        <h3 class="mt-4 font-bold tracking-widest">茶葉が届く</h3>
+        <p class="mt-2 text-sm leading-relaxed">毎月 10 日ごろ、その月の茶葉を発送します。</p>
+      </li>
+      <li class="relative border-t border-primary pt-6">
+        <span class="font-heading text-5xl font-bold text-primary">四</span>
+        <h3 class="mt-4 font-bold tracking-widest">続ける・休む・やめる</h3>
+        <p class="mt-2 text-sm leading-relaxed">変更も解約も、いつでもメールひとつで。</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- faq -->
+<section id="faq" class="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-36">
+  <p class="text-sm tracking-[0.4em] text-brand-accent">参 ・ よくある質問</p>
+  <h2 class="mt-4 font-heading text-3xl font-bold tracking-wider md:text-4xl">お尋ねいただくこと。</h2>
+  <div class="mt-12 border-t border-border">
+    <details class="group border-b border-border py-6">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 tracking-wider [&::-webkit-details-marker]:hidden">
+        <span>解約はいつでもできますか。</span>
+        <span class="text-xl text-primary transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+      <p class="mt-4 text-sm leading-[2.1] text-muted-foreground">はい、いつでも解約できます。違約金や最低利用期間はありません。次回発送日の 5 日前までにメールでご連絡いただければ、翌月分から停止いたします。</p>
+    </details>
+    <details class="group border-b border-border py-6">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 tracking-wider [&::-webkit-details-marker]:hidden">
+        <span>送料はかかりますか。</span>
+        <span class="text-xl text-primary transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+      <p class="mt-4 text-sm leading-[2.1] text-muted-foreground">「定番」「極み」は送料無料です。「お試し」は 1 回につき 330円をいただきます。</p>
+    </details>
+    <details class="group border-b border-border py-6">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 tracking-wider [&::-webkit-details-marker]:hidden">
+        <span>プランは途中で変えられますか。</span>
+        <span class="text-xl text-primary transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+      <p class="mt-4 text-sm leading-[2.1] text-muted-foreground">はい。お試しから定番へ、また反対への変更も、次回発送の 5 日前までにお知らせください。</p>
+    </details>
+    <details class="group border-b border-border py-6">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 tracking-wider [&::-webkit-details-marker]:hidden">
+        <span>急須がなくても楽しめますか。</span>
+        <span class="text-xl text-primary transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+      <p class="mt-4 text-sm leading-[2.1] text-muted-foreground">マグカップとお茶こしでも淹れられます。同梱のしおりに、道具に合わせた淹れ方を載せています。</p>
+    </details>
+    <details class="group border-b border-border py-6">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 tracking-wider [&::-webkit-details-marker]:hidden">
+        <span>お休みしたいときは。</span>
+        <span class="text-xl text-primary transition-transform group-open:rotate-45" aria-hidden="true">+</span>
+      </summary>
+      <p class="mt-4 text-sm leading-[2.1] text-muted-foreground">旅行や茶葉の余りがあるときは、月ごとにお休みできます。発送の 5 日前までにご連絡ください。</p>
+    </details>
+  </div>
+</section>
+
+<!-- closing -->
+<section class="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-36">
+  <div class="rounded-lg bg-primary px-8 py-16 text-center text-primary-foreground md:py-24">
+    <p class="font-heading text-3xl font-bold leading-relaxed tracking-[0.2em] md:text-5xl">今月の一服を、<br>ご一緒に。</p>
+    <p class="mt-6 text-sm tracking-widest">解約はいつでも。まずはお試しから。</p>
+    <a href="mailto:order@koji-chaho.example?subject=定期便の申し込み" class="mt-10 inline-block rounded-md bg-background px-10 py-4 tracking-[0.3em] text-foreground hover:bg-card">申し込む</a>
+  </div>
+</section>
+</main>
+
+<footer class="border-t border-border">
+  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10">
+    <p class="font-heading tracking-[0.3em] text-foreground">小路茶舗 ・ 京都</p>
+    <p>お問い合わせ <a href="mailto:order@koji-chaho.example" class="text-primary underline underline-offset-4">order@koji-chaho.example</a></p>
+    <a href="#top" class="tracking-widest hover:text-foreground">ページの先頭へ</a>
+  </div>
+</footer>
+</body>
+</html>

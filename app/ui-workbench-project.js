@@ -5,9 +5,9 @@
 // 状態を変える処理と DOM を作る処理を分け、状態・API・描き直しは呼び出し元 (ui-workbench.js) から受け取る。
 const PAGE_CSS = `
 .wb-pages { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
-.wb-page-entry button[aria-pressed="true"] { border-color: var(--accent); color: var(--fg); font-weight: 600; }
+.wb-page-entry button[aria-pressed="true"] { border-color: transparent; background: var(--accent-soft); color: var(--accent-soft-fg); font-weight: 700; }
 .wb-projects { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
-.wb-project { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.wb-project { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); }
 .wb-project p { margin: 0; }
 .wb-project-info { min-width: 0; }
 .wb-project-name { font-weight: 600; overflow-wrap: anywhere; }

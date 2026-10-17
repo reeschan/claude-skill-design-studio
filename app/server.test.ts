@@ -295,11 +295,11 @@ void test("4. GET /api/install-plan が計画を返し、スキル置き場に�
   assert.equal(existsSync(join(dir, "skills")), false);
 });
 
-void test("5. GET /api/styles が 6 件、GET /api/themes/pop が cssForPage を返す", async () => {
+void test("5. GET /api/styles が 7 件、GET /api/themes/pop が cssForPage を返す", async () => {
   const styles = await fetchPath("/api/styles");
   assert.equal(styles.status, 200);
   const list = arr(get(styles.json, "styles"));
-  assert.equal(list.length, 6, styles.text);
+  assert.equal(list.length, 7, styles.text);
   assert.ok(list.some((style) => get(style, "id") === "pop"));
 
   const theme = await fetchPath("/api/themes/pop");

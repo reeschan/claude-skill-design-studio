@@ -58,34 +58,38 @@ const PREVIEW_VIEWS = [
 ];
 // 作業台だけの CSS。共通の CSS (ボタン・seg・status など) は殻 (app/index.html) にある
 const WORKBENCH_CSS = `
-.wb-section { min-width: 0; margin: 0 0 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: var(--shadow); }
-.wb-section h3 { margin: 0 0 6px; font-size: 16px; }
+.wb-section { min-width: 0; margin: 0 0 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
+.wb-section h3 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+.wb-section h3::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 1px; background: var(--marker); vertical-align: 0.1em; }
 .wb-col [hidden] { display: none; }
 .wb-col { min-width: 0; }
 .wb-note { margin: 6px 0; font-size: 13px; color: var(--muted); }
 .wb-form { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 .wb-field { display: flex; flex-direction: column; gap: 2px; }
-.wb-caption { font-size: 13px; font-weight: 600; }
-.wb-input { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; }
+.wb-caption { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.wb-input { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); color: var(--fg); font: inherit; transition: border-color 0.15s; }
+.wb-input:hover { border-color: color-mix(in oklch, var(--primary) 45%, var(--line)); }
+.wb-input:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; border-color: transparent; }
 textarea.wb-input { resize: vertical; min-height: 54px; }
 select.wb-input { width: auto; }
 .wb-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .wb-round-bar { margin: 8px 0 0; }
 .wb-cards { display: grid; gap: 10px; margin: 10px 0 0; }
-.wb-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.wb-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); transition: border-color 0.15s; }
+.wb-card:hover { border-color: color-mix(in oklch, var(--primary) 55%, var(--line)); }
 .wb-card-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .wb-card h4 { margin: 0; font-size: 14.5px; overflow-wrap: anywhere; }
 .wb-card-rationale { margin: 0; font-size: 13px; color: var(--muted); }
-.wb-letter { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 12.5px; font-weight: 700; }
-.wb-edited { padding: 0 8px; border: 1px solid var(--accent); border-radius: 999px; color: var(--accent); font-size: 12px; font-weight: 600; }
+.wb-letter { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--gradient); color: var(--primary-foreground); font-family: var(--font-heading); font-size: 13px; font-weight: 700; }
+.wb-edited { padding: 0 9px; border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent-soft-fg); font-family: var(--font-mono); font-size: 11px; font-weight: 500; }
 .wb-check { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; }
 .wb-editor { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; border-top: 1px dashed var(--line); }
-.wb-group { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.wb-group { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); }
 .wb-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px 12px; }
 .wb-items { display: grid; gap: 6px; }
 .wb-item { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border: 1px dashed var(--line); border-radius: 6px; }
-.wb-shot { max-width: 100%; border: 1px solid var(--line); border-radius: 8px; }
-.wb-frame { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.wb-shot { max-width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.wb-frame { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; box-shadow: var(--shadow); }
 .wb-frame iframe { display: block; border: 0; transform-origin: top left; /* pointer-events は付けない (プレビューの中をスクロールできるように) */ }
 `;
 

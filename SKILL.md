@@ -38,7 +38,7 @@ description: 曖昧な依頼から Web ページの見た目 (配色・フォン
 
 ## 方向性の段階 (design-studio 自身が受け持つ)
 
-1. `node <スキル>/scripts/studio.ts styles` で、見本帳の 6 スタイルを出し、方向性の共通語として示す。
+1. `node <スキル>/scripts/studio.ts styles` で、見本帳の 7 スタイルを出し、方向性の共通語として示す。
 2. 依頼から方向性の案を 4 つ、互いに違う向きで作る。案ごとに Direction の JSON を書く。形は `<スキル>/core/types.ts` の `Direction`、値の範囲は style-guide の `Seed` と同じにする。`seed.id` は `/^[a-z][a-z0-9-]*$/` に合う 20 字以内、`copy.items` は 3〜6 件、`copy` の文章は依頼から推し量った日本語にする。作業用のファイルはスクラッチパッドか一時ディレクトリに置く。
 3. 案ごとに `node <スキル>/scripts/studio.ts render-direction --direction <file> --family <lp|dashboard|blog|pricing|product|portfolio|settings> --out <file>` で骨組みを描き、そのパスを利用者に示してブラウザで開いてもらう。案の違い (テーマと配置) を実際の形で見てもらう。
 4. 4 つの軸 (色・フォント・形・配置) で混ぜたいときは、混ぜる度合いを軸ごとのパッド (4 隅に 4 案を置いた面) の点で選ぶ。`node <スキル>/scripts/studio.ts mix --directions <file> --points '{"color":{"x":0.2,"y":0.2},"font":{"x":1,"y":0},"shape":{"x":0.5,"y":0.5},"layout":{"x":1,"y":1}}'` で 1 つにまとめ、また `render-direction` で描く。点は 0〜1 の x, y で、隅は A=(0,0)・B=(1,0)・C=(0,1)・D=(1,1) に `--directions` の 1〜4 つ目の案が当たる (案が 4 件より少なければ、足りない隅は 1 つ目の案で埋まる)。点をある隅に近づけるほど、その案がその軸に強く効く。フォント・配置・ライト/ダーク・影のように混ぜられないものは、その軸で一番重い案のものにそろう (`snapped` に吸着に使った案の添字が出る)。混ぜた値の上に角丸・余白など一部だけ上書きする微調整は、`mix` に `--fine-tune '<JSON>'` を付け足す。
