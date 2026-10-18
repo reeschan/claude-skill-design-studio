@@ -8,6 +8,14 @@ import type { Dirent } from "node:fs";
 import { join } from "node:path";
 import { validateBrief } from "./brief.ts";
 import { CliExit, EXIT_INPUT } from "./cli-exit.ts";
+import {
+  COMPONENT_SHEET_KEY,
+  COMPONENT_SHEET_NAME,
+  componentItemIdentity,
+  componentKeyOf,
+  validateComponentName,
+  validateComponentTarget,
+} from "./component.ts";
 import { validateFineTune, validatePoints } from "./direction.ts";
 import { readJsonFile } from "./json-file.ts";
 import { pageKeyOf, validatePageType } from "./page-type.ts";
@@ -16,10 +24,12 @@ import { validateDirection } from "./styles.ts";
 import { DEFAULT_TREATMENT, validateTreatment } from "./treatment.ts";
 import { PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "./types.ts";
 import type { Direction, MixPoint, MixPoints, PageType, Project, Round, SavedItem, SkeletonFamily, Treatment } from "./types.ts";
+import type { ComponentItem, ComponentSheetItem, ComponentTarget, PageItem } from "./types.ts";
 
 const PROJECT_FILE = "project.json";
 const THEME_FILE = "theme.css";
 const PAGES_DIR = "pages";
+const COMPONENTS_DIR = "components";
 // プロジェクトの id とページの保存のキーは同じ形 (contract.md の 2・7 節)
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,39}$/;
 // 1 つの回の原案の数 (contract.md の 7 節: drafts は 1〜4 件)
@@ -78,7 +88,7 @@ type ProjectContent = Omit<Project, "createdAt" | "updatedAt">;
 // 版 2・3 で同じ項目 (版・表現・items 以外)
 type SharedContent = Omit<ProjectContent, "version" | "treatment" | "items">;
 // ページの項目 (items の kind と treatment 以外)
-type PageFields = Omit<SavedItem, "kind" | "treatment">;
+type PageFields = Omit<PageItem, "kind" | "treatment">;
 
 // 入力のプロジェクトを検証する。版が無ければ古い形として直し、2 は版 3 に直し、3 以外の数なら入力の誤り
 function validateProjectContent(x: unknown): ProjectContent {
@@ -169,7 +179,7 @@ function validateRoundIndex(value: unknown, count: number): number {
   return value;
 }
 
-// 保存した 1 件の一覧。kind は第 2 段では "page" だけ
+// 保存した 1 件の一覧。kind は page / component-sheet / component
 function validateSavedItems(value: unknown): SavedItem[] {
   if (!Array.isArray(value)) throw inputError("items は配列で指定してください");
   return value.map((entry, index) => validateSavedItem(entry, index));
@@ -177,9 +187,31 @@ function validateSavedItems(value: unknown): SavedItem[] {
 
 function validateSavedItem(value: unknown, index: number): SavedItem {
   const raw = recordOf(value, `items[${index}]`);
-  if (raw.kind !== "page") throw inputError(`items[${index}].kind は page で指定してください`);
-  const page = pageFieldsOf(raw, `items[${index}]`);
-  return { kind: "page", ...page, treatment: validateTreatment(raw.treatment) };
+  const label = `items[${index}]`;
+  if (raw.kind === "page") return savedPageOf(raw, label);
+  if (raw.kind === "component-sheet") return savedComponentSheetOf(raw, label);
+  if (raw.kind === "component") return savedComponentOf(raw, label);
+  throw inputError(`${label}.kind は page / component-sheet / component のいずれかで指定してください`);
+}
+
+// ページの item。保存のキーと family は今までどおり
+function savedPageOf(raw: Record<string, unknown>, label: string): PageItem {
+  return { kind: "page", ...pageFieldsOf(raw, label), treatment: validateTreatment(raw.treatment) };
+}
+
+// 部品帳の item。key と name は固定の値だけ
+function savedComponentSheetOf(raw: Record<string, unknown>, label: string): ComponentSheetItem {
+  if (raw.key !== COMPONENT_SHEET_KEY) throw inputError(`${label}.key は ${COMPONENT_SHEET_KEY} で指定してください`);
+  if (raw.name !== COMPONENT_SHEET_NAME) throw inputError(`${label}.name は ${COMPONENT_SHEET_NAME} で指定してください`);
+  return { kind: "component-sheet", key: COMPONENT_SHEET_KEY, name: COMPONENT_SHEET_NAME, treatment: validateTreatment(raw.treatment) };
+}
+
+// 部品の item。名前を検証し、key は名前から作った値と一致させる
+function savedComponentOf(raw: Record<string, unknown>, label: string): ComponentItem {
+  const name = validateComponentName(raw.name);
+  const key = componentKeyOf(name);
+  if (raw.key !== key) throw inputError(`${label}.key は ${key} で指定してください`);
+  return { kind: "component", key, name, treatment: validateTreatment(raw.treatment) };
 }
 
 // 版 2 のページの一覧 (items に直す前の形)
@@ -264,27 +296,45 @@ function writeFileAt(path: string, content: string, label: string): void {
   }
 }
 
-// 既存の items に今回のページを足す。同じ key があれば name・family・treatment を新しくする (足した順)
-function mergeSavedItems(existing: SavedItem[], pageType: PageType | undefined, treatment: Treatment): SavedItem[] {
+// 表現の写し (item ごとに別のオブジェクトにする)
+function treatmentCopy(treatment: Treatment): Treatment {
+  return { ...treatment, motionSamples: [...treatment.motionSamples] };
+}
+
+// 今回保存する 1 件の item。同じ kind かつ同じ key の item があれば入れ替える (足した順)
+function mergeSavedItems(existing: SavedItem[], addition: SavedItem | null): SavedItem[] {
   const merged = [...existing];
-  if (pageType === undefined) return merged;
-  const item: SavedItem = {
-    kind: "page",
-    key: pageKeyOf(pageType),
-    name: pageType.name,
-    family: pageType.family,
-    treatment: { ...treatment, motionSamples: [...treatment.motionSamples] },
-  };
-  const index = merged.findIndex((entry) => entry.key === item.key);
-  if (index < 0) merged.push(item);
-  else merged[index] = item;
+  if (addition === null) return merged;
+  const index = merged.findIndex((entry) => entry.kind === addition.kind && entry.key === addition.key);
+  if (index < 0) merged.push(addition);
+  else merged[index] = addition;
   return merged;
+}
+
+// ページの item。key は pageKeyOf、treatment は保存するときの写し
+function pageItemOf(pageType: PageType, treatment: Treatment): PageItem {
+  return { kind: "page", key: pageKeyOf(pageType), name: pageType.name, family: pageType.family, treatment: treatmentCopy(treatment) };
+}
+
+// 部品の側の item。key と name は componentItemIdentity が決める
+function componentItemOf(target: ComponentTarget, treatment: Treatment): ComponentSheetItem | ComponentItem {
+  const identity = componentItemIdentity(target);
+  const item = { key: identity.key, name: identity.name, treatment: treatmentCopy(treatment) };
+  return target.kind === "component-sheet" ? { kind: "component-sheet", ...item } : { kind: "component", ...item };
+}
+
+// 今回の保存で items に足す 1 件 (ページか部品の側。指定が無ければ null)
+function additionOf(pageType: PageType | undefined, target: ComponentTarget | undefined, treatment: Treatment): SavedItem | null {
+  if (pageType !== undefined) return pageItemOf(pageType, treatment);
+  if (target !== undefined) return componentItemOf(target, treatment);
+  return null;
 }
 
 export type SaveProjectInput = {
   project: unknown; // 検証してから保存する (CLI はファイルから読んだ JSON を渡す)
   themeCss?: string;
   page?: { pageType: PageType; html: string };
+  component?: { target: ComponentTarget; html: string };
 };
 
 // 壊れた project.json を同じディレクトリに退避する (消さない)
@@ -311,28 +361,53 @@ function readExistingForSave(env: NodeJS.ProcessEnv, id: string): { project: Pro
   }
 }
 
+// ページの html を pages/<key>.html に書く
+function writePageHtml(dir: string, html: string, pageType: PageType): void {
+  const key = pageKeyOf(pageType);
+  const pagesDir = join(dir, PAGES_DIR);
+  mkdirSync(pagesDir, { recursive: true });
+  writeFileAt(join(pagesDir, `${key}.html`), html, `${key}.html`);
+}
+
+// 部品 (部品帳を含む) の html を components/<key>.html に書く
+function writeComponentHtml(dir: string, html: string, target: ComponentTarget): void {
+  const key = componentItemIdentity(target).key;
+  const componentsDir = join(dir, COMPONENTS_DIR);
+  mkdirSync(componentsDir, { recursive: true });
+  writeFileAt(join(componentsDir, `${key}.html`), html, `${key}.html`);
+}
+
+// 中身のファイルを先に書く (project.json は保存の最後に書く)
+function writeContentFiles(
+  input: SaveProjectInput,
+  dir: string,
+  pageType: PageType | undefined,
+  target: ComponentTarget | undefined,
+): void {
+  if (input.themeCss !== undefined) writeFileAt(join(dir, THEME_FILE), input.themeCss, "theme.css");
+  if (input.page !== undefined && pageType !== undefined) writePageHtml(dir, input.page.html, pageType);
+  if (input.component !== undefined && target !== undefined) writeComponentHtml(dir, input.component.html, target);
+}
+
 /** プロジェクトを保存する。createdAt は初回だけ、updatedAt は毎回今の時刻にする */
 export function saveProject(env: NodeJS.ProcessEnv, input: SaveProjectInput): Project {
+  if (input.page !== undefined && input.component !== undefined) {
+    throw inputError("page と component は同時に指定できません");
+  }
   const content = validateProjectContent(input.project);
   const pageType = input.page === undefined ? undefined : pageTypeWithFamily(input.page.pageType);
+  const target = input.component === undefined ? undefined : validateComponentTarget(input.component.target);
   const dir = projectDir(env, content.id);
   const existing = readExistingForSave(env, content.id);
   const now = new Date().toISOString();
   const project: Project = {
     ...content,
-    items: mergeSavedItems(existing?.project.items ?? [], pageType, content.treatment),
+    items: mergeSavedItems(existing?.project.items ?? [], additionOf(pageType, target, content.treatment)),
     createdAt: existing?.project.createdAt ?? now,
     updatedAt: now,
   };
   mkdirSync(dir, { recursive: true });
-  // 中身のファイルを先に書き、project.json を最後に書く (保存が終わった印にする)
-  if (input.themeCss !== undefined) writeFileAt(join(dir, THEME_FILE), input.themeCss, "theme.css");
-  if (input.page !== undefined && pageType !== undefined) {
-    const key = pageKeyOf(pageType);
-    const pagesDir = join(dir, PAGES_DIR);
-    mkdirSync(pagesDir, { recursive: true });
-    writeFileAt(join(pagesDir, `${key}.html`), input.page.html, `${key}.html`);
-  }
+  writeContentFiles(input, dir, pageType, target);
   writeFileAt(join(dir, PROJECT_FILE), JSON.stringify(project, null, 2) + "\n", "project");
   return project;
 }
@@ -364,6 +439,18 @@ export function readPage(env: NodeJS.ProcessEnv, id: string, key: string): strin
   } catch (e) {
     if (isNotFound(e)) return null;
     throw new CliExit(EXIT_INPUT, { error: "file", file: `${pageKey}.html`, path: file, message: errorMessage(e) });
+  }
+}
+
+/** 部品 (部品帳を含む) の html を読む。無ければ null。key は componentKeyOf が作る形の文字列 */
+export function readComponent(env: NodeJS.ProcessEnv, id: string, key: string): string | null {
+  const componentKey = keyOf(key, "key");
+  const file = join(projectDir(env, id), COMPONENTS_DIR, `${componentKey}.html`);
+  try {
+    return readFileSync(file, "utf8");
+  } catch (e) {
+    if (isNotFound(e)) return null;
+    throw new CliExit(EXIT_INPUT, { error: "file", file: `${componentKey}.html`, path: file, message: errorMessage(e) });
   }
 }
 

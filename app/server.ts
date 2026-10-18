@@ -19,11 +19,13 @@
 //   POST /api/mix         {directions, points, fineTune?} → {mixed, direction, weights, snapped}
 //   POST /api/render      {direction, family, mode?, treatment?} → {html, themeId, layout, surface, checks, failed}
 //   POST /api/page        {brief, direction, pageType, treatment?} → {html}
+//   POST /api/generate    {brief, direction, make, treatment?} → {make, html}
 //   POST /api/tokens      {direction}         → {tailwind, json, css}
-//   POST /api/projects    {project, page?: {pageType: {name, family}, html}} → {project}
+//   POST /api/projects    {project, page?: {pageType: {name, family}, html}, component?: {target, html}} → {project}
 //   GET  /api/projects                        → {projects}
 //   GET  /api/projects/<id>                   → {project}
 //   GET  /api/projects/<id>/pages/<key>       → text/html
+//   GET  /api/projects/<id>/components/<key>  → text/html
 import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
@@ -33,6 +35,8 @@ import { fileURLToPath } from "node:url";
 import { validateBrief } from "../core/brief.ts";
 import { listCatalog, setEnabled } from "../core/catalog.ts";
 import { CliExit, EXIT_ACTION, EXIT_EXTERNAL, EXIT_INPUT } from "../core/cli-exit.ts";
+import { generateComponent } from "../core/component-llm.ts";
+import { validateComponentTarget } from "../core/component.ts";
 import { applyFineTune, mixDirections, renderDirection, validateFineTune, validatePoints } from "../core/direction.ts";
 import type { MixSnapped, MixWeights } from "../core/direction.ts";
 import { planInstall } from "../core/installer.ts";
@@ -41,12 +45,23 @@ import type { FontPair } from "../core/llm.ts";
 import { hasPageCsp } from "../core/page-html.ts";
 import { candidateOf, validatePageType } from "../core/page-type.ts";
 import { galleryDir, styleGuideDir } from "../core/paths.ts";
-import { listProjects, readPage, readProject, saveProject } from "../core/project.ts";
+import { listProjects, readComponent, readPage, readProject, saveProject } from "../core/project.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
 import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
 import { findMotion, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
 import { LAYOUTS, PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "../core/types.ts";
-import type { BaseMode, Direction, FontMood, PageType, Seed, SkeletonFamily, Style } from "../core/types.ts";
+import type {
+  BaseMode,
+  Brief,
+  ComponentTarget,
+  Direction,
+  FontMood,
+  PageType,
+  Seed,
+  SkeletonFamily,
+  Style,
+  Treatment,
+} from "../core/types.ts";
 
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 const INDEX_FILE = join(APP_DIR, "index.html");
@@ -486,6 +501,16 @@ function serveProjectPage(ctx: RouteContext): void {
   sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
 }
 
+function serveProjectComponent(ctx: RouteContext): void {
+  // キーの形が合わないときは、無い部品として扱う
+  const key = ctx.params[1] ?? "";
+  if (!PAGE_KEY_RE.test(key)) throw notFound();
+  const html = readComponent(ctx.env, ctx.params[0] ?? "", key);
+  if (html === null) throw notFound();
+  // LLM が書いた部品なので、ページと同じく不透明なオリジンで動かす (同じオリジンの /api を叩けない)
+  sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
+}
+
 function postCatalogEnabled(ctx: RouteContext): void {
   const id = bodyString(ctx.body.id, "id");
   const enabled = bodyBoolean(ctx.body.enabled, "enabled");
@@ -535,16 +560,67 @@ async function postRender(ctx: RouteContext): Promise<void> {
   sendJson(ctx.res, 200, await renderDirection({ direction, family, mode, surface: treatment.surface }, ctx.env));
 }
 
+// 生成に共通の入力 (依頼・方向性・表現)。/api/page と /api/generate で同じ順に検証する
+type GenerateInput = { brief: Brief; direction: Direction; treatment: Treatment };
+
+// ページの 1 ファイル。テーマは方向性の seed から作り、generatePage に渡す (/api/page と同じ道)
+async function generatePageHtml(ctx: RouteContext, pageType: PageType, input: GenerateInput): Promise<string> {
+  const theme = await themeOfSeed(input.direction.seed, ctx.env);
+  return generatePage(
+    {
+      brief: input.brief,
+      direction: input.direction,
+      pageType,
+      cssForPage: theme.cssForPage,
+      fontsUrl: theme.fontsUrl,
+      treatment: input.treatment,
+    },
+    ctx.env,
+  );
+}
+
+// 部品帳・部品の 1 ファイル。ページと同じく方向性の seed からテーマを作る
+async function generateComponentHtml(ctx: RouteContext, target: ComponentTarget, input: GenerateInput): Promise<string> {
+  const theme = await themeOfSeed(input.direction.seed, ctx.env);
+  return generateComponent(
+    {
+      brief: input.brief,
+      direction: input.direction,
+      target,
+      cssForPage: theme.cssForPage,
+      fontsUrl: theme.fontsUrl,
+      treatment: input.treatment,
+    },
+    ctx.env,
+  );
+}
+
+// 作るもの (make)。page はページの種類、部品の側は core の validateComponentTarget に任せる
+type Make = { kind: "page"; pageType: PageType } | ComponentTarget;
+
+function makeOf(value: unknown): Make {
+  const make = recordOf(value, "make");
+  if (make.kind === "page") return { kind: "page", pageType: pageTypeWithFamily(make.pageType) };
+  if (make.kind === "component-sheet" || make.kind === "component") return validateComponentTarget(make);
+  throw inputError("make.kind は page / component-sheet / component のいずれかで指定してください");
+}
+
+async function postGenerate(ctx: RouteContext): Promise<void> {
+  const make = makeOf(ctx.body.make);
+  const brief = validateBrief(ctx.body.brief);
+  const direction = validateDirection(ctx.body.direction);
+  const treatment = validateTreatment(ctx.body.treatment);
+  const input = { brief, direction, treatment };
+  const html = make.kind === "page" ? await generatePageHtml(ctx, make.pageType, input) : await generateComponentHtml(ctx, make, input);
+  sendJson(ctx.res, 200, { make, html });
+}
+
 async function postPage(ctx: RouteContext): Promise<void> {
   const brief = validateBrief(ctx.body.brief);
   const direction = validateDirection(ctx.body.direction);
   const pageType = pageTypeWithFamily(ctx.body.pageType);
   const treatment = validateTreatment(ctx.body.treatment);
-  const theme = await themeOfSeed(direction.seed, ctx.env);
-  const html = await generatePage(
-    { brief, direction, pageType, cssForPage: theme.cssForPage, fontsUrl: theme.fontsUrl, treatment },
-    ctx.env,
-  );
+  const html = await generatePageHtml(ctx, pageType, { brief, direction, treatment });
   sendJson(ctx.res, 200, { html });
 }
 
@@ -588,13 +664,25 @@ function pageInputOf(value: unknown): { pageType: PageType; html: string } | und
   return { pageType, html };
 }
 
+// 保存する部品帳・部品 (省略できる)。html はページと同じく CSP の meta のある 1 ファイルだけ
+function componentInputOf(value: unknown): { target: ComponentTarget; html: string } | undefined {
+  if (value === undefined) return undefined;
+  const component = recordOf(value, "component");
+  const target = validateComponentTarget(component.target);
+  const html = bodyString(component.html, "component.html");
+  if (!hasPageCsp(html)) throw inputError("html に CSP の meta がありません");
+  return { target, html };
+}
+
 async function postProjects(ctx: RouteContext): Promise<void> {
   const project = recordOf(ctx.body.project, "project");
   const page = pageInputOf(ctx.body.page);
+  const component = componentInputOf(ctx.body.component);
+  if (page !== undefined && component !== undefined) throw inputError("page と component は同時に指定できません");
   // 旧 pageType・html の最上位のキーは読まない。テーマの css は今の回を混ぜ直した方向性の seed から作る
   const mixed = mixAndTune(currentDirectionsOf(project), project.points, project.fineTune);
   const theme = await themeOfSeed(mixed.direction.seed, ctx.env);
-  const saved = saveProject(ctx.env, { project, themeCss: theme.css, page });
+  const saved = saveProject(ctx.env, { project, themeCss: theme.css, page, component });
   sendJson(ctx.res, 200, { project: saved });
 }
 
@@ -612,12 +700,14 @@ const ROUTES: Route[] = [
   { method: "GET", pattern: /^\/gallery\/([^/]+)\/([^/]+)\.html$/, limit: BODY_LIMIT, handle: serveGalleryPage },
   { method: "GET", pattern: /^\/api\/projects$/, limit: BODY_LIMIT, handle: serveProjects },
   { method: "GET", pattern: /^\/api\/projects\/([^/]+)\/pages\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProjectPage },
+  { method: "GET", pattern: /^\/api\/projects\/([^/]+)\/components\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProjectComponent },
   { method: "GET", pattern: /^\/api\/projects\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProject },
   { method: "POST", pattern: /^\/api\/catalog\/enabled$/, limit: BODY_LIMIT, handle: postCatalogEnabled },
   { method: "POST", pattern: /^\/api\/directions$/, limit: DIRECTIONS_LIMIT, handle: postDirections },
   { method: "POST", pattern: /^\/api\/mix$/, limit: BODY_LIMIT, handle: postMix },
   { method: "POST", pattern: /^\/api\/render$/, limit: BODY_LIMIT, handle: postRender },
   { method: "POST", pattern: /^\/api\/page$/, limit: BODY_LIMIT, handle: postPage },
+  { method: "POST", pattern: /^\/api\/generate$/, limit: BODY_LIMIT, handle: postGenerate },
   { method: "POST", pattern: /^\/api\/tokens$/, limit: BODY_LIMIT, handle: postTokens },
   { method: "POST", pattern: /^\/api\/projects$/, limit: BODY_LIMIT, handle: postProjects },
 ];

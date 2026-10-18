@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { join } from "node:path";
 import { test } from "node:test";
 import { applyFineTune } from "../core/direction.ts";
-import { readPage } from "../core/project.ts";
+import { readComponent, readPage } from "../core/project.ts";
 import { findStyle } from "../core/styles.ts";
 import type { Direction } from "../core/types.ts";
 import { runCli, tempEnv } from "./test-helper.ts";
@@ -968,6 +968,112 @@ void test("readPage は保存した html を返し、無ければ null、キー�
     for (const key of ["Bad", "", "../x", "a".repeat(41)]) {
       assert.throws(() => readPage(env, "reader", key), /key/, `key ${JSON.stringify(key)}`);
     }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--component-sheet で保存すると部品帳の item ができ、components/component-sheet.html を書く", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const html = '<!doctype html><html lang="ja"><body>部品帳</body></html>\n';
+    const htmlFile = join(dir, "sheet.html");
+    writeFileSync(htmlFile, html, "utf8");
+    const res = runCli(
+      ["project", "save", "--project", writeJson(dir, "sheet.json", projectJsonV3("sheet")), "--component-sheet", "--html", htmlFile],
+      env,
+    );
+    assert.equal(res.code, 0, res.stderr);
+    const saved = projectOf(res.json);
+    const projectDir = join(homeOf(env), "projects", "sheet");
+    assert.equal(payload(res.json).dir, projectDir);
+    assert.deepEqual(saved.items, [{ kind: "component-sheet", key: "component-sheet", name: "部品帳", treatment: DEFAULT_TREATMENT_JSON }]);
+    assert.equal(readFileSync(join(projectDir, "components", "component-sheet.html"), "utf8"), html);
+    assert.equal(readComponent(env, "sheet", "component-sheet"), html);
+
+    // show は同じ内容と dir を返す
+    const show = runCli(["project", "show", "sheet"], env);
+    assert.equal(show.code, 0, show.stderr);
+    assert.deepEqual(projectOf(show.json), saved);
+    assert.equal(payload(show.json).dir, projectDir);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--component で保存すると名前の item ができ、入力の project の treatment が残る", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const html = '<!doctype html><html lang="ja"><body>ボタン</body></html>\n';
+    const htmlFile = join(dir, "button.html");
+    writeFileSync(htmlFile, html, "utf8");
+    const input = projectJsonV3("parts", { treatment: GLASS_TREATMENT });
+    const res = runCli(
+      ["project", "save", "--project", writeJson(dir, "parts.json", input), "--component", "ボタン", "--html", htmlFile],
+      env,
+    );
+    assert.equal(res.code, 0, res.stderr);
+    const saved = projectOf(res.json);
+    const projectDir = join(homeOf(env), "projects", "parts");
+    assert.equal(payload(res.json).dir, projectDir);
+    assert.deepEqual(saved.treatment, GLASS_TREATMENT);
+    assert.deepEqual(saved.items, [{ kind: "component", key: "button", name: "ボタン", treatment: GLASS_TREATMENT }]);
+    assert.equal(readFileSync(join(projectDir, "components", "button.html"), "utf8"), html);
+    assert.equal(readComponent(env, "parts", "button"), html);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("作るものの指定の組み合わせが誤りなら usage", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const projectFile = writeJson(dir, "make-args.json", projectJsonV3("make-args"));
+    const htmlFile = join(dir, "make.html");
+    writeFileSync(htmlFile, "<!doctype html>", "utf8");
+    const extras: string[][] = [
+      ["--page-name", "LP", "--component", "ボタン", "--html", htmlFile],
+      ["--component", "ボタン", "--component-sheet", "--html", htmlFile],
+      ["--component-sheet"],
+      ["--html", htmlFile],
+      ["--component", "ボタン", "--family", "lp", "--html", htmlFile],
+    ];
+    for (const extra of extras) {
+      const args = ["project", "save", "--project", projectFile, ...extra];
+      const label = args.join(" ");
+      const res = runCli(args, env);
+      assert.equal(res.code, 1, label);
+      assert.equal(res.stdout, "", label);
+      assert.equal(payload(res.json).error, "usage", label);
+    }
+    assert.ok(!existsSync(join(dir, "home")), "何も書かない");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--component の名前が 41 文字以上なら input のエラー", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const htmlFile = join(dir, "long.html");
+    writeFileSync(htmlFile, "<!doctype html>", "utf8");
+    const res = runCli(
+      [
+        "project",
+        "save",
+        "--project",
+        writeJson(dir, "long.json", projectJsonV3("long")),
+        "--component",
+        "あ".repeat(41),
+        "--html",
+        htmlFile,
+      ],
+      env,
+    );
+    assert.equal(res.code, 1);
+    assert.equal(res.stdout, "");
+    assert.equal(payload(res.json).error, "input");
+    assert.ok(!existsSync(join(dir, "home")), "何も書かない");
   } finally {
     cleanup();
   }

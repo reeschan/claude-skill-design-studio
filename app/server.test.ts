@@ -9,7 +9,7 @@ import { join } from "node:path";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { pageHtml as makePageHtml } from "../core/page-html.ts";
+import { checkMotion, hasPageCsp, pageHtml as makePageHtml } from "../core/page-html.ts";
 import { pageKeyOf } from "../core/page-type.ts";
 import { LAYOUTS, PAGE_TYPE_CANDIDATES } from "../core/types.ts";
 
@@ -265,6 +265,18 @@ function projectForTest(id: string, directions: unknown[]): Record<string, unkno
 // 版 3 のプロジェクト
 function projectVersion3ForTest(id: string, directions: unknown[], treatment: Record<string, unknown>): Record<string, unknown> {
   return { version: 3, ...projectContentForTest(id, directions), treatment, items: [] };
+}
+
+// 保存に使う、CSP の meta のある 1 ファイルの HTML (ページ・部品帳・部品で同じ殻)
+function savedHtmlForTest(title: string, body: string, themeId: string): string {
+  return makePageHtml({
+    title,
+    themeId,
+    mode: "light",
+    cssForPage: "",
+    fontsUrl: "https://fonts.googleapis.com/css2?family=Inter",
+    body,
+  });
 }
 
 void test("1. GET / が 200 で HTML、/app の不正なパスは 404", async () => {
@@ -866,4 +878,183 @@ void test("23. 版 3 の project が treatment と items ごと保存され、�
   assert.deepEqual(get(upgraded.json, "project", "items"), [
     { kind: "page", key: "dashboard", name: "請求書一覧", family: "dashboard", treatment: DEFAULT_TREATMENT },
   ]);
+});
+
+void test("24. POST /api/generate がページ・部品帳・部品の HTML を返す", async () => {
+  const direction = rec(await mixForTest());
+  const brief = { what: "作るものを選べる作業台" };
+
+  // ページ: make は検証後の値 (pageType に family が付く)
+  const page = await post("/api/generate", {
+    brief,
+    direction,
+    make: { kind: "page", pageType: { name: "料金ページ", family: "pricing" } },
+  });
+  assert.equal(page.status, 200, page.text);
+  assert.deepEqual(get(page.json, "make"), { kind: "page", pageType: { name: "料金ページ", family: "pricing" } });
+  const pageHtml = str(get(page.json, "html"));
+  assert.ok(hasPageCsp(pageHtml), "ページの html に CSP の meta がありません");
+  assert.equal(checkMotion(pageHtml).ok, true, "ページの html が動きの点検に通りません");
+
+  // 部品帳: 偽の LLM の部品帳の応答
+  const sheet = await post("/api/generate", { brief, direction, make: { kind: "component-sheet" } });
+  assert.equal(sheet.status, 200, sheet.text);
+  assert.deepEqual(get(sheet.json, "make"), { kind: "component-sheet" });
+  const sheetHtml = str(get(sheet.json, "html"));
+  assert.match(sheetHtml, /<title>モックの部品帳<\/title>/, sheetHtml.slice(0, 300));
+  assert.ok(hasPageCsp(sheetHtml), "部品帳の html に CSP の meta がありません");
+  assert.equal(checkMotion(sheetHtml).ok, true, "部品帳の html が動きの点検に通りません");
+
+  // 部品: 名前は検証後の値 (trim される)
+  const component = await post("/api/generate", { brief, direction, make: { kind: "component", name: " ボタン " } });
+  assert.equal(component.status, 200, component.text);
+  assert.deepEqual(get(component.json, "make"), { kind: "component", name: "ボタン" });
+  const componentHtml = str(get(component.json, "html"));
+  assert.match(componentHtml, /<title>モックの部品<\/title>/, componentHtml.slice(0, 300));
+  assert.ok(hasPageCsp(componentHtml), "部品の html に CSP の meta がありません");
+  assert.equal(checkMotion(componentHtml).ok, true, "部品の html が動きの点検に通りません");
+});
+
+void test("25. POST /api/generate が treatment を LLM のプロンプトに通す", async () => {
+  const direction = rec(await mixForTest());
+  const treatment = { surface: "glass", motion: "animated", motionSamples: ["aurora", "marquee"] };
+  const r = await post("/api/generate", {
+    brief: { what: "素材感のある部品" },
+    direction,
+    make: { kind: "component", name: "カード" },
+    treatment,
+  });
+  assert.equal(r.status, 200, r.text);
+  const prompt = lastMockPrompt();
+  assert.ok(prompt.includes("## 表現"), "プロンプトに表現の節がありません");
+  assert.ok(prompt.includes("Glass"), "プロンプトに面の名前がありません");
+  assert.ok(prompt.includes("ゆっくり流れるオーロラの背景"), "プロンプトに見本 aurora の名前がありません");
+  assert.ok(prompt.includes("流れ続ける帯"), "プロンプトに見本 marquee の名前がありません");
+});
+
+void test("26. POST /api/generate の make の誤りは 400", async () => {
+  const direction = rec(await mixForTest());
+  const brief = { what: "作るものの誤り" };
+  const makes: unknown[] = [{ kind: "design-guide" }, { kind: "nope" }, { kind: "component", name: "  " }];
+  for (const make of makes) {
+    const r = await post("/api/generate", { brief, direction, make });
+    assert.equal(r.status, 400, `${JSON.stringify(make)}: ${r.text}`);
+    assert.equal(get(r.json, "error"), "input");
+  }
+
+  // make が無いときも 400
+  const missing = await post("/api/generate", { brief, direction });
+  assert.equal(missing.status, 400, missing.text);
+  assert.equal(get(missing.json, "error"), "input");
+});
+
+void test("27. 部品の生成が reduced-motion を通らなければ 502 (bad-component)", async () => {
+  const badServer = await startServer({ ...serverEnv, MOCK_LLM_MODE: "no-reduced-motion" });
+  try {
+    const r = await post(
+      "/api/generate",
+      { brief: { what: "動きのある部品" }, direction: rec(await mixForTest()), make: { kind: "component", name: "ボタン" } },
+      {},
+      badServer.base,
+    );
+    assert.equal(r.status, 502, r.text);
+    assert.equal(get(r.json, "error"), "bad-component");
+  } finally {
+    await stopServer(badServer.child);
+  }
+});
+
+void test("28. POST /api/projects が部品帳・部品・ページを保存し、components から読める", async () => {
+  const directions = await directionsForTest();
+  const pageType = { name: "請求書一覧", family: "dashboard" } as const;
+  const sheetHtml = savedHtmlForTest("保存した部品帳", "<p>保存した部品帳</p>", "test-project-components");
+  const sheetHtml2 = savedHtmlForTest("保存した部品帳 (作り直し)", "<p>作り直した部品帳</p>", "test-project-components");
+  const buttonHtml = savedHtmlForTest("保存した部品", "<p>保存したボタン</p>", "test-project-components");
+  const pageHtml = savedHtmlForTest("保存したページ", "<p>保存したページ</p>", "test-project-components");
+
+  const sheet = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-components", directions, GLASS_TREATMENT),
+    component: { target: { kind: "component-sheet" }, html: sheetHtml },
+  });
+  assert.equal(sheet.status, 200, sheet.text);
+  assert.deepEqual(get(sheet.json, "project", "items"), [
+    { kind: "component-sheet", key: "component-sheet", name: "部品帳", treatment: GLASS_TREATMENT },
+  ]);
+
+  const button = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-components", directions, GLASS_TREATMENT),
+    component: { target: { kind: "component", name: "ボタン" }, html: buttonHtml },
+  });
+  assert.equal(button.status, 200, button.text);
+
+  const withPage = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-components", directions, GLASS_TREATMENT),
+    page: { pageType, html: pageHtml },
+  });
+  assert.equal(withPage.status, 200, withPage.text);
+  const items = arr(get(withPage.json, "project", "items"));
+  assert.deepEqual(
+    items.map((item) => get(item, "kind")),
+    ["component-sheet", "component", "page"],
+  );
+  for (const item of items) assert.deepEqual(get(item, "treatment"), GLASS_TREATMENT);
+
+  // 部品帳を作り直しても item は 1 件のまま (中身は入れ替わる)
+  const remade = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-components", directions, GLASS_TREATMENT),
+    component: { target: { kind: "component-sheet" }, html: sheetHtml2 },
+  });
+  assert.equal(remade.status, 200, remade.text);
+  const remadeItems = arr(get(remade.json, "project", "items"));
+  assert.equal(remadeItems.filter((item) => get(item, "kind") === "component-sheet").length, 1);
+
+  // GET /api/projects/<id> の items は保存の応答と同じ
+  const read = await fetchPath("/api/projects/test-project-components");
+  assert.equal(read.status, 200, read.text);
+  assert.deepEqual(get(read.json, "project", "items"), get(remade.json, "project", "items"));
+
+  // 部品帳・部品は components/<key> で読める (ページと同じ CSP のヘッダー)
+  const sheetRead = await fetchPath("/api/projects/test-project-components/components/component-sheet");
+  assert.equal(sheetRead.status, 200, sheetRead.text);
+  assert.match(sheetRead.type, /^text\/html; charset=utf-8/);
+  assert.equal(sheetRead.text, sheetHtml2);
+  assert.equal(sheetRead.csp, "sandbox allow-scripts");
+
+  const buttonRead = await fetchPath("/api/projects/test-project-components/components/button");
+  assert.equal(buttonRead.status, 200, buttonRead.text);
+  assert.equal(buttonRead.text, buttonHtml);
+  assert.equal(buttonRead.csp, "sandbox allow-scripts");
+
+  const pageRead = await fetchPath(`/api/projects/test-project-components/pages/${pageKeyOf(pageType)}`);
+  assert.equal(pageRead.status, 200, pageRead.text);
+  assert.equal(sheetRead.csp, pageRead.csp);
+
+  // 形の合わないキーと、無いキーは 404
+  assert.equal((await fetchPath("/api/projects/test-project-components/components/Bad")).status, 404);
+  assert.equal((await fetchPath("/api/projects/test-project-components/components/xxx")).status, 404);
+});
+
+void test("29. 部品の保存は CSP の meta が要り、page と component は同時に送れない", async () => {
+  const directions = await directionsForTest();
+  const noCsp = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-component-no-csp", directions, GLASS_TREATMENT),
+    component: { target: { kind: "component-sheet" }, html: '<!doctype html><html lang="ja"><body>no csp</body></html>' },
+  });
+  assert.equal(noCsp.status, 400, noCsp.text);
+  assert.equal(get(noCsp.json, "error"), "input");
+  assert.equal(get(noCsp.json, "message"), "html に CSP の meta がありません");
+  assert.equal((await fetchPath("/api/projects/test-project-component-no-csp")).status, 404);
+
+  const both = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-both", directions, GLASS_TREATMENT),
+    page: {
+      pageType: { name: "請求書一覧", family: "dashboard" },
+      html: savedHtmlForTest("ページ", "<p>ページ</p>", "test-project-both"),
+    },
+    component: { target: { kind: "component-sheet" }, html: savedHtmlForTest("部品帳", "<p>部品帳</p>", "test-project-both") },
+  });
+  assert.equal(both.status, 400, both.text);
+  assert.equal(get(both.json, "error"), "input");
+  assert.equal(get(both.json, "message"), "page と component は同時に指定できません");
+  assert.equal((await fetchPath("/api/projects/test-project-both")).status, 404);
 });
