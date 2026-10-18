@@ -5,6 +5,8 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { join } from "node:path";
 import { test } from "node:test";
 import { applyFineTune } from "../core/direction.ts";
+import { DESIGN_GUIDE_FILE_NAMES } from "../core/design-guide.ts";
+import { PAGE_CSP } from "../core/page-html.ts";
 import { readComponent, readPage } from "../core/project.ts";
 import { findStyle } from "../core/styles.ts";
 import type { Direction } from "../core/types.ts";
@@ -34,6 +36,31 @@ const DEFAULT_TREATMENT_JSON = { surface: "none", motion: "none", motionSamples:
 // 表現の例 (面と動きの見本を選んだもの)
 const GLASS_TREATMENT = { surface: "glass", motion: "animated", motionSamples: ["aurora"] };
 const SOLID_TREATMENT = { surface: "solid", motion: "none", motionSamples: [] };
+
+// 部品帳の HTML。CSP の meta を先頭の要素側に置いた 1 ファイル
+const SHEET_HTML = [
+  "<!doctype html>",
+  '<html lang="ja">',
+  "<head>",
+  '<meta charset="utf-8">',
+  `<meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`,
+  "<title>部品帳</title>",
+  "</head>",
+  "<body>",
+  "<h1>部品帳</h1>",
+  "</body>",
+  "</html>",
+  "",
+].join("\n");
+
+// デザインガイドのフォルダに置くファイルと、その短い中身
+const GUIDE_CONTENTS: Record<string, string> = {
+  "design-guide.md": "# デザインガイド: LP\n",
+  "style-guide.md": "# スタイルガイド\n",
+  "component-sheet.html": SHEET_HTML,
+  "theme.css": ":root { --color-primary: oklch(0.5 0.15 260); }\n",
+  "theme.json": "[]\n",
+};
 
 // 依頼。what 以外は空
 function briefJson(what: string): Record<string, string> {
@@ -121,6 +148,14 @@ function writeJson(dir: string, name: string, value: unknown): string {
   const path = join(dir, name);
   writeFileSync(path, JSON.stringify(value), "utf8");
   return path;
+}
+
+// デザインガイドのフォルダを dir の下に作り、names のファイルだけを置く
+function writeGuideFolder(dir: string, names: string[]): string {
+  const folder = join(dir, "guide-source");
+  mkdirSync(folder, { recursive: true });
+  for (const name of names) writeFileSync(join(folder, name), GUIDE_CONTENTS[name] ?? "", "utf8");
+  return folder;
 }
 
 // tempEnv が向けた home
@@ -1020,6 +1055,122 @@ void test("--component で保存すると名前の item ができ、入力の pr
     assert.deepEqual(saved.items, [{ kind: "component", key: "button", name: "ボタン", treatment: GLASS_TREATMENT }]);
     assert.equal(readFileSync(join(projectDir, "components", "button.html"), "utf8"), html);
     assert.equal(readComponent(env, "parts", "button"), html);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--design-guide で 5 ファイルを保存し、item はプロジェクトの treatment と同じで 1 件", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const folder = writeGuideFolder(join(dir, "five"), [...DESIGN_GUIDE_FILE_NAMES]);
+    const res = runCli(
+      [
+        "project",
+        "save",
+        "--project",
+        writeJson(dir, "guide.json", projectJsonV3("guide", { treatment: GLASS_TREATMENT })),
+        "--design-guide",
+        folder,
+      ],
+      env,
+    );
+    assert.equal(res.code, 0, res.stderr);
+    const saved = projectOf(res.json);
+    const projectDir = join(homeOf(env), "projects", "guide");
+    assert.equal(payload(res.json).dir, projectDir);
+    assert.deepEqual(saved.treatment, GLASS_TREATMENT);
+    assert.deepEqual(saved.items, [{ kind: "design-guide", key: "design-guide", name: "デザインガイド", treatment: GLASS_TREATMENT }]);
+    assert.deepEqual(readdirSync(join(projectDir, "design-guide")).sort(), [...DESIGN_GUIDE_FILE_NAMES].sort());
+    for (const name of DESIGN_GUIDE_FILE_NAMES) {
+      assert.equal(readFileSync(join(projectDir, "design-guide", name), "utf8"), GUIDE_CONTENTS[name] ?? "", name);
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--design-guide は 3 ファイルのフォルダでも保存でき、前の md は消える", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const five = writeGuideFolder(join(dir, "five"), [...DESIGN_GUIDE_FILE_NAMES]);
+    const first = runCli(
+      ["project", "save", "--project", writeJson(dir, "guide-1.json", projectJsonV3("guide")), "--design-guide", five],
+      env,
+    );
+    assert.equal(first.code, 0, first.stderr);
+
+    const three = writeGuideFolder(join(dir, "three"), ["component-sheet.html", "theme.css", "theme.json"]);
+    const second = runCli(
+      ["project", "save", "--project", writeJson(dir, "guide-2.json", projectJsonV3("guide")), "--design-guide", three],
+      env,
+    );
+    assert.equal(second.code, 0, second.stderr);
+    assert.deepEqual(projectOf(second.json).items, [
+      { kind: "design-guide", key: "design-guide", name: "デザインガイド", treatment: DEFAULT_TREATMENT_JSON },
+    ]);
+    const projectDir = join(homeOf(env), "projects", "guide");
+    assert.deepEqual(readdirSync(join(projectDir, "design-guide")).sort(), ["component-sheet.html", "theme.css", "theme.json"]);
+    assert.ok(!existsSync(join(projectDir, "design-guide", "design-guide.md")), "前の design-guide.md は消える");
+    assert.ok(!existsSync(join(projectDir, "design-guide", "style-guide.md")), "前の style-guide.md は消える");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--design-guide のフォルダが無い・CSP の無い部品帳は input のエラー", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const missing = runCli(
+      ["project", "save", "--project", writeJson(dir, "missing.json", projectJsonV3("missing")), "--design-guide", join(dir, "nothing")],
+      env,
+    );
+    assert.equal(missing.code, 1);
+    assert.equal(missing.stdout, "");
+    assert.equal(payload(missing.json).error, "input");
+    assert.ok(!existsSync(join(dir, "home")), "何も書かない");
+
+    const noCsp = writeGuideFolder(join(dir, "no-csp"), [...DESIGN_GUIDE_FILE_NAMES]);
+    writeFileSync(
+      join(noCsp, "component-sheet.html"),
+      "<!doctype html><html><head><title>部品帳</title></head><body></body></html>",
+      "utf8",
+    );
+    const res = runCli(
+      ["project", "save", "--project", writeJson(dir, "no-csp.json", projectJsonV3("no-csp")), "--design-guide", noCsp],
+      env,
+    );
+    assert.equal(res.code, 1);
+    assert.equal(res.stdout, "");
+    assert.equal(payload(res.json).error, "input");
+    assert.ok(!existsSync(join(dir, "home")), "何も書かない");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--design-guide とほかの作るものの指定は同時に使えない", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const projectFile = writeJson(dir, "guide-args.json", projectJsonV3("guide-args"));
+    const folder = writeGuideFolder(join(dir, "source"), [...DESIGN_GUIDE_FILE_NAMES]);
+    const htmlFile = join(dir, "make.html");
+    writeFileSync(htmlFile, "<!doctype html>", "utf8");
+    const extras: string[][] = [
+      ["--design-guide", folder, "--component-sheet", "--html", htmlFile],
+      ["--design-guide", folder, "--page-name", "LP", "--html", htmlFile],
+      ["--design-guide", folder, "--component", "ボタン", "--html", htmlFile],
+      ["--design-guide", folder, "--html", htmlFile],
+    ];
+    for (const extra of extras) {
+      const args = ["project", "save", "--project", projectFile, ...extra];
+      const label = args.join(" ");
+      const res = runCli(args, env);
+      assert.equal(res.code, 1, label);
+      assert.equal(res.stdout, "", label);
+      assert.equal(payload(res.json).error, "usage", label);
+    }
+    assert.ok(!existsSync(join(dir, "home")), "何も書かない");
   } finally {
     cleanup();
   }

@@ -27,7 +27,7 @@
 
 ![作業台の画面。左に依頼のフォーム (表現の面 Glass・動き Animated と選んだ動きの見本) と案 A〜D、中央に設定画面の骨組みのプレビュー、右に 4 軸のパッドと微調整が並ぶ](docs/images/workbench-directions.png)
 
-**作業台 (ページを作る)**: 決めた方向性で LLM が 1 ファイルのページ・部品帳・部品を作り、別タブで開く・ダウンロードできます。
+**作業台 (ページを作る)**: 決めた方向性で LLM が 1 ファイルのページ・部品帳・部品を作り、別タブで開く・ダウンロードできます。作るものにデザインガイドを選ぶと、部品帳・トンマナ・スタイルガイド・テーマを 1 つのフォルダにまとめて作れます。style-guide が古いときは部品帳とテーマだけを作り、更新を案内します。
 
 ![作業台でページを作った状態。作ったページがプレビューに出る](docs/images/workbench-page.png)
 
@@ -89,11 +89,13 @@ node ~/.claude/skills/design-studio/scripts/studio.ts styles
 node ~/.claude/skills/design-studio/scripts/studio.ts treatments
 node ~/.claude/skills/design-studio/scripts/studio.ts treatments motion spinning-border --out motion.html
 node ~/.claude/skills/design-studio/scripts/studio.ts render-direction --direction direction.json --family lp --surface glass --out skeleton.html
+node ~/.claude/skills/design-studio/scripts/studio.ts design-guide --style minimal --sheet component-sheet.html --values values.json --out design-guide
 ```
 
 - `treatments`: 面 4 つと動きの見本 12 件の一覧
 - `treatments motion <id> --out <file>`: 動きの見本 1 件を HTML に書く (省くと `html` を返す)
 - `render-direction --surface <id>`: 骨組みに面の CSS を重ねる (動きは入れない)
+- `design-guide`: 部品帳の HTML と値の JSON から、デザインガイドのフォルダ (`design-guide.md`・`style-guide.md`・`component-sheet.html`・`theme.css`・`theme.json`) を組み立てる。style-guide が古いときは部品帳とテーマだけを書き、更新を案内する
 
 ## できあがるもの
 

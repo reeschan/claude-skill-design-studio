@@ -52,9 +52,10 @@ function readSeeds(path: string): unknown[] {
   return Array.isArray(parsed) ? parsed : [parsed];
 }
 
-// 偽の応答。failed は 0 以外にして、値がそのまま通ることをテストで確かめられるようにする
-function fakeResponse(seeds: unknown[]): unknown {
-  return {
+// 偽の応答。failed は 0 以外にして、値がそのまま通ることをテストで確かめられるようにする。
+// --doc を渡されたら、本物と同じく docs にスタイルガイドの文書を足す
+function fakeResponse(seeds: unknown[], withDoc: boolean): unknown {
+  const response: Record<string, unknown> = {
     dir: null,
     css: '@import "tailwindcss";\n:root { --fake-radius: 4px; }\n',
     themes: seeds.map((seed) => ({ id: field(seed, "id"), name: field(seed, "name") })),
@@ -66,6 +67,13 @@ function fakeResponse(seeds: unknown[]): unknown {
     })),
     failed: 2,
   };
+  if (withDoc) {
+    response.docs = seeds.map((seed) => ({
+      id: field(seed, "id"),
+      markdown: `# スタイルガイド (偽): ${String(field(seed, "name"))}\n\n- id: ${String(field(seed, "id"))}\n`,
+    }));
+  }
+  return response;
 }
 
 // render を持たない古い style-guide は、サブコマンドを振り分ける前の parseArgs({strict: true}) で
@@ -73,11 +81,17 @@ function fakeResponse(seeds: unknown[]): unknown {
 const OUTDATED_MESSAGE =
   "Unknown option '--seed'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- \"--seed\"'";
 
+// --doc を知らない版 (fae0dfe より前) が parseArgs で返す文面。render も --seed も含まない
+const NO_DOC_MESSAGE =
+  "Unknown option '--doc'. To specify a positional argument starting with a '-', place it at the end of the command after '--', as in '-- \"--doc\"'";
+
 function main(argv: string[]): unknown {
   const mode = process.env.FAKE_SG_MODE;
   if (mode === "outdated") throw usage(OUTDATED_MESSAGE);
   if (mode === "fail") throw new FakeExit(EXIT_INPUT, { error: "input", message: "種の検証に失敗しました (偽)" });
-  return fakeResponse(readSeeds(seedPath(argv)));
+  const withDoc = argv.includes("--doc");
+  if (mode === "no-doc" && withDoc) throw usage(NO_DOC_MESSAGE);
+  return fakeResponse(readSeeds(seedPath(argv)), withDoc);
 }
 
 function reportError(e: unknown): number {

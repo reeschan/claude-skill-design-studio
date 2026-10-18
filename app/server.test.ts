@@ -5,7 +5,7 @@ import type { ChildProcess } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -277,6 +277,18 @@ function savedHtmlForTest(title: string, body: string, themeId: string): string 
     fontsUrl: "https://fonts.googleapis.com/css2?family=Inter",
     body,
   });
+}
+
+// デザインガイドの生成 (make の design-guide)。テストで何度も使う
+function generateDesignGuideForTest(direction: unknown, treatment?: unknown, at = base): Promise<HttpResult> {
+  return post("/api/generate", { brief: { what: "落ち着いた請求書アプリ" }, direction, make: { kind: "design-guide" }, treatment }, {}, at);
+}
+
+// デザインガイドの files から 1 つのファイルの中身を取る
+function designGuideFile(files: unknown[], name: string): string {
+  const found = files.find((entry) => get(entry, "name") === name);
+  assert.ok(found !== undefined, `files に ${name} がありません: ${JSON.stringify(files.map((entry) => get(entry, "name")))}`);
+  return str(get(found, "content"));
 }
 
 void test("1. GET / が 200 で HTML、/app の不正なパスは 404", async () => {
@@ -935,7 +947,7 @@ void test("25. POST /api/generate が treatment を LLM のプロンプトに通
 void test("26. POST /api/generate の make の誤りは 400", async () => {
   const direction = rec(await mixForTest());
   const brief = { what: "作るものの誤り" };
-  const makes: unknown[] = [{ kind: "design-guide" }, { kind: "nope" }, { kind: "component", name: "  " }];
+  const makes: unknown[] = [{ kind: "nope" }, { kind: "component", name: "  " }];
   for (const make of makes) {
     const r = await post("/api/generate", { brief, direction, make });
     assert.equal(r.status, 400, `${JSON.stringify(make)}: ${r.text}`);
@@ -1057,4 +1069,169 @@ void test("29. 部品の保存は CSP の meta が要り、page と component �
   assert.equal(get(both.json, "error"), "input");
   assert.equal(get(both.json, "message"), "page と component は同時に指定できません");
   assert.equal((await fetchPath("/api/projects/test-project-both")).status, 404);
+});
+
+void test("30. POST /api/generate の make design-guide が部品帳とデザインガイドのファイル一式を返す", async () => {
+  const direction = rec(await mixForTest());
+  const r = await generateDesignGuideForTest(direction);
+  assert.equal(r.status, 200, r.text);
+  assert.deepEqual(get(r.json, "make"), { kind: "design-guide" });
+
+  // html は偽の LLM の部品帳で、CSP の meta と動きの点検を通る
+  const html = str(get(r.json, "html"));
+  assert.match(html, /<title>モックの部品帳<\/title>/, html.slice(0, 300));
+  assert.ok(hasPageCsp(html), "デザインガイドの html に CSP の meta がありません");
+  assert.equal(checkMotion(html).ok, true, "デザインガイドの html が動きの点検に通りません");
+
+  const guide = rec(get(r.json, "designGuide"));
+  assert.equal(get(guide, "styleGuide"), "ok");
+  assert.equal(get(guide, "notice"), null);
+  const files = arr(get(guide, "files"));
+  assert.equal(files.length, 5, r.text);
+  assert.deepEqual(
+    files.map((file) => get(file, "name")),
+    ["design-guide.md", "style-guide.md", "component-sheet.html", "theme.css", "theme.json"],
+  );
+
+  const md = designGuideFile(files, "design-guide.md");
+  assert.ok(md.startsWith("# デザインガイド: "), md.slice(0, 80));
+  assert.ok(md.includes(str(get(direction, "name"))), "design-guide.md に方向性の名前がありません");
+  // style-guide.md は偽の style-guide が --doc で返した文書そのまま
+  assert.equal(
+    designGuideFile(files, "style-guide.md"),
+    `# スタイルガイド (偽): ${str(get(direction, "seed", "name"))}\n\n- id: ${str(get(direction, "seed", "id"))}\n`,
+  );
+  assert.equal(designGuideFile(files, "component-sheet.html"), html);
+  assert.ok(designGuideFile(files, "theme.css").includes("--fake-radius"));
+  assert.ok(Array.isArray(JSON.parse(designGuideFile(files, "theme.json"))), "theme.json が JSON として読めません");
+});
+
+void test("31. デザインガイドの treatment が design-guide.md の表現の節に入る", async () => {
+  const direction = rec(await mixForTest());
+  const treatment = { surface: "glass", motion: "animated", motionSamples: ["aurora", "marquee"] };
+  const r = await generateDesignGuideForTest(direction, treatment);
+  assert.equal(r.status, 200, r.text);
+  const files = arr(get(rec(get(r.json, "designGuide")), "files"));
+  const md = designGuideFile(files, "design-guide.md");
+  const section = md.slice(md.indexOf("## 表現"), md.indexOf("## 部品"));
+  assert.ok(section.includes("- 面: Glass"), section);
+  assert.ok(section.includes("- 動き: Animated"), section);
+  assert.ok(section.includes("- 使った動きの見本: ゆっくり流れるオーロラの背景、流れ続ける帯"), section);
+});
+
+void test("32. FAKE_SG_MODE=no-doc ではデザインガイドを頼むと部品帳だけが返る", async () => {
+  const noDocServer = await startServer({ ...serverEnv, FAKE_SG_MODE: "no-doc" });
+  try {
+    const r = await generateDesignGuideForTest(rec(await mixForTest()), undefined, noDocServer.base);
+    assert.equal(r.status, 200, r.text);
+    assert.deepEqual(get(r.json, "make"), { kind: "design-guide" });
+
+    const guide = rec(get(r.json, "designGuide"));
+    assert.equal(get(guide, "styleGuide"), "outdated");
+    assert.equal(get(guide, "notice"), "style-guide を更新するとデザインガイドも作れます");
+    const files = arr(get(guide, "files"));
+    assert.equal(files.length, 3, r.text);
+    assert.deepEqual(
+      files.map((file) => get(file, "name")),
+      ["component-sheet.html", "theme.css", "theme.json"],
+    );
+
+    const html = str(get(r.json, "html"));
+    assert.match(html, /<title>モックの部品帳<\/title>/, html.slice(0, 300));
+    assert.ok(hasPageCsp(html));
+    assert.equal(designGuideFile(files, "component-sheet.html"), html);
+  } finally {
+    await stopServer(noDocServer.child);
+  }
+});
+
+void test("33. 偽の LLM が error のとき、デザインガイドの生成は LlmError の応答になる", async () => {
+  const errorServer = await startServer({ ...serverEnv, MOCK_LLM_MODE: "error" });
+  try {
+    const r = await generateDesignGuideForTest(rec(await mixForTest()), undefined, errorServer.base);
+    assert.equal(r.status, 502, r.text);
+    assert.equal(get(r.json, "error"), "llm-failed");
+  } finally {
+    await stopServer(errorServer.child);
+  }
+});
+
+void test("34. POST /api/projects がデザインガイドを保存し、design-guide から読める", async () => {
+  const directions = await directionsForTest();
+  const direction = rec(await mixForTest());
+  const generated = await generateDesignGuideForTest(direction);
+  assert.equal(generated.status, 200, generated.text);
+  const files = arr(get(rec(get(generated.json, "designGuide")), "files"));
+  const projectId = "test-project-design-guide";
+  const body = { project: projectVersion3ForTest(projectId, directions, GLASS_TREATMENT), designGuide: { files } };
+
+  const saved = await post("/api/projects", body);
+  assert.equal(saved.status, 200, saved.text);
+  assert.equal(get(saved.json, "project", "id"), projectId);
+  const guideDir = str(get(saved.json, "designGuideDir"));
+  assert.ok(isAbsolute(guideDir), guideDir);
+  assert.equal(guideDir, join(dir, "home", "projects", projectId, "design-guide"));
+  const items = arr(get(saved.json, "project", "items"));
+  assert.deepEqual(items, [{ kind: "design-guide", key: "design-guide", name: "デザインガイド", treatment: GLASS_TREATMENT }]);
+
+  // もう一度送っても item は 1 件のまま
+  const again = await post("/api/projects", body);
+  assert.equal(again.status, 200, again.text);
+  assert.deepEqual(get(again.json, "project", "items"), items);
+  assert.equal(str(get(again.json, "designGuideDir")), guideDir);
+
+  // 部品帳の HTML は text/html とページと同じ CSP。文書は text/markdown
+  const sheet = await fetchPath(`/api/projects/${projectId}/design-guide/component-sheet.html`);
+  assert.equal(sheet.status, 200, sheet.text);
+  assert.match(sheet.type, /^text\/html; charset=utf-8/);
+  assert.equal(sheet.text, designGuideFile(files, "component-sheet.html"));
+  assert.equal(sheet.csp, "sandbox allow-scripts");
+
+  const md = await fetchPath(`/api/projects/${projectId}/design-guide/design-guide.md`);
+  assert.equal(md.status, 200, md.text);
+  assert.match(md.type, /^text\/markdown; charset=utf-8/);
+  assert.equal(md.text, designGuideFile(files, "design-guide.md"));
+
+  const css = await fetchPath(`/api/projects/${projectId}/design-guide/theme.css`);
+  assert.equal(css.status, 200, css.text);
+  assert.match(css.type, /^text\/css; charset=utf-8/);
+  const json = await fetchPath(`/api/projects/${projectId}/design-guide/theme.json`);
+  assert.equal(json.status, 200, json.text);
+  assert.match(json.type, /^application\/json; charset=utf-8/);
+
+  // 無い名前・知らない名前・保存していないプロジェクトは 404
+  assert.equal((await fetchPath(`/api/projects/${projectId}/design-guide/nope.md`)).status, 404);
+  assert.equal((await fetchPath(`/api/projects/${projectId}/design-guide/..%2Fproject.json`)).status, 404);
+  assert.equal((await fetchPath(`/api/projects/${projectId}/design-guide/style-guide.html`)).status, 404);
+  assert.equal((await fetchPath("/api/projects/test-project-components/design-guide/design-guide.md")).status, 404);
+  assert.equal((await fetchPath("/api/projects/nope-design-guide/design-guide/design-guide.md")).status, 404);
+});
+
+void test("35. デザインガイドは component と同時に送れず、files に theme.css が要る", async () => {
+  const directions = await directionsForTest();
+  const generated = await generateDesignGuideForTest(rec(await mixForTest()));
+  assert.equal(generated.status, 200, generated.text);
+  const files = arr(get(rec(get(generated.json, "designGuide")), "files"));
+
+  const both = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-design-guide-both", directions, GLASS_TREATMENT),
+    component: {
+      target: { kind: "component-sheet" },
+      html: savedHtmlForTest("部品帳", "<p>部品帳</p>", "test-project-design-guide-both"),
+    },
+    designGuide: { files },
+  });
+  assert.equal(both.status, 400, both.text);
+  assert.equal(get(both.json, "error"), "input");
+  assert.equal((await fetchPath("/api/projects/test-project-design-guide-both")).status, 404);
+
+  const withoutTheme = files.filter((file) => get(file, "name") !== "theme.css");
+  assert.equal(withoutTheme.length, files.length - 1);
+  const missing = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-design-guide-missing", directions, GLASS_TREATMENT),
+    designGuide: { files: withoutTheme },
+  });
+  assert.equal(missing.status, 400, missing.text);
+  assert.equal(get(missing.json, "error"), "input");
+  assert.equal((await fetchPath("/api/projects/test-project-design-guide-missing")).status, 404);
 });

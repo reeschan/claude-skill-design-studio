@@ -17,6 +17,15 @@ import {
   validateComponentTarget,
 } from "./component.ts";
 import { validateFineTune, validatePoints } from "./direction.ts";
+import {
+  DESIGN_GUIDE_DIR,
+  DESIGN_GUIDE_FILE_NAMES,
+  DESIGN_GUIDE_KEY,
+  DESIGN_GUIDE_NAME,
+  validateDesignGuideFiles,
+  writeDesignGuideFolder,
+} from "./design-guide.ts";
+import type { DesignGuideFile } from "./design-guide.ts";
 import { readJsonFile } from "./json-file.ts";
 import { pageKeyOf, validatePageType } from "./page-type.ts";
 import { studioHome } from "./paths.ts";
@@ -24,7 +33,7 @@ import { validateDirection } from "./styles.ts";
 import { DEFAULT_TREATMENT, validateTreatment } from "./treatment.ts";
 import { PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "./types.ts";
 import type { Direction, MixPoint, MixPoints, PageType, Project, Round, SavedItem, SkeletonFamily, Treatment } from "./types.ts";
-import type { ComponentItem, ComponentSheetItem, ComponentTarget, PageItem } from "./types.ts";
+import type { ComponentItem, ComponentSheetItem, ComponentTarget, DesignGuideItem, PageItem } from "./types.ts";
 
 const PROJECT_FILE = "project.json";
 const THEME_FILE = "theme.css";
@@ -179,7 +188,7 @@ function validateRoundIndex(value: unknown, count: number): number {
   return value;
 }
 
-// 保存した 1 件の一覧。kind は page / component-sheet / component
+// 保存した 1 件の一覧。kind は page / component-sheet / component / design-guide
 function validateSavedItems(value: unknown): SavedItem[] {
   if (!Array.isArray(value)) throw inputError("items は配列で指定してください");
   return value.map((entry, index) => validateSavedItem(entry, index));
@@ -191,7 +200,8 @@ function validateSavedItem(value: unknown, index: number): SavedItem {
   if (raw.kind === "page") return savedPageOf(raw, label);
   if (raw.kind === "component-sheet") return savedComponentSheetOf(raw, label);
   if (raw.kind === "component") return savedComponentOf(raw, label);
-  throw inputError(`${label}.kind は page / component-sheet / component のいずれかで指定してください`);
+  if (raw.kind === "design-guide") return savedDesignGuideOf(raw, label);
+  throw inputError(`${label}.kind は page / component-sheet / component / design-guide のいずれかで指定してください`);
 }
 
 // ページの item。保存のキーと family は今までどおり
@@ -212,6 +222,13 @@ function savedComponentOf(raw: Record<string, unknown>, label: string): Componen
   const key = componentKeyOf(name);
   if (raw.key !== key) throw inputError(`${label}.key は ${key} で指定してください`);
   return { kind: "component", key, name, treatment: validateTreatment(raw.treatment) };
+}
+
+// デザインガイドの item。key と name は固定の値だけ
+function savedDesignGuideOf(raw: Record<string, unknown>, label: string): DesignGuideItem {
+  if (raw.key !== DESIGN_GUIDE_KEY) throw inputError(`${label}.key は ${DESIGN_GUIDE_KEY} で指定してください`);
+  if (raw.name !== DESIGN_GUIDE_NAME) throw inputError(`${label}.name は ${DESIGN_GUIDE_NAME} で指定してください`);
+  return { kind: "design-guide", key: DESIGN_GUIDE_KEY, name: DESIGN_GUIDE_NAME, treatment: validateTreatment(raw.treatment) };
 }
 
 // 版 2 のページの一覧 (items に直す前の形)
@@ -323,10 +340,19 @@ function componentItemOf(target: ComponentTarget, treatment: Treatment): Compone
   return target.kind === "component-sheet" ? { kind: "component-sheet", ...item } : { kind: "component", ...item };
 }
 
-// 今回の保存で items に足す 1 件 (ページか部品の側。指定が無ければ null)
-function additionOf(pageType: PageType | undefined, target: ComponentTarget | undefined, treatment: Treatment): SavedItem | null {
-  if (pageType !== undefined) return pageItemOf(pageType, treatment);
-  if (target !== undefined) return componentItemOf(target, treatment);
+// デザインガイドの item。key と name は固定で、treatment は保存するときの写し
+function designGuideItemOf(treatment: Treatment): DesignGuideItem {
+  return { kind: "design-guide", key: DESIGN_GUIDE_KEY, name: DESIGN_GUIDE_NAME, treatment: treatmentCopy(treatment) };
+}
+
+// 今回の保存で items に足す 1 件の指定。同時に指定できるのは 1 つだけ
+type Addition = { pageType?: PageType; target?: ComponentTarget; designGuide?: boolean };
+
+// 今回の保存で items に足す 1 件 (ページ・部品の側・デザインガイド。指定が無ければ null)
+function additionOf(addition: Addition, treatment: Treatment): SavedItem | null {
+  if (addition.pageType !== undefined) return pageItemOf(addition.pageType, treatment);
+  if (addition.target !== undefined) return componentItemOf(addition.target, treatment);
+  if (addition.designGuide === true) return designGuideItemOf(treatment);
   return null;
 }
 
@@ -335,7 +361,13 @@ export type SaveProjectInput = {
   themeCss?: string;
   page?: { pageType: PageType; html: string };
   component?: { target: ComponentTarget; html: string };
+  designGuide?: { files: DesignGuideFile[] };
 };
+
+// page・component・designGuide のうち指定されたものの数 (2 つ以上は同時に保存できない)
+function additionCount(input: SaveProjectInput): number {
+  return [input.page, input.component, input.designGuide].filter((value) => value !== undefined).length;
+}
 
 // 壊れた project.json を同じディレクトリに退避する (消さない)
 function quarantineProject(env: NodeJS.ProcessEnv, id: string): void {
@@ -383,31 +415,36 @@ function writeContentFiles(
   dir: string,
   pageType: PageType | undefined,
   target: ComponentTarget | undefined,
+  designGuideFiles: DesignGuideFile[] | undefined,
 ): void {
   if (input.themeCss !== undefined) writeFileAt(join(dir, THEME_FILE), input.themeCss, "theme.css");
   if (input.page !== undefined && pageType !== undefined) writePageHtml(dir, input.page.html, pageType);
   if (input.component !== undefined && target !== undefined) writeComponentHtml(dir, input.component.html, target);
+  if (designGuideFiles !== undefined) writeDesignGuideFolder(join(dir, DESIGN_GUIDE_DIR), designGuideFiles);
 }
 
 /** プロジェクトを保存する。createdAt は初回だけ、updatedAt は毎回今の時刻にする */
 export function saveProject(env: NodeJS.ProcessEnv, input: SaveProjectInput): Project {
-  if (input.page !== undefined && input.component !== undefined) {
-    throw inputError("page と component は同時に指定できません");
+  if (additionCount(input) >= 2) {
+    throw inputError("page・component・designGuide は 2 つ以上同時に指定できません");
   }
+  // ファイルの誤りは何も書く前に止める (プロジェクトも保存しない)
+  const designGuideFiles = input.designGuide === undefined ? undefined : validateDesignGuideFiles(input.designGuide.files);
   const content = validateProjectContent(input.project);
   const pageType = input.page === undefined ? undefined : pageTypeWithFamily(input.page.pageType);
   const target = input.component === undefined ? undefined : validateComponentTarget(input.component.target);
+  const designGuide = input.designGuide !== undefined;
   const dir = projectDir(env, content.id);
   const existing = readExistingForSave(env, content.id);
   const now = new Date().toISOString();
   const project: Project = {
     ...content,
-    items: mergeSavedItems(existing?.project.items ?? [], additionOf(pageType, target, content.treatment)),
+    items: mergeSavedItems(existing?.project.items ?? [], additionOf({ pageType, target, designGuide }, content.treatment)),
     createdAt: existing?.project.createdAt ?? now,
     updatedAt: now,
   };
   mkdirSync(dir, { recursive: true });
-  writeContentFiles(input, dir, pageType, target);
+  writeContentFiles(input, dir, pageType, target, designGuideFiles);
   writeFileAt(join(dir, PROJECT_FILE), JSON.stringify(project, null, 2) + "\n", "project");
   return project;
 }
@@ -451,6 +488,23 @@ export function readComponent(env: NodeJS.ProcessEnv, id: string, key: string): 
   } catch (e) {
     if (isNotFound(e)) return null;
     throw new CliExit(EXIT_INPUT, { error: "file", file: `${componentKey}.html`, path: file, message: errorMessage(e) });
+  }
+}
+
+/** デザインガイドのフォルダ (<project>/design-guide) の絶対パス */
+export function designGuideDir(env: NodeJS.ProcessEnv, id: string): string {
+  return join(projectDir(env, id), DESIGN_GUIDE_DIR);
+}
+
+/** デザインガイドのファイルを読む。DESIGN_GUIDE_FILE_NAMES に無い名前 (例 ../project.json)・無いファイルは null */
+export function readDesignGuideFile(env: NodeJS.ProcessEnv, id: string, name: string): string | null {
+  if (!(DESIGN_GUIDE_FILE_NAMES as readonly string[]).includes(name)) return null;
+  const file = join(designGuideDir(env, id), name);
+  try {
+    return readFileSync(file, "utf8");
+  } catch (e) {
+    if (isNotFound(e)) return null;
+    throw new CliExit(EXIT_INPUT, { error: "file", file: name, path: file, message: errorMessage(e) });
   }
 }
 

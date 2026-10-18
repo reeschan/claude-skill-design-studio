@@ -252,7 +252,7 @@ void test("items の component と component-sheet の決まりと知らない k
       {
         id: "bad-kind",
         label: "知らない kind",
-        item: { kind: "design-guide", key: "guide", name: "ガイド", treatment: DEFAULT_TREATMENT },
+        item: { kind: "nope", key: "guide", name: "ガイド", treatment: DEFAULT_TREATMENT },
       },
     ];
     for (const c of cases) {

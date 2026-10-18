@@ -19,13 +19,15 @@
 //   POST /api/mix         {directions, points, fineTune?} → {mixed, direction, weights, snapped}
 //   POST /api/render      {direction, family, mode?, treatment?} → {html, themeId, layout, surface, checks, failed}
 //   POST /api/page        {brief, direction, pageType, treatment?} → {html}
-//   POST /api/generate    {brief, direction, make, treatment?} → {make, html}
+//   POST /api/generate    {brief, direction, make, treatment?} → {make, html} (design-guide のときは designGuide も)
 //   POST /api/tokens      {direction}         → {tailwind, json, css}
-//   POST /api/projects    {project, page?: {pageType: {name, family}, html}, component?: {target, html}} → {project}
+//   POST /api/projects    {project, page?: {pageType: {name, family}, html},
+//                         component?: {target, html}, designGuide?: {files}} → {project} (designGuide のときは designGuideDir も)
 //   GET  /api/projects                        → {projects}
 //   GET  /api/projects/<id>                   → {project}
 //   GET  /api/projects/<id>/pages/<key>       → text/html
 //   GET  /api/projects/<id>/components/<key>  → text/html
+//   GET  /api/projects/<id>/design-guide/<name> → text/html・text/markdown・text/css・application/json
 import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
@@ -37,6 +39,11 @@ import { listCatalog, setEnabled } from "../core/catalog.ts";
 import { CliExit, EXIT_ACTION, EXIT_EXTERNAL, EXIT_INPUT } from "../core/cli-exit.ts";
 import { generateComponent } from "../core/component-llm.ts";
 import { validateComponentTarget } from "../core/component.ts";
+import { buildDesignGuide } from "../core/design-guide-build.ts";
+import type { DesignGuideBuild } from "../core/design-guide-build.ts";
+import { generateDesignGuideValues } from "../core/design-guide-llm.ts";
+import { DESIGN_GUIDE_FILE_NAMES, validateDesignGuideFiles } from "../core/design-guide.ts";
+import type { DesignGuideFileName, DesignGuideFile } from "../core/design-guide.ts";
 import { applyFineTune, mixDirections, renderDirection, validateFineTune, validatePoints } from "../core/direction.ts";
 import type { MixSnapped, MixWeights } from "../core/direction.ts";
 import { planInstall } from "../core/installer.ts";
@@ -45,7 +52,7 @@ import type { FontPair } from "../core/llm.ts";
 import { hasPageCsp } from "../core/page-html.ts";
 import { candidateOf, validatePageType } from "../core/page-type.ts";
 import { galleryDir, styleGuideDir } from "../core/paths.ts";
-import { listProjects, readComponent, readPage, readProject, saveProject } from "../core/project.ts";
+import { designGuideDir, listProjects, readComponent, readDesignGuideFile, readPage, readProject, saveProject } from "../core/project.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
 import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
 import { findMotion, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
@@ -66,6 +73,8 @@ import type {
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 const INDEX_FILE = join(APP_DIR, "index.html");
 const HTML_TYPE = "text/html; charset=utf-8";
+const MARKDOWN_TYPE = "text/markdown; charset=utf-8";
+const CSS_TYPE = "text/css; charset=utf-8";
 const JSON_TYPE = "application/json; charset=utf-8";
 const JS_TYPE = "text/javascript; charset=utf-8";
 // 保存したページの配信に付ける CSP。不透明なオリジンになり、スクリプトは動くがアプリの API には届かない
@@ -511,6 +520,27 @@ function serveProjectComponent(ctx: RouteContext): void {
   sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
 }
 
+// デザインガイドのファイルの種類。html はページと同じく不透明なオリジンで動かす
+function designGuideTypeOf(name: DesignGuideFileName): string {
+  if (name.endsWith(".md")) return MARKDOWN_TYPE;
+  if (name.endsWith(".css")) return CSS_TYPE;
+  if (name.endsWith(".json")) return JSON_TYPE;
+  return HTML_TYPE;
+}
+
+function serveProjectDesignGuide(ctx: RouteContext): void {
+  // 名前の形が決まりの外なら、無いファイルとして扱う (core の readDesignGuideFile も確かめる)
+  const name = DESIGN_GUIDE_FILE_NAMES.find((candidate) => candidate === ctx.params[1]);
+  if (name === undefined) throw notFound();
+  const content = readDesignGuideFile(ctx.env, ctx.params[0] ?? "", name);
+  if (content === null) throw notFound();
+  if (name.endsWith(".html")) {
+    sendRaw(ctx.res, 200, HTML_TYPE, content, false, { "Content-Security-Policy": PAGE_SANDBOX });
+    return;
+  }
+  sendRaw(ctx.res, 200, designGuideTypeOf(name), content);
+}
+
 function postCatalogEnabled(ctx: RouteContext): void {
   const id = bodyString(ctx.body.id, "id");
   const enabled = bodyBoolean(ctx.body.enabled, "enabled");
@@ -595,14 +625,37 @@ async function generateComponentHtml(ctx: RouteContext, target: ComponentTarget,
   );
 }
 
-// 作るもの (make)。page はページの種類、部品の側は core の validateComponentTarget に任せる
-type Make = { kind: "page"; pageType: PageType } | ComponentTarget;
+// 作るもの (make)。page はページの種類、design-guide は入力を持たない、部品の側は core の validateComponentTarget に任せる
+type Make = { kind: "page"; pageType: PageType } | { kind: "design-guide" } | ComponentTarget;
 
 function makeOf(value: unknown): Make {
   const make = recordOf(value, "make");
   if (make.kind === "page") return { kind: "page", pageType: pageTypeWithFamily(make.pageType) };
+  if (make.kind === "design-guide") return { kind: "design-guide" };
   if (make.kind === "component-sheet" || make.kind === "component") return validateComponentTarget(make);
-  throw inputError("make.kind は page / component-sheet / component のいずれかで指定してください");
+  throw inputError("make.kind は page / component-sheet / component / design-guide のいずれかで指定してください");
+}
+
+// デザインガイド 1 式。部品帳の HTML と値の生成を並べ、style-guide の文書の口で組み立てる
+async function generateDesignGuide(ctx: RouteContext, input: GenerateInput): Promise<{ html: string; designGuide: DesignGuideBuild }> {
+  const [html, values] = await Promise.all([
+    generateComponentHtml(ctx, { kind: "component-sheet" }, input),
+    generateDesignGuideValues(input, ctx.env),
+  ]);
+  const designGuide = await buildDesignGuide({ direction: input.direction, treatment: input.treatment, sheetHtml: html, values }, ctx.env);
+  return { html, designGuide };
+}
+
+type GenerateResult = { make: Make; html: string; designGuide?: DesignGuideBuild };
+
+// make の種類ごとの生成。design-guide だけは部品帳の HTML に加えてファイル一式を返す
+async function generateForMake(ctx: RouteContext, make: Make, input: GenerateInput): Promise<GenerateResult> {
+  if (make.kind === "page") return { make, html: await generatePageHtml(ctx, make.pageType, input) };
+  if (make.kind === "design-guide") {
+    const generated = await generateDesignGuide(ctx, input);
+    return { make, html: generated.html, designGuide: generated.designGuide };
+  }
+  return { make, html: await generateComponentHtml(ctx, make, input) };
 }
 
 async function postGenerate(ctx: RouteContext): Promise<void> {
@@ -610,9 +663,7 @@ async function postGenerate(ctx: RouteContext): Promise<void> {
   const brief = validateBrief(ctx.body.brief);
   const direction = validateDirection(ctx.body.direction);
   const treatment = validateTreatment(ctx.body.treatment);
-  const input = { brief, direction, treatment };
-  const html = make.kind === "page" ? await generatePageHtml(ctx, make.pageType, input) : await generateComponentHtml(ctx, make, input);
-  sendJson(ctx.res, 200, { make, html });
+  sendJson(ctx.res, 200, await generateForMake(ctx, make, { brief, direction, treatment }));
 }
 
 async function postPage(ctx: RouteContext): Promise<void> {
@@ -674,16 +725,36 @@ function componentInputOf(value: unknown): { target: ComponentTarget; html: stri
   return { target, html };
 }
 
+// 保存するデザインガイド (省略できる)。files は生成の応答の並びをそのまま core の検証に通す
+function designGuideInputOf(value: unknown): { files: DesignGuideFile[] } | undefined {
+  if (value === undefined) return undefined;
+  const designGuide = recordOf(value, "designGuide");
+  return { files: validateDesignGuideFiles(designGuide.files) };
+}
+
+// 同時に保存できるのは 1 つだけ。page と component の組は今までの文言をそのまま返す
+function checkSingleSave(page: unknown, component: unknown, designGuide: unknown): void {
+  const provided = [page, component, designGuide].filter((value) => value !== undefined).length;
+  if (provided < 2) return;
+  if (page !== undefined && component !== undefined) throw inputError("page と component は同時に指定できません");
+  throw inputError("page・component・designGuide は 2 つ以上同時に指定できません");
+}
+
 async function postProjects(ctx: RouteContext): Promise<void> {
   const project = recordOf(ctx.body.project, "project");
   const page = pageInputOf(ctx.body.page);
   const component = componentInputOf(ctx.body.component);
-  if (page !== undefined && component !== undefined) throw inputError("page と component は同時に指定できません");
+  const designGuide = designGuideInputOf(ctx.body.designGuide);
+  checkSingleSave(page, component, designGuide);
   // 旧 pageType・html の最上位のキーは読まない。テーマの css は今の回を混ぜ直した方向性の seed から作る
   const mixed = mixAndTune(currentDirectionsOf(project), project.points, project.fineTune);
   const theme = await themeOfSeed(mixed.direction.seed, ctx.env);
-  const saved = saveProject(ctx.env, { project, themeCss: theme.css, page, component });
-  sendJson(ctx.res, 200, { project: saved });
+  const saved = saveProject(ctx.env, { project, themeCss: theme.css, page, component, designGuide });
+  if (designGuide === undefined) {
+    sendJson(ctx.res, 200, { project: saved });
+    return;
+  }
+  sendJson(ctx.res, 200, { project: saved, designGuideDir: designGuideDir(ctx.env, saved.id) });
 }
 
 const ROUTES: Route[] = [
@@ -701,6 +772,7 @@ const ROUTES: Route[] = [
   { method: "GET", pattern: /^\/api\/projects$/, limit: BODY_LIMIT, handle: serveProjects },
   { method: "GET", pattern: /^\/api\/projects\/([^/]+)\/pages\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProjectPage },
   { method: "GET", pattern: /^\/api\/projects\/([^/]+)\/components\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProjectComponent },
+  { method: "GET", pattern: /^\/api\/projects\/([^/]+)\/design-guide\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProjectDesignGuide },
   { method: "GET", pattern: /^\/api\/projects\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProject },
   { method: "POST", pattern: /^\/api\/catalog\/enabled$/, limit: BODY_LIMIT, handle: postCatalogEnabled },
   { method: "POST", pattern: /^\/api\/directions$/, limit: DIRECTIONS_LIMIT, handle: postDirections },

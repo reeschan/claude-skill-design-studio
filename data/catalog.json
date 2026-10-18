@@ -10,7 +10,7 @@
       "type": "github",
       "repo": "reeschan/claude-skill-style-guide",
       "path": ".",
-      "ref": "bac2d9de01f279a22382983e38df120f742813d1"
+      "ref": "fae0dfe56185c83f2fcb6750256c17bec615800d"
     },
     "prerequisites": [{ "label": "Node 22.18 以上", "command": "node --version" }],
     "target": "any",

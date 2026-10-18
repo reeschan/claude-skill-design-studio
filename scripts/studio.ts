@@ -5,6 +5,7 @@ import { CliExit, EXIT_INPUT, EXIT_OK, usage } from "../core/cli-exit.ts";
 import * as add from "./commands/add.ts";
 import * as catalog from "./commands/catalog.ts";
 import * as checkPage from "./commands/check-page.ts";
+import * as designGuide from "./commands/design-guide.ts";
 import * as install from "./commands/install.ts";
 import * as mix from "./commands/mix.ts";
 import * as project from "./commands/project.ts";
@@ -27,6 +28,7 @@ const COMMANDS: Record<string, Command> = {
   "check-page": checkPage.run,
   project: project.run,
   treatments: treatments.run,
+  "design-guide": designGuide.run,
 };
 
 const COMMAND_LIST = Object.keys(COMMANDS).join(" / ");
