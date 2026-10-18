@@ -101,20 +101,53 @@ export type CatalogView = CatalogEntry & { installed: boolean; enabled: boolean;
 
 // プロジェクトの 1 回。drafts は 1〜4 件の原案で、edits は同じ長さ (原案は書き換えない。null は原案のまま)
 export type Round = { drafts: Direction[]; edits: (Direction | null)[] };
-// 保存したページの 1 件。key は pageKeyOf、name は画面の種類の名前、family は当てた骨組みの種類
-export type PageEntry = { key: string; name: string; family: SkeletonFamily };
+// 表現の動きの強さ (この 3 つで固定)
+export const MOTION_LEVELS = ["none", "subtle", "animated"] as const;
+export type MotionLevel = (typeof MOTION_LEVELS)[number];
+// 表現 = 面と動きの組。surface は data/surfaces.json の id (コードを変えずに面を足せるよう、型は string)。
+// motionSamples は動きの見本の id の並び (0〜4 件、重複なし)。motion が animated のときだけ中身を持ち、それ以外は []
+export type Treatment = { surface: string; motion: MotionLevel; motionSamples: string[] };
+// 保存した 1 件。kind は作ったもの (第 2 段は "page" だけ。第 3 段で部品帳などを足す)。treatment は作ったときの表現
+export type SavedItem = { kind: "page"; key: string; name: string; family: SkeletonFamily; treatment: Treatment };
 
-// 保存の形 (版 2)。開き直したときに作業台の続きから作業できるようにする
+// 保存の形 (版 3)。開き直したときに作業台の続きから作業できるようにする
 export type Project = {
-  version: 2;
+  version: 3;
   id: string;
   brief: Brief;
   pageType: PageType;
+  treatment: Treatment;
   rounds: Round[];
   roundIndex: number;
   points: MixPoints;
   fineTune: FineTune;
-  pages: PageEntry[];
+  items: SavedItem[];
   createdAt: string;
   updatedAt: string;
+};
+
+// 面の台帳の 1 件
+export type SurfaceEntry = {
+  id: string;
+  name: string;
+  description: string;
+  instructions: string[];
+  css: string;
+  examples: string[];
+};
+// 動きの見本の 1 件
+export type MotionSample = {
+  id: string;
+  name: string;
+  description: string;
+  uses: string[]; // 使いどころ (ボタン・見出し・セクションなど)
+  technique: string; // 技法 (1 文)
+  css: string; // 見本の CSS。色はテーマの変数と color-mix() だけ。prefers-reduced-motion の扱いを必ず含む
+  html: string; // 見本の HTML (body の中に入る断片)
+  support: "baseline" | "fallback"; // baseline = 主要ブラウザで Baseline / fallback = 一部のブラウザだけ。@supports で代わりの見た目つき
+  supportNote: string; // 対応の説明 (1 文)
+  continuous: boolean; // ずっと動き続けるか
+  scrollLinked: boolean; // スクロールに連動するか
+  reducedMotion: string; // reduced-motion のときにどうするか (1 文)
+  references: string[]; // 参考にしたページの https の URL (1 件以上)
 };

@@ -1,6 +1,6 @@
 // テスト用の偽 claude CLI。DESIGN_STUDIO_LLM_CMD に JSON の配列で差し込む
 // (例: ["<node のパス>", "app/mock-llm.mjs"])。
-// MOCK_LLM_MODE: ok (既定) / error / bad-then-good / bad-page / no-csp
+// MOCK_LLM_MODE: ok (既定) / error / bad-then-good / bad-page / no-csp / no-reduced-motion / motion-then-good
 // 受け取った --json-schema の形 (properties.directions か properties.html) で、
 // 方向性の案か 1 ファイルのページかを見分けて、決まった出力を返す
 import fs from "node:fs";
@@ -292,6 +292,23 @@ function noCspPageHtml(themeId, mode) {
   return pageHtml(themeId, mode).replace(`<meta http-equiv="Content-Security-Policy" content="${CSP}">\n`, "");
 }
 
+// 動きはあるが prefers-reduced-motion の指定が無いページ (generatePage の点検に落ちる)
+function noReducedMotionPageHtml(themeId, mode) {
+  return pageHtml(themeId, mode).replace(
+    "</head>",
+    [
+      "<style>",
+      ".mock-animated { animation: mock-fade 1s ease; }",
+      "@keyframes mock-fade {",
+      "  from { opacity: 0; }",
+      "  to { opacity: 1; }",
+      "}",
+      "</style>",
+      "</head>",
+    ].join("\n"),
+  );
+}
+
 const out = (o) => console.log(JSON.stringify(o));
 
 if (mode === "error") {
@@ -307,6 +324,19 @@ if (mode === "error") {
   } else {
     const good = directions();
     out({ is_error: false, structured_output: n === 0 ? { directions: good.directions.slice(0, 2) } : good });
+  }
+} else if (mode === "no-reduced-motion") {
+  out({ is_error: false, structured_output: isPage ? { html: noReducedMotionPageHtml(seedId(), baseMode()) } : directions() });
+} else if (mode === "motion-then-good") {
+  // ページは 1 回目だけ reduced-motion の指定が無く、2 回目からは ok と同じ。方向性は ok と同じ
+  const n = counter();
+  if (isPage) {
+    out({
+      is_error: false,
+      structured_output: { html: n === 0 ? noReducedMotionPageHtml(seedId(), baseMode()) : pageHtml(seedId(), baseMode()) },
+    });
+  } else {
+    out({ is_error: false, structured_output: directions() });
   }
 } else if (mode === "ok") {
   out({ is_error: false, structured_output: isPage ? { html: pageHtml(seedId(), baseMode()) } : directions() });

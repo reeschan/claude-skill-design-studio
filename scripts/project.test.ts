@@ -1,5 +1,5 @@
 // project サブコマンドと core/project.ts を CLI の外から確かめる。home は一時ディレクトリ。
-// 保存の形は版 2 (依頼・回の履歴・点・微調整・ページ)。版の無い古い形は読むときに直る
+// 保存の形は版 3 (依頼・回の履歴・点・微調整・表現・保存した 1 件ごとの item)。版 2 と版の無い古い形は読むときに直る
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -29,6 +29,12 @@ const EDITED_B = applyFineTune(DIRECTION_B, { baseMode: "dark" });
 const POINT_A = { x: 0, y: 0 };
 const POINTS_A = { color: POINT_A, font: POINT_A, shape: POINT_A, layout: POINT_A };
 
+// 表現の既定 (版 2 や古い形から直したときに入る)
+const DEFAULT_TREATMENT_JSON = { surface: "none", motion: "none", motionSamples: [] };
+// 表現の例 (面と動きの見本を選んだもの)
+const GLASS_TREATMENT = { surface: "glass", motion: "animated", motionSamples: ["aurora"] };
+const SOLID_TREATMENT = { surface: "solid", motion: "none", motionSamples: [] };
+
 // 依頼。what 以外は空
 function briefJson(what: string): Record<string, string> {
   return { what, mood: "", audience: "", mustHave: "" };
@@ -46,6 +52,23 @@ function newProjectJson(id: string, overrides: Record<string, unknown> = {}): Re
     points: POINTS_A,
     fineTune: {},
     pages: [],
+    ...overrides,
+  };
+}
+
+// 版 3 の project.json の中身 (createdAt・updatedAt は保存する側が決める)
+function projectJsonV3(id: string, overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    version: 3,
+    id,
+    brief: briefJson("落ち着いた LP を作る"),
+    pageType: { name: "LP", family: "lp" },
+    treatment: DEFAULT_TREATMENT_JSON,
+    rounds: [{ drafts: [DIRECTION], edits: [null] }],
+    roundIndex: 0,
+    points: POINTS_A,
+    fineTune: {},
+    items: [],
     ...overrides,
   };
 }
@@ -144,9 +167,10 @@ void test("save は project.json・theme.css・pages/<key>.html を書き、show
     assert.deepEqual(JSON.parse(readFileSync(join(projectDir, "project.json"), "utf8")), saved);
     assert.equal(readFileSync(join(projectDir, "theme.css"), "utf8"), themeCss);
     assert.equal(readFileSync(join(projectDir, "pages", "lp.html"), "utf8"), html);
-    assert.equal(saved.version, 2);
+    assert.equal(saved.version, 3);
     assert.deepEqual(saved.pageType, { name: "LP", family: "lp" });
-    assert.deepEqual(saved.pages, [{ key: "lp", name: "LP", family: "lp" }]);
+    assert.deepEqual(saved.treatment, DEFAULT_TREATMENT_JSON);
+    assert.deepEqual(saved.items, [{ kind: "page", key: "lp", name: "LP", family: "lp", treatment: DEFAULT_TREATMENT_JSON }]);
     assert.equal(readFileSync(projectFile, "utf8").includes("createdAt"), false, "入力のファイルは変えない");
 
     // show は同じ内容と dir を返す
@@ -166,7 +190,7 @@ void test("save は project.json・theme.css・pages/<key>.html を書き、show
   }
 });
 
-void test("ページ付きの save を 2 回すると pages が重複なく積まれ、createdAt はそのまま・updatedAt は進む", async () => {
+void test("ページ付きの save を 2 回すると items が重複なく積まれ、createdAt はそのまま・updatedAt は進む", async () => {
   const { dir, env, cleanup } = tempEnv();
   try {
     const projectDir = join(homeOf(env), "projects", "twice");
@@ -188,7 +212,9 @@ void test("ページ付きの save を 2 回すると pages が重複なく積�
     );
     assert.equal(first.code, 0, first.stderr);
     const firstProject = projectOf(first.json);
-    assert.deepEqual(firstProject.pages, [{ key: "pricing", name: "料金ページ", family: "pricing" }]);
+    assert.deepEqual(firstProject.items, [
+      { kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: DEFAULT_TREATMENT_JSON },
+    ]);
 
     await sleep(15);
 
@@ -203,9 +229,9 @@ void test("ページ付きの save を 2 回すると pages が重複なく積�
     assert.equal(second.code, 0, second.stderr);
     const secondProject = projectOf(second.json);
 
-    assert.deepEqual(secondProject.pages, [
-      { key: "pricing", name: "料金ページ", family: "pricing" },
-      { key: "blog", name: "ブログ記事", family: "blog" },
+    assert.deepEqual(secondProject.items, [
+      { kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: DEFAULT_TREATMENT_JSON },
+      { kind: "page", key: "blog", name: "ブログ記事", family: "blog", treatment: DEFAULT_TREATMENT_JSON },
     ]);
     assert.equal(record(secondProject.brief, "brief").what, "料金とブログを作る");
     assert.equal(secondProject.createdAt, firstProject.createdAt);
@@ -217,25 +243,28 @@ void test("ページ付きの save を 2 回すると pages が重複なく積�
   }
 });
 
-void test("入力の project の pages は積まず、今回のページだけを積む", () => {
+void test("入力の project の items は積まず、今回のページだけを積む", () => {
   const { dir, env, cleanup } = tempEnv();
   try {
-    const input = newProjectJson("nopage", { pages: [{ key: "dashboard", name: "ダッシュボード", family: "dashboard" }] });
+    const input = projectJsonV3("nopage", {
+      items: [{ kind: "page", key: "dashboard", name: "ダッシュボード", family: "dashboard", treatment: DEFAULT_TREATMENT_JSON }],
+    });
     const res = runCli(["project", "save", "--project", writeJson(dir, "nopage.json", input)], env);
     assert.equal(res.code, 0, res.stderr);
-    assert.deepEqual(projectOf(res.json).pages, [], "html を書いていないページは pages に入らない");
+    assert.deepEqual(projectOf(res.json).items, [], "html を書いていないページは items に入らない");
     assert.equal(readPage(env, "nopage", "dashboard"), null);
   } finally {
     cleanup();
   }
 });
 
-void test("版 2 を保存して読み戻すと、createdAt・updatedAt 以外は同じ", () => {
+void test("版 3 を保存して読み戻すと、createdAt・updatedAt 以外は同じ", () => {
   const { dir, env, cleanup } = tempEnv();
   try {
-    const input = newProjectJson("v2", {
+    const input = projectJsonV3("v3", {
       brief: briefJson("料金と設定を作る"),
       pageType: { name: "プラン比較", family: "pricing" },
+      treatment: GLASS_TREATMENT,
       rounds: [
         { drafts: [DIRECTION, DIRECTION_B], edits: [null, EDITED_B] },
         { drafts: [DIRECTION_B], edits: [null] },
@@ -245,7 +274,7 @@ void test("版 2 を保存して読み戻すと、createdAt・updatedAt 以外�
       fineTune: { radiusPx: 4, baseMode: "dark", layouts: { pricing: "table" } },
     });
 
-    const res = runCli(["project", "save", "--project", writeJson(dir, "v2.json", input)], env);
+    const res = runCli(["project", "save", "--project", writeJson(dir, "v3.json", input)], env);
     assert.equal(res.code, 0, res.stderr);
     const saved = projectOf(res.json);
     assert.deepEqual(withoutTimes(saved), input);
@@ -256,9 +285,145 @@ void test("版 2 を保存して読み戻すと、createdAt・updatedAt 以外�
       assert.equal(new Date(String(value)).toISOString(), value, `${key} は ISO 8601`);
     }
 
-    const show = runCli(["project", "show", "v2"], env);
+    const show = runCli(["project", "show", "v3"], env);
     assert.equal(show.code, 0, show.stderr);
     assert.deepEqual(projectOf(show.json), saved);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("版 3 の treatment は project と item に残り、show で読み戻せる", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const htmlFile = join(dir, "lp.html");
+    writeFileSync(htmlFile, "<!doctype html><title>LP</title>\n", "utf8");
+    const input = projectJsonV3("treated", { treatment: GLASS_TREATMENT });
+    const res = runCli(
+      ["project", "save", "--project", writeJson(dir, "treated.json", input), "--page-name", "LP", "--html", htmlFile],
+      env,
+    );
+    assert.equal(res.code, 0, res.stderr);
+    const saved = projectOf(res.json);
+    assert.equal(saved.version, 3);
+    assert.deepEqual(saved.treatment, GLASS_TREATMENT);
+    assert.deepEqual(saved.items, [{ kind: "page", key: "lp", name: "LP", family: "lp", treatment: GLASS_TREATMENT }]);
+
+    const show = runCli(["project", "show", "treated"], env);
+    assert.equal(show.code, 0, show.stderr);
+    assert.deepEqual(projectOf(show.json), saved);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("同じ画面の種類で保存し直すと item は 1 件で treatment が新しくなり、別の画面の種類なら 1 件目の treatment は前のまま", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const lpHtml = "<!doctype html><title>LP</title>\n";
+    const lpHtmlFile = join(dir, "lp.html");
+    writeFileSync(lpHtmlFile, lpHtml, "utf8");
+    const pricingHtml = "<!doctype html><title>料金</title>\n";
+    const pricingHtmlFile = join(dir, "pricing.html");
+    writeFileSync(pricingHtmlFile, pricingHtml, "utf8");
+
+    // 1 回目は glass
+    const first = runCli(
+      [
+        "project",
+        "save",
+        "--project",
+        writeJson(dir, "first.json", projectJsonV3("retreat", { treatment: GLASS_TREATMENT })),
+        "--page-name",
+        "LP",
+        "--html",
+        lpHtmlFile,
+      ],
+      env,
+    );
+    assert.equal(first.code, 0, first.stderr);
+    assert.deepEqual(projectOf(first.json).items, [{ kind: "page", key: "lp", name: "LP", family: "lp", treatment: GLASS_TREATMENT }]);
+
+    // 同じ画面の種類で solid に変えると、item は 1 件のまま treatment が新しくなる
+    const second = runCli(
+      [
+        "project",
+        "save",
+        "--project",
+        writeJson(dir, "second.json", projectJsonV3("retreat", { treatment: SOLID_TREATMENT })),
+        "--page-name",
+        "LP",
+        "--html",
+        lpHtmlFile,
+      ],
+      env,
+    );
+    assert.equal(second.code, 0, second.stderr);
+    const secondProject = projectOf(second.json);
+    assert.deepEqual(secondProject.treatment, SOLID_TREATMENT);
+    assert.deepEqual(secondProject.items, [{ kind: "page", key: "lp", name: "LP", family: "lp", treatment: SOLID_TREATMENT }]);
+
+    // 別の画面の種類を glass で保存すると item が 2 件になり、1 件目は前の treatment のまま
+    const third = runCli(
+      [
+        "project",
+        "save",
+        "--project",
+        writeJson(dir, "third.json", projectJsonV3("retreat", { treatment: GLASS_TREATMENT })),
+        "--page-name",
+        "料金ページ",
+        "--html",
+        pricingHtmlFile,
+      ],
+      env,
+    );
+    assert.equal(third.code, 0, third.stderr);
+    const thirdProject = projectOf(third.json);
+    assert.deepEqual(thirdProject.treatment, GLASS_TREATMENT);
+    assert.deepEqual(thirdProject.items, [
+      { kind: "page", key: "lp", name: "LP", family: "lp", treatment: SOLID_TREATMENT },
+      { kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: GLASS_TREATMENT },
+    ]);
+    assert.equal(readPage(env, "retreat", "lp"), lpHtml);
+    assert.equal(readPage(env, "retreat", "pricing"), pricingHtml);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("版 2 の project.json は show で版 3 に直り、版 2 の入力の save も版 3 で保存する", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const projectDir = join(homeOf(env), "projects", "v2read");
+    mkdirSync(projectDir, { recursive: true });
+    const stored = newProjectJson("v2read", {
+      pages: [
+        { key: "pricing", name: "料金ページ", family: "pricing" },
+        { key: "dashboard", name: "ダッシュボード", family: "dashboard" },
+      ],
+      createdAt: "2026-01-02T03:04:05.000Z",
+      updatedAt: "2026-01-02T03:04:05.000Z",
+    });
+    writeFileSync(join(projectDir, "project.json"), JSON.stringify(stored), "utf8");
+
+    const show = runCli(["project", "show", "v2read"], env);
+    assert.equal(show.code, 0, show.stderr);
+    const project = projectOf(show.json);
+    assert.equal(project.version, 3);
+    assert.deepEqual(project.treatment, DEFAULT_TREATMENT_JSON);
+    assert.deepEqual(project.items, [
+      { kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: DEFAULT_TREATMENT_JSON },
+      { kind: "page", key: "dashboard", name: "ダッシュボード", family: "dashboard", treatment: DEFAULT_TREATMENT_JSON },
+    ]);
+
+    // 版 2 の入力を save に渡しても版 3 で保存される
+    const res = runCli(["project", "save", "--project", writeJson(dir, "v2.json", newProjectJson("v2save"))], env);
+    assert.equal(res.code, 0, res.stderr);
+    const saved = projectOf(res.json);
+    assert.equal(saved.version, 3);
+    assert.deepEqual(saved.treatment, DEFAULT_TREATMENT_JSON);
+    assert.deepEqual(saved.items, []);
+    assert.deepEqual(projectOf(runCli(["project", "show", "v2save"], env).json), saved);
   } finally {
     cleanup();
   }
@@ -276,7 +441,7 @@ void test("版の無い古い形の project.json は読むと新しい形に直�
     const show = runCli(["project", "show", "old"], env);
     assert.equal(show.code, 0, show.stderr);
     const project = projectOf(show.json);
-    assert.equal(project.version, 2);
+    assert.equal(project.version, 3);
     assert.deepEqual(project.brief, briefJson("古い依頼"));
     assert.deepEqual(project.pageType, { name: "LP", family: "lp" });
     const rounds = records(project.rounds, "rounds");
@@ -289,7 +454,8 @@ void test("版の無い古い形の project.json は読むと新しい形に直�
     assert.equal(project.roundIndex, 0);
     assert.deepEqual(project.points, POINTS_A);
     assert.deepEqual(project.fineTune, {});
-    assert.deepEqual(project.pages, [{ key: "lp", name: "LP", family: "lp" }]);
+    assert.deepEqual(project.treatment, DEFAULT_TREATMENT_JSON);
+    assert.deepEqual(project.items, [{ kind: "page", key: "lp", name: "LP", family: "lp", treatment: DEFAULT_TREATMENT_JSON }]);
     assert.equal(project.createdAt, "2026-01-02T03:04:05.000Z");
     assert.equal(project.updatedAt, "2026-01-02T03:04:05.000Z");
     assert.equal(readPage(env, "old", "lp"), html);
@@ -300,6 +466,7 @@ void test("版の無い古い形の project.json は読むと新しい形に直�
     assert.equal(listed[0]?.what, "古い依頼");
     assert.deepEqual(listed[0]?.pageType, { name: "LP", family: "lp" });
     assert.equal(listed[0]?.name, DIRECTION.name);
+    assert.deepEqual(listed[0]?.items, project.items);
   } finally {
     cleanup();
   }
@@ -329,7 +496,9 @@ void test("同じ骨組みに当たる 2 つの画面の種類のページは別
       env,
     );
     assert.equal(first.code, 0, first.stderr);
-    assert.deepEqual(projectOf(first.json).pages, [{ key: "pricing", name: "料金ページ", family: "pricing" }]);
+    assert.deepEqual(projectOf(first.json).items, [
+      { kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: DEFAULT_TREATMENT_JSON },
+    ]);
 
     const second = runCli(
       [
@@ -347,14 +516,26 @@ void test("同じ骨組みに当たる 2 つの画面の種類のページは別
       env,
     );
     assert.equal(second.code, 0, second.stderr);
-    const pages = records(projectOf(second.json).pages, "pages");
-    assert.equal(pages.length, 2, "同じ骨組みでも別々に積まれる");
-    assert.deepEqual(pages[0], { key: "pricing", name: "料金ページ", family: "pricing" });
-    const key = pages[1]?.key;
+    const items = records(projectOf(second.json).items, "items");
+    assert.equal(items.length, 2, "同じ骨組みでも別々に積まれる");
+    assert.deepEqual(items[0], {
+      kind: "page",
+      key: "pricing",
+      name: "料金ページ",
+      family: "pricing",
+      treatment: DEFAULT_TREATMENT_JSON,
+    });
+    const key = items[1]?.key;
     assert.equal(typeof key, "string");
     assert.notEqual(key, "pricing", "キーは候補の名前のものと違う");
     assert.match(String(key), /^[a-z0-9][a-z0-9-]{0,39}$/);
-    assert.deepEqual(pages[1], { key, name: "プラン比較", family: "pricing" });
+    assert.deepEqual(items[1], {
+      kind: "page",
+      key,
+      name: "プラン比較",
+      family: "pricing",
+      treatment: DEFAULT_TREATMENT_JSON,
+    });
 
     // どちらの HTML も別々に読める
     assert.equal(readPage(env, "same-family", "pricing"), pricingHtml);
@@ -364,7 +545,7 @@ void test("同じ骨組みに当たる 2 つの画面の種類のページは別
   }
 });
 
-void test("同じ画面の種類で 2 回保存すると pages は 1 件のままで HTML は新しいもの", () => {
+void test("同じ画面の種類で 2 回保存すると items は 1 件のままで HTML は新しいもの", () => {
   const { dir, env, cleanup } = tempEnv();
   try {
     const firstHtml = "<!doctype html><title>料金 (古い)</title>\n";
@@ -396,14 +577,18 @@ void test("同じ画面の種類で 2 回保存すると pages は 1 件のま�
       env,
     );
     assert.equal(second.code, 0, second.stderr);
-    assert.deepEqual(projectOf(second.json).pages, [{ key: "pricing", name: "料金ページ", family: "pricing" }], "pages は 1 件のまま");
+    assert.deepEqual(
+      projectOf(second.json).items,
+      [{ kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: DEFAULT_TREATMENT_JSON }],
+      "items は 1 件のまま",
+    );
     assert.equal(readPage(env, "same", "pricing"), secondHtml, "HTML は新しいもの");
   } finally {
     cleanup();
   }
 });
 
-void test("自由な名前のページは family を選び直しても同じキーで、pages の family が新しくなる", () => {
+void test("自由な名前のページは family を選び直しても同じキーで、items の family が新しくなる", () => {
   const { dir, env, cleanup } = tempEnv();
   try {
     const firstHtml = "<!doctype html><title>比較 (料金)</title>\n";
@@ -425,7 +610,7 @@ void test("自由な名前のページは family を選び直しても同じキ�
       env,
     );
     assert.equal(first.code, 0, first.stderr);
-    const key = records(projectOf(first.json).pages, "pages")[0]?.key;
+    const key = records(projectOf(first.json).items, "items")[0]?.key;
     assert.equal(typeof key, "string");
 
     const secondHtml = "<!doctype html><title>比較 (設定)</title>\n";
@@ -447,21 +632,25 @@ void test("自由な名前のページは family を選び直しても同じキ�
       env,
     );
     assert.equal(second.code, 0, second.stderr);
-    const pages = records(projectOf(second.json).pages, "pages");
-    assert.equal(pages.length, 1, "同じキーなので 1 件のまま");
-    assert.deepEqual(pages[0], { key, name: "プラン比較", family: "settings" }, "family は新しくなる");
+    const items = records(projectOf(second.json).items, "items");
+    assert.equal(items.length, 1, "同じキーなので 1 件のまま");
+    assert.deepEqual(
+      items[0],
+      { kind: "page", key, name: "プラン比較", family: "settings", treatment: DEFAULT_TREATMENT_JSON },
+      "family は新しくなる",
+    );
     assert.equal(readPage(env, "plan", String(key)), secondHtml);
   } finally {
     cleanup();
   }
 });
 
-void test("roundIndex が範囲外・version が 2 以外は入力の誤り", () => {
+void test("roundIndex が範囲外・version が 4 は入力の誤り", () => {
   const { dir, env, cleanup } = tempEnv();
   try {
     const cases: { name: string; project: Record<string, unknown> }[] = [
       { name: "bad-round-index.json", project: newProjectJson("bad-round-index", { roundIndex: 1 }) },
-      { name: "bad-version.json", project: newProjectJson("bad-version", { version: 3 }) },
+      { name: "bad-version.json", project: projectJsonV3("bad-version", { version: 4 }) },
     ];
     for (const c of cases) {
       const res = runCli(["project", "save", "--project", writeJson(dir, c.name, c.project)], env);
@@ -473,10 +662,46 @@ void test("roundIndex が範囲外・version が 2 以外は入力の誤り", ()
     // 保存済みとして置いても show は入力の誤り
     const projectDir = join(homeOf(env), "projects", "bad-version");
     mkdirSync(projectDir, { recursive: true });
-    writeFileSync(join(projectDir, "project.json"), JSON.stringify(newProjectJson("bad-version", { version: 3 })), "utf8");
+    const stored = {
+      ...projectJsonV3("bad-version", { version: 4 }),
+      createdAt: "2026-01-02T03:04:05.000Z",
+      updatedAt: "2026-01-02T03:04:05.000Z",
+    };
+    writeFileSync(join(projectDir, "project.json"), JSON.stringify(stored), "utf8");
     const show = runCli(["project", "show", "bad-version"], env);
     assert.equal(show.code, 1);
     assert.equal(payload(show.json).error, "input");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("items の kind が page 以外は入力の誤り", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const items = [
+      { kind: "component", key: "lp", name: "LP", family: "lp", treatment: DEFAULT_TREATMENT_JSON },
+      { key: "lp", name: "LP", family: "lp", treatment: DEFAULT_TREATMENT_JSON },
+    ];
+    items.forEach((item, index) => {
+      const id = `bad-kind-${String(index)}`;
+      const res = runCli(["project", "save", "--project", writeJson(dir, `${id}.json`, projectJsonV3(id, { items: [item] }))], env);
+      assert.equal(res.code, 1, `save ${id}`);
+      assert.equal(payload(res.json).error, "input", `save ${id}`);
+
+      // 保存済みとして置いても show は入力の誤り
+      const projectDir = join(homeOf(env), "projects", id);
+      mkdirSync(projectDir, { recursive: true });
+      const stored = {
+        ...projectJsonV3(id, { items: [item] }),
+        createdAt: "2026-01-02T03:04:05.000Z",
+        updatedAt: "2026-01-02T03:04:05.000Z",
+      };
+      writeFileSync(join(projectDir, "project.json"), JSON.stringify(stored), "utf8");
+      const show = runCli(["project", "show", id], env);
+      assert.equal(show.code, 1, `show ${id}`);
+      assert.equal(payload(show.json).error, "input", `show ${id}`);
+    });
   } finally {
     cleanup();
   }
@@ -516,9 +741,9 @@ void test("ページの書き込みに失敗した save は project.json を前�
     assert.equal(second.code, 1);
     assert.equal(payload(second.json).error, "file");
 
-    // project.json は 1 回目のまま (pages に blog は入らず、updatedAt も進まない)
+    // project.json は 1 回目のまま (items に blog は入らず、updatedAt も進まない)
     const after = record(JSON.parse(readFileSync(join(projectDir, "project.json"), "utf8")), "project.json");
-    assert.deepEqual(after.pages, [{ key: "lp", name: "LP", family: "lp" }]);
+    assert.deepEqual(after.items, [{ kind: "page", key: "lp", name: "LP", family: "lp", treatment: DEFAULT_TREATMENT_JSON }]);
     assert.equal(after.updatedAt, firstProject.updatedAt);
     assert.equal(record(after.brief, "brief").what, "落ち着いた LP を作る");
     assert.equal(readFileSync(join(projectDir, "pages", "lp.html"), "utf8"), lpHtml);
@@ -550,11 +775,11 @@ void test("list は updatedAt の新しい順に要約を返す", async () => {
     assert.deepEqual(listing.broken, []);
     const first = projects[0];
     assert.ok(first !== undefined, "1 件目がある");
-    assert.deepEqual(Object.keys(first).sort(), ["id", "name", "pageType", "pages", "updatedAt", "what"]);
+    assert.deepEqual(Object.keys(first).sort(), ["id", "items", "name", "pageType", "updatedAt", "what"]);
     assert.equal(first.what, "three の依頼");
     assert.deepEqual(first.pageType, { name: "LP", family: "lp" });
     assert.equal(first.name, DIRECTION.name);
-    assert.deepEqual(first.pages, []);
+    assert.deepEqual(first.items, []);
     assert.equal(typeof first.updatedAt, "string");
   } finally {
     cleanup();
@@ -606,7 +831,11 @@ void test("壊れた project.json は list の broken に出て、同じ id に 
     assert.equal(again.code, 0, again.stderr);
     const repaired = projectOf(again.json);
     assert.equal(record(repaired.brief, "brief").what, "直した依頼");
-    assert.deepEqual(repaired.pages, [{ key: "blog", name: "ブログ記事", family: "blog" }], "初回の保存として今回のページだけになる");
+    assert.deepEqual(
+      repaired.items,
+      [{ kind: "page", key: "blog", name: "ブログ記事", family: "blog", treatment: DEFAULT_TREATMENT_JSON }],
+      "初回の保存として今回のページだけになる",
+    );
 
     const quarantined = readdirSync(cDir).filter((name) => name.startsWith("project.json.broken-"));
     assert.equal(quarantined.length, 1);

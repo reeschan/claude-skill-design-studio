@@ -23,9 +23,9 @@
 
 ![見本帳の画面。スタイル別に LP・ダッシュボード・ブログ記事の見本が並ぶ](docs/images/gallery.png)
 
-**作業台**: 依頼から方向性の案を 4 つ出し、骨組みで見比べて選ぶか、軸ごとのパッドで混ぜます。
+**作業台**: 依頼から方向性の案を 4 つ出し、骨組みで見比べて選ぶか、軸ごとのパッドで混ぜます。依頼のフォームでは、表現 (面と動き) も選べます。
 
-![作業台の画面。左に依頼のフォームと案 A〜D、中央に料金ページの骨組みのプレビュー、右に 4 軸のパッドと微調整が並ぶ](docs/images/workbench-directions.png)
+![作業台の画面。左に依頼のフォーム (表現の面 Glass・動き Animated と選んだ動きの見本) と案 A〜D、中央に設定画面の骨組みのプレビュー、右に 4 軸のパッドと微調整が並ぶ](docs/images/workbench-directions.png)
 
 **作業台 (ページを作る)**: 決めた方向性で LLM が 1 ファイルのページを作り、別タブで開く・ダウンロードできます。
 
@@ -85,7 +85,14 @@ CLI を直接使うこともできます。
 
 ```sh
 node ~/.claude/skills/design-studio/scripts/studio.ts styles
+node ~/.claude/skills/design-studio/scripts/studio.ts treatments
+node ~/.claude/skills/design-studio/scripts/studio.ts treatments motion spinning-border --out motion.html
+node ~/.claude/skills/design-studio/scripts/studio.ts render-direction --direction direction.json --family lp --surface glass --out skeleton.html
 ```
+
+- `treatments`: 面 4 つと動きの見本 12 件の一覧
+- `treatments motion <id> --out <file>`: 動きの見本 1 件を HTML に書く (省くと `html` を返す)
+- `render-direction --surface <id>`: 骨組みに面の CSS を重ねる (動きは入れない)
 
 ## できあがるもの
 

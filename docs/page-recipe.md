@@ -48,14 +48,27 @@ design-studio でページ (1 ファイルの HTML) を作る手順。見本帳�
 - `data-theme` は `theme --direction` の `themeId`、`data-mode` は `light` か `dark` (方向性の `seed.baseMode`。利用者の希望で変えてよい)。
 - head の順は上のとおり。CSP の meta は値も位置もそのまま置く (`check-page` がこの形を見る)。外部からの読み込み先は、この CSP でブラウザ側に縛らせる。
 - インラインの `<script>` と `on*=` 属性は使わない (CSP で止まる)。ページは見た目の見本で、動きは CSS だけで表す。
-- 色・角丸・影・フォント・余白は、テーマのユーティリティだけで指定する: `bg-background` `text-foreground` `bg-card` `text-card-foreground` `bg-primary` `text-primary-foreground` `bg-secondary` `bg-muted` `text-muted-foreground` `border-border` `bg-accent` `text-accent-foreground` `bg-brand-accent` `ring-ring` `rounded-sm|md|lg` `shadow-md` `font-heading` `font-sans` `font-mono`。余白は `p-4` のような通常のものを使う (テーマの `--spacing` が効く)。色の直書き (`#fff`・`bg-blue-500` など) はしない。
+- 色・角丸・影・フォント・余白は、テーマのユーティリティで指定する: `bg-background` `text-foreground` `bg-card` `text-card-foreground` `bg-primary` `text-primary-foreground` `bg-secondary` `bg-muted` `text-muted-foreground` `border-border` `bg-accent` `text-accent-foreground` `bg-brand-accent` `ring-ring` `rounded-sm|md|lg` `shadow-md` `font-heading` `font-sans` `font-mono`。ユーティリティでは透明度 (`bg-card/60` など) と `backdrop-blur-*` を使ってよい。余白は `p-4` のような通常のものを使う (テーマの `--spacing` が効く)。色の直書き (`#fff`・`bg-blue-500` など) はしない。
+- テーマの style (`<style type="text/tailwindcss" id="theme">`) とは別に、自分で書く `<style>` を、テーマの style のあとに置いてよい。ふつうの CSS で、`@keyframes`・`@property`・`backdrop-filter`・`mask` を書いてよい。色はそこでもテーマの CSS 変数 (`var(--primary)` など) か、それを `color-mix()` で薄めたものだけにする。
+- 動き (`@keyframes`・`animation`・`transition`・`animate-*`・`transition*`) を使うときは、`@media (prefers-reduced-motion: reduce)` か Tailwind の `motion-safe:`・`motion-reduce:` で、止めるか弱める指定を必ず置く (`check-page` の `motion` が見る)。
+- Chromium だけの機能 (`sibling-index()`・scroll-triggered animations・`corner-shape`・SVG フィルタの屈折) は、`@supports` で無いときの見た目を用意したときだけ使う。
 - 画像は使わず、CSS のグラデーションとインラインの SVG (`data:` の画像は可) で表す。`mailto:`・`tel:` のリンクと、同じページ内の参照 (`#top` など) は置いてよい。
 - 文章は、依頼から推し量った日本語にする。見出し・リード・ボタン・一覧の項目まで、中身のある文で埋める。
 - frontend-design の考え方に沿う: テンプレートっぽさを避け、主題に合う大胆な見出しを 1 つ置き、意図のある余白とリズムを作り、細部 (角丸・字間・押したときの反応) の一貫性を保つ。
 
+### 表現を効かせる
+
+表現 (面と動き) を指定されたときは、ページにも効かせる。指定が無ければ、面・動きとも指定しない (今までどおり)。
+
+- **面**: `node <スキル>/scripts/studio.ts treatments` で出る面の台帳から選んだ 1 件の `instructions` に従って面を作る。`name` と `description` も見て、カード・ボタン・ナビなどページ全体の面の作り方をそろえる。`none` なら面を指定しない。
+- **動き**: 動きの強さで線を引く。`none` は動かさない (フォーカスの表示だけ)。`subtle` はホバー・押下・開閉の短い `transition` だけ (0.3 秒くらいまで)。ずっと動き続けるもの・スクロールに連動するものは使わない。`animated` は動きの見本から 2〜4 件を主役に使ってよい (ずっと動くもの・スクロール連動も使える)。
+- **動きの見本**: `animated` のときは、利用者が指定した見本を必ず使う。足りなければ動きの見本集から足して 2〜4 件にする。指定が無ければ、依頼に合う 2〜4 件を見本集から選ぶ。見本の CSS は写さず、`technique` を元にテーマの色で書き直す。`support` が `fallback` の見本は、`@supports` で無いときの見た目を用意する。どの見本も `reducedMotion` のとおりに、止めるか弱める指定を置く。
+
 ## 4. 点検する
 
 `node <スキル>/scripts/studio.ts check-page --html <file>` を実行し、`ok` が true になるまで直す。false のときは `disallowed` (許可していない外部 URL)・`hasCsp`・`hasThemeStyle` を見て直す。
+
+`motion` は動きの点検。`hasMotion` が true (動きがある) のに `hasReducedMotion` が false (reduced-motion の指定が無い) なら、`ok` は false になる。`@media (prefers-reduced-motion: reduce)` か `motion-safe:`・`motion-reduce:` で、止めるか弱める指定を足す。
 
 `check-page` は補助の lint で、ブラウザと同じ解釈を完全には再現しない。読み込み先を実際に縛るのは CSP の meta。
 

@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { renderSkeleton } from "../skeletons/index.ts";
 import { CliExit, EXIT_EXTERNAL, EXIT_INPUT } from "./cli-exit.ts";
 import { validateDirection } from "./styles.ts";
+import { loadSurfaces } from "./treatment.ts";
 import { renderTheme, stripTailwindImport } from "./theme-bridge.ts";
 import type { CheckCounts, ThemeSummary } from "./theme-bridge.ts";
 import { LAYOUTS, MIX_AXES, PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "./types.ts";
@@ -21,6 +22,7 @@ import type {
   Seed,
   ShadowKind,
   SkeletonFamily,
+  SurfaceEntry,
 } from "./types.ts";
 
 const MIX_ID_PREFIX = "mix-";
@@ -560,11 +562,12 @@ function copyItemOf(x: unknown, index: number, label: string): { title: string; 
 
 // ===== 描く =====
 
-export type RenderDirectionInput = { direction: Direction; family: SkeletonFamily; mode?: BaseMode };
+export type RenderDirectionInput = { direction: Direction; family: SkeletonFamily; mode?: BaseMode; surface?: string };
 export type RenderDirectionResult = {
   html: string;
   themeId: string;
   layout: string;
+  surface: string;
   checks: Record<BaseMode, CheckCounts>;
   failed: number;
 };
@@ -576,10 +579,26 @@ function summaryOf(summary: ThemeSummary[], seedId: string): ThemeSummary {
   return found;
 }
 
+// 面の id を台帳で引く。省略は "none" で、台帳に無い id は入力の誤り (面の id を並べて返す)
+function surfaceOf(id: string | undefined): SurfaceEntry {
+  const surfaces = loadSurfaces();
+  const wanted = id ?? "none";
+  const surface = surfaces.find((entry) => entry.id === wanted);
+  if (surface === undefined) {
+    throw new CliExit(EXIT_INPUT, {
+      error: "input",
+      message: `不明な面の id です: ${wanted}`,
+      surfaces: surfaces.map((entry) => entry.id),
+    });
+  }
+  return surface;
+}
+
 /** 方向性と画面の種類からテーマを作り、骨組みで 1 枚の HTML を描く。mode を省くと seed.baseMode */
 export async function renderDirection(input: RenderDirectionInput, env: NodeJS.ProcessEnv): Promise<RenderDirectionResult> {
   const { direction, family } = input;
   const mode = input.mode ?? direction.seed.baseMode;
+  const surface = surfaceOf(input.surface);
   const theme = await renderTheme([direction.seed], env);
   const summary = summaryOf(theme.summary, direction.seed.id);
   const layout = direction.layouts[family];
@@ -592,6 +611,7 @@ export async function renderDirection(input: RenderDirectionInput, env: NodeJS.P
     cssForPage: stripTailwindImport(theme.css),
     fontsUrl: summary.fontsUrl,
     title: `${direction.name}の${titleNameOf(family)}`,
+    ...(surface.css === "" ? {} : { surfaceCss: surface.css }),
   });
-  return { html, themeId: direction.seed.id, layout, checks: summary.checks, failed: theme.failed };
+  return { html, themeId: direction.seed.id, layout, surface: surface.id, checks: summary.checks, failed: theme.failed };
 }

@@ -10,13 +10,15 @@
 //   POST /api/catalog/enabled   {id, enabled} → {entry}
 //   GET  /api/install-plan                    → {plan} (導入はしない)
 //   GET  /api/styles                          → {styles}
+//   GET  /api/treatments                      → {surfaces, motions}
+//   GET  /api/motions/<id>/preview            → 動きの見本 1 件の HTML
 //   GET  /api/themes/<styleId>                → {themeId, cssForPage, fontsUrl} (結果はメモリに保持)
 //   GET  /api/gallery                         → {items: [{styleId, pageType, url}]}
 //   GET  /gallery/<styleId>/<pageType>.html   → 見本の HTML
-//   POST /api/directions  {brief, pageType, screenshot?} → {directions, family}
+//   POST /api/directions  {brief, pageType, screenshot?, treatment?} → {directions, family}
 //   POST /api/mix         {directions, points, fineTune?} → {mixed, direction, weights, snapped}
-//   POST /api/render      {direction, family, mode?} → {html, themeId, layout, checks, failed}
-//   POST /api/page        {brief, direction, pageType: {name, family}} → {html}
+//   POST /api/render      {direction, family, mode?, treatment?} → {html, themeId, layout, surface, checks, failed}
+//   POST /api/page        {brief, direction, pageType, treatment?} → {html}
 //   POST /api/tokens      {direction}         → {tailwind, json, css}
 //   POST /api/projects    {project, page?: {pageType: {name, family}, html}} → {project}
 //   GET  /api/projects                        → {projects}
@@ -42,8 +44,9 @@ import { galleryDir, styleGuideDir } from "../core/paths.ts";
 import { listProjects, readPage, readProject, saveProject } from "../core/project.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
 import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
+import { findMotion, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
 import { LAYOUTS, PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "../core/types.ts";
-import type { BaseMode, Direction, FontMood, PageType, Seed, SkeletonFamily } from "../core/types.ts";
+import type { BaseMode, Direction, FontMood, PageType, Seed, SkeletonFamily, Style } from "../core/types.ts";
 
 const APP_DIR = fileURLToPath(new URL(".", import.meta.url));
 const INDEX_FILE = join(APP_DIR, "index.html");
@@ -354,6 +357,15 @@ async function themeOfSeed(seed: Seed, env: NodeJS.ProcessEnv): Promise<ThemeFor
   return { themeId: seed.id, css: theme.css, cssForPage: stripTailwindImport(theme.css), fontsUrl: summary.fontsUrl };
 }
 
+// スタイルの seed からテーマを作る。styleId ごとにメモリに保持する (/api/themes と動きの見本で同じ道)
+async function themeForStyle(style: Style, env: NodeJS.ProcessEnv): Promise<ThemeForSeed> {
+  const cached = themeCache.get(style.id);
+  if (cached !== undefined) return cached;
+  const theme = await themeOfSeed(style.seed, env);
+  themeCache.set(style.id, theme);
+  return theme;
+}
+
 type ThemeResponse = { themeId: string; cssForPage: string; fontsUrl: string };
 
 function themeResponse(theme: ThemeForSeed): ThemeResponse {
@@ -402,17 +414,30 @@ function serveStyles(ctx: RouteContext): void {
 }
 
 async function serveTheme(ctx: RouteContext): Promise<void> {
-  const styleId = ctx.params[0] ?? "";
-  const style = findStyle(styleId);
+  const style = findStyle(ctx.params[0] ?? "");
   if (style === undefined) throw notFound();
-  const cached = themeCache.get(styleId);
-  if (cached !== undefined) {
-    sendJson(ctx.res, 200, themeResponse(cached));
-    return;
-  }
-  const theme = await themeOfSeed(style.seed, ctx.env);
-  themeCache.set(styleId, theme);
-  sendJson(ctx.res, 200, themeResponse(theme));
+  sendJson(ctx.res, 200, themeResponse(await themeForStyle(style, ctx.env)));
+}
+
+function serveTreatments(ctx: RouteContext): void {
+  sendJson(ctx.res, 200, treatmentListing());
+}
+
+// 動きの見本 1 件を、見本帳の minimal のテーマで 1 ファイルの HTML にする
+async function serveMotionPreview(ctx: RouteContext): Promise<void> {
+  const sample = findMotion(ctx.params[0] ?? "");
+  if (sample === undefined) throw notFound();
+  const style = findStyle("minimal");
+  if (style === undefined) throw notFound();
+  const theme = await themeForStyle(style, ctx.env);
+  const html = motionSampleHtml(sample, {
+    themeId: style.seed.id,
+    mode: style.seed.baseMode,
+    cssForPage: theme.cssForPage,
+    fontsUrl: theme.fontsUrl,
+  });
+  // 動きの見本も、保存したページと同じく不透明なオリジンで動かす (同じオリジンの /api を叩けない)
+  sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
 }
 
 type GalleryItem = { styleId: string; pageType: SkeletonFamily; url: string };
@@ -477,10 +502,11 @@ async function postDirections(ctx: RouteContext): Promise<void> {
   const candidate = candidateOf(parsed.name);
   const pageType = { name: parsed.name, family: candidate?.family ?? parsed.family };
   const screenshot = screenshotOf(ctx.body.screenshot);
+  const treatment = validateTreatment(ctx.body.treatment);
   const fontPairs = loadFontPairs(ctx.env);
   const shot = screenshot === null ? null : writeScreenshot(screenshot);
   try {
-    const result = await generateDirections({ brief, pageType, screenshotPath: shot?.path, fontPairs }, ctx.env);
+    const result = await generateDirections({ brief, pageType, screenshotPath: shot?.path, fontPairs, treatment }, ctx.env);
     sendJson(ctx.res, 200, { directions: result.directions, family: result.family });
   } finally {
     shot?.cleanup();
@@ -505,15 +531,20 @@ async function postRender(ctx: RouteContext): Promise<void> {
   const direction = validateDirection(ctx.body.direction);
   const family = familyOf(ctx.body.family);
   const mode = modeOf(ctx.body.mode);
-  sendJson(ctx.res, 200, await renderDirection({ direction, family, mode }, ctx.env));
+  const treatment = validateTreatment(ctx.body.treatment);
+  sendJson(ctx.res, 200, await renderDirection({ direction, family, mode, surface: treatment.surface }, ctx.env));
 }
 
 async function postPage(ctx: RouteContext): Promise<void> {
   const brief = validateBrief(ctx.body.brief);
   const direction = validateDirection(ctx.body.direction);
   const pageType = pageTypeWithFamily(ctx.body.pageType);
+  const treatment = validateTreatment(ctx.body.treatment);
   const theme = await themeOfSeed(direction.seed, ctx.env);
-  const html = await generatePage({ brief, direction, pageType, cssForPage: theme.cssForPage, fontsUrl: theme.fontsUrl }, ctx.env);
+  const html = await generatePage(
+    { brief, direction, pageType, cssForPage: theme.cssForPage, fontsUrl: theme.fontsUrl, treatment },
+    ctx.env,
+  );
   sendJson(ctx.res, 200, { html });
 }
 
@@ -574,6 +605,8 @@ const ROUTES: Route[] = [
   { method: "GET", pattern: /^\/api\/catalog$/, limit: BODY_LIMIT, handle: serveCatalog },
   { method: "GET", pattern: /^\/api\/install-plan$/, limit: BODY_LIMIT, handle: serveInstallPlan },
   { method: "GET", pattern: /^\/api\/styles$/, limit: BODY_LIMIT, handle: serveStyles },
+  { method: "GET", pattern: /^\/api\/treatments$/, limit: BODY_LIMIT, handle: serveTreatments },
+  { method: "GET", pattern: /^\/api\/motions\/([a-z][a-z0-9-]*)\/preview$/, limit: BODY_LIMIT, handle: serveMotionPreview },
   { method: "GET", pattern: /^\/api\/themes\/([^/]+)$/, limit: BODY_LIMIT, handle: serveTheme },
   { method: "GET", pattern: /^\/api\/gallery$/, limit: BODY_LIMIT, handle: serveGallery },
   { method: "GET", pattern: /^\/gallery\/([^/]+)\/([^/]+)\.html$/, limit: BODY_LIMIT, handle: serveGalleryPage },

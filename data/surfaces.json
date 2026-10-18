@@ -1,0 +1,54 @@
+{
+  "surfaces": [
+    {
+      "id": "none",
+      "name": "指定しない",
+      "description": "面を指定せず、テーマの配色と形をそのまま使う。",
+      "instructions": [],
+      "css": "",
+      "examples": []
+    },
+    {
+      "id": "material",
+      "name": "Material",
+      "description": "紙がわずかに浮くような影と、面ごとに変えた影の段で高さを表す面。角丸は大きめで、ホバーと押下では前景色を薄く重ねる。",
+      "instructions": [
+        "影の段を 3 つに分ける: カードは低い段、.bg-primary の要素は高い段、ほかの button とヘッダー・ナビは最も低い段。",
+        "角丸は 0.75rem 以上にして、面の輪郭を柔らかく見せる。",
+        "ホバーと押下は背景色を変えず、前景色を 5%・9% だけ重ねた層で表す。",
+        "色はテーマの CSS 変数と color-mix() だけで作る。"
+      ],
+      "css": "/* 影の段を 3 つに分け、状態は前景色の薄い層で表す */\n:where(header, nav, footer) {\n  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 6%, transparent);\n}\n:where(.bg-card, article, aside) {\n  border-radius: 1rem;\n  box-shadow:\n    0 1px 2px color-mix(in oklab, var(--foreground) 7%, transparent),\n    0 4px 12px color-mix(in oklab, var(--foreground) 6%, transparent);\n}\n:where(button) {\n  border-radius: 0.875rem;\n  box-shadow:\n    0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent),\n    0 2px 6px color-mix(in oklab, var(--foreground) 7%, transparent);\n}\n:where(.bg-primary) {\n  border-radius: 0.875rem;\n  box-shadow:\n    0 1px 2px color-mix(in oklab, var(--primary) 28%, transparent),\n    0 6px 16px color-mix(in oklab, var(--primary) 24%, transparent);\n}\n:where(a, button, .bg-card):hover {\n  background-image: linear-gradient(\n    color-mix(in oklab, var(--foreground) 5%, transparent),\n    color-mix(in oklab, var(--foreground) 5%, transparent)\n  );\n}\n:where(a, button, .bg-card):active {\n  background-image: linear-gradient(\n    color-mix(in oklab, var(--foreground) 9%, transparent),\n    color-mix(in oklab, var(--foreground) 9%, transparent)\n  );\n}",
+      "examples": ["ダッシュボードのカード", "料金ページの主要ボタン", "上部のナビゲーション"]
+    },
+    {
+      "id": "glass",
+      "name": "Glass",
+      "description": "テーマの色を薄めた半透明の面に、背景のぼかしと縁の光を重ねる面。背景の色が透けて見える。",
+      "instructions": [
+        "目立つ面 (header・本文の最初の section) とカードだけに背景のぼかしを使い、ほかの面には使わない。",
+        "面は color-mix() で薄めた var(--card)、縁は薄めた var(--foreground) の 1px の線と inset の影で表す。",
+        "body にはテーマの色の radial-gradient を敷き、面の向こうが透けて見えるようにする。",
+        "backdrop-filter が使えないブラウザでは、不透明に近い var(--card) の面にする。",
+        "SVG フィルタの屈折は使わない。"
+      ],
+      "css": "/* 半透明の面・背景のぼかし・縁の光で作り、ぼかせないブラウザでは不透明に近づける */\nbody {\n  background-color: var(--background);\n  background-image:\n    radial-gradient(70rem 42rem at 8% -12%, color-mix(in oklab, var(--primary) 32%, transparent), transparent 70%),\n    radial-gradient(54rem 38rem at 92% 8%, color-mix(in oklab, var(--brand-accent) 28%, transparent), transparent 72%),\n    radial-gradient(46rem 34rem at 50% 108%, color-mix(in oklab, var(--accent) 70%, transparent), transparent 75%);\n}\n:where(header, body > nav) {\n  background-color: color-mix(in oklab, var(--card) 62%, transparent);\n  backdrop-filter: blur(18px) saturate(150%);\n  border-bottom: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);\n  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 22%, transparent);\n}\n:where(body > section:first-of-type, main > section:first-of-type, article > section:first-of-type) {\n  background-color: color-mix(in oklab, var(--card) 55%, transparent);\n  backdrop-filter: blur(22px) saturate(150%);\n  border: 1px solid color-mix(in oklab, var(--foreground) 16%, transparent);\n  border-radius: 1.25rem;\n  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 24%, transparent);\n}\n:where(.bg-card, aside, article:not(:has(section))) {\n  background-color: color-mix(in oklab, var(--card) 66%, transparent);\n  backdrop-filter: blur(12px) saturate(140%);\n  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);\n  border-radius: 1rem;\n  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 20%, transparent);\n}\n@supports not (backdrop-filter: blur(1px)) {\n  :where(header, body > nav, body > section:first-of-type, main > section:first-of-type, article > section:first-of-type, .bg-card, aside, article:not(:has(section))) {\n    background-color: color-mix(in oklab, var(--card) 94%, var(--background));\n  }\n}",
+      "examples": ["ヒーローの見出しを載せる半透明の面", "背景の上に浮かぶカード", "すりガラスのヘッダー"]
+    },
+    {
+      "id": "solid",
+      "name": "Solid",
+      "description": "半透明もグラデーションも影も使わず、べた塗りと線だけで面を作る。輪郭がはっきりした面。",
+      "instructions": [
+        "半透明・グラデーション・影を使わず、var(--card) のべた塗りと var(--border) の線で面を作る。",
+        "カードの面（.bg-card・article・aside）だけを var(--card) で塗り、ふつうの section の地は骨組みのままにする。区切りは線だけでよい。",
+        "グラデーションを使う要素（class に bg-linear・bg-radial・bg-conic を含むもの）は var(--primary) のべた塗りにして、文字を読めるようにする。",
+        "主要なボタンは .bg-primary の要素だけ var(--primary) で塗り、ほかの button は角丸と線だけにする。",
+        "角丸は 0.25rem 程度に抑え、輪郭をはっきりさせる。",
+        "フォーカスの表示だけは var(--ring) の outline で残す。"
+      ],
+      "css": "/* べた塗りと線だけで面を作り、半透明・グラデーション・影を使わない */\n:where(header, body > nav, footer) {\n  background-color: var(--card);\n  background-image: none;\n  border-bottom: 2px solid var(--border);\n  box-shadow: none;\n}\n:where(.bg-card, article, aside) {\n  background-color: var(--card);\n  background-image: none;\n  border: 2px solid var(--border);\n  border-radius: 0.25rem;\n  box-shadow: none;\n}\n:where(button) {\n  border: 2px solid var(--border);\n  border-radius: 0.25rem;\n  box-shadow: none;\n}\n:where(.bg-primary) {\n  background-color: var(--primary);\n  background-image: none;\n  color: var(--primary-foreground);\n  border: 2px solid var(--primary);\n  border-radius: 0.25rem;\n  box-shadow: none;\n}\n:where(body > section + section, main > section + section) {\n  border-top: 2px solid var(--border);\n}\n:where([class*=\"bg-linear\"], [class*=\"bg-radial\"], [class*=\"bg-conic\"]) {\n  background-color: var(--primary);\n  background-image: none;\n  box-shadow: none;\n}\n:where(a, button):focus-visible {\n  outline: 2px solid var(--ring);\n  outline-offset: 2px;\n}",
+      "examples": ["業務画面の一覧カード", "はっきりした輪郭のボタン", "線で区切ったサイドバー"]
+    }
+  ]
+}

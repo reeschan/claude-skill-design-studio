@@ -36,6 +36,16 @@ const CSS_URL_RE = new RegExp(`\\burl\\(\\s*(?:${CSS_STRING}|((?:${CSS_ESCAPE}|[
 const CSS_IMPORT_RE = new RegExp(`@import\\s*(?:${CSS_STRING})`, "gi");
 const CSS_ESCAPE_RE = /\\(?:([0-9a-f]{1,6})[ \t\r\n\f]?|(\r\n|[\s\S]))/gi;
 
+const REDUCED_MOTION_RE = /prefers-reduced-motion/i;
+const MOTION_KEYFRAMES_RE = /@keyframes/i;
+// animation / animation-* / transition / transition-* の宣言 (名前:) と、ベンダー接頭辞つきのもの
+const MOTION_PROPERTY_RE = /(?:^|[;{\s])(?:-[a-z]+-)?(?:animation|transition)(?:-[a-z]+)*\s*:/i;
+// 動きを調べる場所は style 要素の中身・style 属性・class 属性だけ。本文の文字は見ない
+const STYLE_ELEMENT_RE = /<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi;
+const MOTION_ATTR_RE = /\b(style|class)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi;
+// テーマの style のあとに足す style の id。タグにそのまま入れるので形を限る
+const EXTRA_STYLE_ID_RE = /^[a-z][a-z0-9-]*$/;
+
 export type PageHtmlInput = {
   title: string;
   themeId: string;
@@ -43,7 +53,11 @@ export type PageHtmlInput = {
   cssForPage: string; // render --seed の css から先頭の @import "tailwindcss"; の行を除いたもの
   fontsUrl: string;
   body: string;
+  extraStyles?: { id: string; css: string }[]; // テーマの style のあとに足す style。css が空のものは入れない
 };
+
+// 動きの点検の結果。ok は「動きが無い」か「reduced-motion の指定がある」
+export type MotionCheck = { hasMotion: boolean; hasReducedMotion: boolean; ok: boolean };
 
 /** 文字列を HTML に差し込める形にエスケープする */
 export function escapeHtml(value: string): string {
@@ -141,6 +155,53 @@ export function findDisallowedUrls(html: string): string[] {
     out.push(hit.value);
   }
   return out;
+}
+
+// 動きを調べる場所を集める。style 要素の中身は CSS として、style 属性の値も CSS として、
+// class 属性の値は語に分けて持つ。class 属性の中の style 要素などは考えない補助の lint
+function collectMotionSources(html: string): { css: string[]; classes: string[] } {
+  const css: string[] = [];
+  for (const match of html.matchAll(STYLE_ELEMENT_RE)) css.push(match[1] ?? "");
+  const classes: string[] = [];
+  for (const match of html.matchAll(MOTION_ATTR_RE)) {
+    const value = match[2] ?? match[3] ?? match[4] ?? "";
+    if ((match[1] ?? "").toLowerCase() === "class") {
+      classes.push(...value.split(/\s+/).filter((word) => word !== ""));
+    } else {
+      css.push(value);
+    }
+  }
+  return { css, classes };
+}
+
+// class の語から hover: などの前置き (最後の : まで) を除いた部分
+function classBase(word: string): string {
+  const index = word.lastIndexOf(":");
+  return index === -1 ? word : word.slice(index + 1);
+}
+
+// animate-* か transition / transition-* のユーティリティか
+function isMotionClass(word: string): boolean {
+  const base = classBase(word);
+  return base.startsWith("animate-") || base === "transition" || base.startsWith("transition-");
+}
+
+function hasMotionCss(css: string): boolean {
+  return MOTION_KEYFRAMES_RE.test(css) || MOTION_PROPERTY_RE.test(css);
+}
+
+function hasReducedMotionClass(classes: string[]): boolean {
+  return classes.some((word) => word.includes("motion-safe:") || word.includes("motion-reduce:"));
+}
+
+// 補助の lint。完全な CSS の解釈はしない。動きには reduced-motion の指定を必ず置く (contract の 8 節)
+/** ページの動きと reduced-motion の指定を調べる。本文の文字は見ず、style 要素・style 属性・class 属性だけを見る */
+export function checkMotion(html: string): MotionCheck {
+  const { css, classes } = collectMotionSources(html);
+  const allCss = css.join("\n");
+  const hasMotion = hasMotionCss(allCss) || classes.some(isMotionClass);
+  const hasReducedMotion = REDUCED_MOTION_RE.test(allCss) || hasReducedMotionClass(classes);
+  return { hasMotion, hasReducedMotion, ok: !hasMotion || hasReducedMotion };
 }
 
 // 属性つきの開始タグ。引用符の中の > では終わらない
@@ -248,6 +309,7 @@ export function pageHtml(input: PageHtmlInput): string {
     THEME_STYLE_TAG,
     input.cssForPage,
     "</style>",
+    ...extraStyleLines(input.extraStyles ?? []),
     "</head>",
     '<body class="bg-background font-sans text-foreground">',
     input.body,
@@ -255,4 +317,24 @@ export function pageHtml(input: PageHtmlInput): string {
     "</html>",
     "",
   ].join("\n");
+}
+
+// テーマの style のあとに足す style を、行の並びにする。css が空のものは入れず、
+// id の形と css に </style が無いことを確かめてから並べる
+function extraStyleLines(styles: { id: string; css: string }[]): string[] {
+  const lines: string[] = [];
+  for (const style of styles) {
+    if (style.css === "") continue;
+    if (!EXTRA_STYLE_ID_RE.test(style.id)) {
+      throw new CliExit(EXIT_INPUT, {
+        error: "input",
+        message: "extraStyles の id は英小文字で始まる英小文字・数字・ハイフンにしてください",
+      });
+    }
+    if (END_STYLE_RE.test(style.css)) {
+      throw new CliExit(EXIT_INPUT, { error: "input", message: "extraStyles の css に </style は入れられません" });
+    }
+    lines.push(`<style id="${style.id}">`, style.css, "</style>");
+  }
+  return lines;
 }

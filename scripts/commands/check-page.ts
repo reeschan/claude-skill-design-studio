@@ -1,7 +1,7 @@
-// 作ったページを点検する。CSP の meta と、許可していない外部の読み込みと、テーマの style の有無を見る
+// 作ったページを点検する。CSP の meta と、許可していない外部の読み込みと、テーマの style と、動きを見る
 import { readFileSync } from "node:fs";
 import { CliExit, EXIT_INPUT, usage } from "../../core/cli-exit.ts";
-import { THEME_STYLE_TAG, findDisallowedUrls, hasPageCsp } from "../../core/page-html.ts";
+import { THEME_STYLE_TAG, checkMotion, findDisallowedUrls, hasPageCsp } from "../../core/page-html.ts";
 
 const THEME_ID_RE = /<html[^>]*\bdata-theme="([^"]*)"/i;
 
@@ -34,6 +34,14 @@ export function run(args: string[], env: NodeJS.ProcessEnv): Promise<unknown> {
   const disallowed = findDisallowedUrls(html);
   const hasThemeStyle = html.includes(THEME_STYLE_TAG);
   const hasCsp = hasPageCsp(html);
-  const result = { ok: disallowed.length === 0 && hasThemeStyle && hasCsp, disallowed, hasThemeStyle, hasCsp, themeId: themeIdOf(html) };
+  const motion = checkMotion(html);
+  const result = {
+    ok: disallowed.length === 0 && hasThemeStyle && hasCsp && motion.ok,
+    disallowed,
+    hasThemeStyle,
+    hasCsp,
+    motion,
+    themeId: themeIdOf(html),
+  };
   return Promise.resolve(result);
 }

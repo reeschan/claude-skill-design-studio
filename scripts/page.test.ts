@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import { PAGE_CSP, escapeHtml, findDisallowedUrls, hasPageCsp } from "../core/page-html.ts";
+import { CliExit, EXIT_INPUT } from "../core/cli-exit.ts";
+import { PAGE_CSP, escapeHtml, findDisallowedUrls, hasPageCsp, pageHtml } from "../core/page-html.ts";
 import { LAYOUTS } from "../core/types.ts";
 import type { BaseMode, Copy, SkeletonFamily } from "../core/types.ts";
 import { SKELETONS, renderSkeleton } from "../skeletons/index.ts";
@@ -351,4 +352,104 @@ void test("check-page は CSP の meta が無い・値が違う・link より後
   } finally {
     cleanup();
   }
+});
+
+// 殻どおりのページの head と body に断片を足す (動きの点検の入力を作る)
+function shellWith(head = "", body = ""): string {
+  return render("lp", "centered").replace("</head>", `${head}\n</head>`).replace("</body>", `${body}\n</body>`);
+}
+
+const MOTION_STYLE = "<style>@keyframes spin { to { transform: rotate(1turn); } } .spin { animation: spin 1s linear infinite; }</style>";
+const REDUCED_MOTION_STYLE = "<style>@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }</style>";
+
+void test("check-page は reduced-motion の指定が無い動きを ok: false、指定のある動きと動きの無いページを ok: true にする", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const cases: { label: string; html: string; hasMotion: boolean; hasReducedMotion: boolean; ok: boolean }[] = [
+      { label: "motion-without-reduced", html: shellWith(MOTION_STYLE), hasMotion: true, hasReducedMotion: false, ok: false },
+      {
+        label: "motion-with-media",
+        html: shellWith(MOTION_STYLE + REDUCED_MOTION_STYLE),
+        hasMotion: true,
+        hasReducedMotion: true,
+        ok: true,
+      },
+      {
+        label: "motion-safe",
+        html: shellWith("", '<div class="motion-safe:animate-spin">回る</div>'),
+        hasMotion: true,
+        hasReducedMotion: true,
+        ok: true,
+      },
+      {
+        label: "motion-reduce",
+        html: shellWith("", '<div class="motion-reduce:transition-none transition-colors">色</div>'),
+        hasMotion: true,
+        hasReducedMotion: true,
+        ok: true,
+      },
+      { label: "no-motion", html: shellWith(), hasMotion: false, hasReducedMotion: false, ok: true },
+    ];
+    for (const c of cases) {
+      const path = join(dir, `${c.label}.html`);
+      writeFileSync(path, c.html, "utf8");
+      const res = payload(runCli(["check-page", "--html", path], env).json);
+      assert.deepEqual(res.motion, { hasMotion: c.hasMotion, hasReducedMotion: c.hasReducedMotion, ok: c.ok }, `${c.label}: motion`);
+      assert.equal(res.ok, c.ok, `${c.label}: ok`);
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("check-page は hover:・animate-*・style 属性の transition を動きとして数え、pre の中の文字は数えない", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const cases = [
+      { label: "hover-transition", body: '<div class="hover:transition-transform">x</div>', hasMotion: true },
+      { label: "animate-pulse", body: '<div class="animate-pulse">x</div>', hasMotion: true },
+      { label: "style-attr", body: '<div style="transition: opacity .2s">x</div>', hasMotion: true },
+      { label: "pre-text", body: "<pre>transition: x</pre>", hasMotion: false },
+    ];
+    for (const c of cases) {
+      const path = join(dir, `${c.label}.html`);
+      writeFileSync(path, shellWith("", c.body), "utf8");
+      const motion = payload(payload(runCli(["check-page", "--html", path], env).json).motion);
+      assert.equal(motion.hasMotion, c.hasMotion, `${c.label}: hasMotion`);
+      assert.equal(motion.hasReducedMotion, false, `${c.label}: hasReducedMotion`);
+      assert.equal(motion.ok, !c.hasMotion, `${c.label}: ok`);
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("pageHtml の extraStyles はテーマの style の直後に順に入り、空の css は入らず CSP はそのまま", () => {
+  const input = { title: TITLE, themeId: THEME_ID, mode: MODE, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL, body: "<p>本文</p>" };
+  const html = pageHtml({
+    ...input,
+    extraStyles: [
+      { id: "surface", css: "a{}" },
+      { id: "empty", css: "" },
+      { id: "motion", css: "@keyframes x { to { opacity: 0; } }" },
+    ],
+  });
+  assert.ok(
+    html.includes(
+      `</style>\n<style id="surface">\na{}\n</style>\n<style id="motion">\n@keyframes x { to { opacity: 0; } }\n</style>\n</head>`,
+    ),
+    "テーマの style の直後に並びの順で入る",
+  );
+  assert.ok(!html.includes('id="empty"'), "空の css は入れない");
+  assert.equal(hasPageCsp(html), true, "hasPageCsp");
+  assert.equal(pageHtml(input), pageHtml({ ...input, extraStyles: [] }), "省いたときと同じ出力");
+});
+
+void test("pageHtml の extraStyles は </style と id の形を CliExit(1) で止める", () => {
+  const input = { title: TITLE, themeId: THEME_ID, mode: MODE, cssForPage: CSS_FOR_PAGE, fontsUrl: FONTS_URL, body: "<p>x</p>" };
+  const isInputError = (error: unknown): boolean => error instanceof CliExit && error.code === EXIT_INPUT;
+  for (const css of ["a</style>b", "a</STYLE><script>alert(1)</script>", "a</Style >b"]) {
+    assert.throws(() => pageHtml({ ...input, extraStyles: [{ id: "surface", css }] }), isInputError, css);
+  }
+  assert.throws(() => pageHtml({ ...input, extraStyles: [{ id: "Surface", css: "a{}" }] }), isInputError, "id の形");
 });

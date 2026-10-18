@@ -7,11 +7,12 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { LlmError, generateDirections, generatePage, llmAvailable } from "./llm.ts";
-import type { FontPair } from "./llm.ts";
-import { findDisallowedUrls, hasPageCsp } from "./page-html.ts";
+import type { FontPair, GeneratePageInput } from "./llm.ts";
+import { checkMotion, findDisallowedUrls, hasPageCsp } from "./page-html.ts";
 import { loadStyles, validateDirection } from "./styles.ts";
+import { findMotion, findSurface, loadMotions } from "./treatment.ts";
 import { SKELETON_FAMILIES } from "./types.ts";
-import type { Brief, Direction } from "./types.ts";
+import type { Brief, Direction, MotionSample, SurfaceEntry, Treatment } from "./types.ts";
 
 const MOCK = fileURLToPath(new URL("../app/mock-llm.mjs", import.meta.url));
 const DIRECTION_IDS = ["dir-a", "dir-b", "dir-c", "dir-d"];
@@ -50,6 +51,32 @@ function styleOf(id: string): Direction {
 }
 
 const MINIMAL = styleOf("minimal");
+
+// 面の台帳 (data/surfaces.json) の 1 件
+function surfaceOf(id: string): SurfaceEntry {
+  const found = findSurface(id);
+  if (found === undefined) throw new Error(`data/surfaces.json に ${id} がありません`);
+  return found;
+}
+
+// 動きの見本 (data/motions.json) の 1 件
+function motionOf(id: string): MotionSample {
+  const found = findMotion(id);
+  if (found === undefined) throw new Error(`data/motions.json に ${id} がありません`);
+  return found;
+}
+
+// generatePage に渡す入力。テストごとに違うのは treatment だけ
+function pageInput(treatment?: Treatment): GeneratePageInput {
+  return {
+    brief: BRIEF,
+    direction: MINIMAL,
+    pageType: { name: "料金ページ", family: "pricing" },
+    cssForPage: CSS_FOR_PAGE,
+    fontsUrl: FONTS_URL,
+    ...(treatment === undefined ? {} : { treatment }),
+  };
+}
 
 type MockEnv = { dir: string; env: NodeJS.ProcessEnv; cleanup: () => void };
 
@@ -212,6 +239,45 @@ void test("空の依頼の項目は (指定なし) と入れ、family がある�
   }
 });
 
+void test("generateDirections に表現を渡すと、プロンプトに「## 表現」と面の名前・台帳の指示が入る", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const glass = surfaceOf("glass");
+    const firstInstruction = glass.instructions[0];
+    assert.ok(firstInstruction !== undefined, "glass の instructions が空です");
+    await generateDirections(
+      {
+        brief: BRIEF,
+        pageType: { name: "プラン比較" },
+        fontPairs: FONT_PAIRS,
+        treatment: { surface: "glass", motion: "animated", motionSamples: [] },
+      },
+      env,
+    );
+    const prompt = recordedArgs(dir).prompt;
+    assert.ok(prompt.includes("## 表現"), "「## 表現」の節");
+    assert.ok(prompt.includes(glass.name), "面の名前 (Glass)");
+    assert.ok(prompt.includes(firstInstruction), "面の台帳の instructions の 1 つ目");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("treatment を省いたときと既定の表現のときの方向性のプロンプトは同じで、「## 表現」を含まない", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const input = { brief: BRIEF, pageType: { name: "プラン比較" }, fontPairs: FONT_PAIRS };
+    await generateDirections(input, env);
+    const omitted = recordedArgs(dir).prompt;
+    await generateDirections({ ...input, treatment: { surface: "none", motion: "none", motionSamples: [] } }, env);
+    const explicit = recordedArgs(dir).prompt;
+    assert.equal(explicit, omitted, "プロンプトは 1 文字も変えない");
+    assert.ok(!omitted.includes("## 表現"), "既定では「## 表現」を足さない");
+  } finally {
+    cleanup();
+  }
+});
+
 void test("generatePage は検証を通った HTML を返し、テーマは cssForPage に差し替える", async () => {
   const { env, cleanup } = mockEnv("ok");
   try {
@@ -262,6 +328,67 @@ void test("ページのプロンプトには画面の種類の名前と依頼の
   }
 });
 
+void test("ページに表現を渡すと、面の名前と、指定した見本 (css 付き) を必ず使う旨が入る", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const material = surfaceOf("material");
+    const aurora = motionOf("aurora");
+    await generatePage(pageInput({ surface: "material", motion: "animated", motionSamples: ["aurora"] }), env);
+    const prompt = recordedArgs(dir).prompt;
+    assert.ok(prompt.includes(material.name), "面の名前 (Material)");
+    assert.ok(prompt.includes(aurora.name), "見本の名前 (aurora)");
+    assert.ok(prompt.includes(aurora.css.slice(0, 20)), "見本の css の一部");
+    assert.ok(prompt.includes("必ず使"), "指定した見本を必ず使う旨");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("ページの動きが subtle なら「0.3 秒」を含み、見本の css は入らない", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const aurora = motionOf("aurora");
+    await generatePage(pageInput({ surface: "material", motion: "subtle", motionSamples: ["aurora"] }), env);
+    const prompt = recordedArgs(dir).prompt;
+    assert.ok(prompt.includes("0.3 秒"), "subtle の目安 (0.3 秒)");
+    assert.ok(!prompt.includes(aurora.css.slice(0, 20)), "subtle では見本の css を入れない");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("ページのプロンプトには、表現の有無にかかわらず CSS の決まり (reduced-motion・color-mix・透明度・ぼかし) が入る", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const cases: (Treatment | undefined)[] = [undefined, { surface: "glass", motion: "animated", motionSamples: [] }];
+    for (const treatment of cases) {
+      await generatePage(pageInput(treatment), env);
+      const prompt = recordedArgs(dir).prompt;
+      for (const needle of ["prefers-reduced-motion", "color-mix", "bg-card/60", "backdrop-blur"]) {
+        assert.ok(prompt.includes(needle), `${needle} がありません`);
+      }
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("ページの動きが animated で見本の指定が無いときは、12 件すべてを候補として渡す", async () => {
+  const { dir, env, cleanup } = mockEnv("ok");
+  try {
+    const motions = loadMotions();
+    await generatePage(pageInput({ surface: "glass", motion: "animated", motionSamples: [] }), env);
+    const prompt = recordedArgs(dir).prompt;
+    assert.equal(motions.length, 12, "動きの見本は 12 件");
+    for (const motion of motions) {
+      assert.ok(prompt.includes(motion.name), `候補の見本 ${motion.id} の名前がありません`);
+    }
+    assert.ok(prompt.includes("2〜4 件"), "2〜4 件を選ばせる");
+  } finally {
+    cleanup();
+  }
+});
+
 void test("bad-then-good はページでも、1 回目の不正な出力のあとやり直して成功する", async () => {
   const { dir, env, cleanup } = mockEnv("bad-then-good");
   try {
@@ -302,6 +429,29 @@ void test("no-csp (CSP の meta の無いページ) は LlmError (code bad-page)
           env,
         ),
       llmFailure("bad-page"),
+    );
+  } finally {
+    cleanup();
+  }
+});
+
+void test("motion-then-good は、reduced-motion の無いページのあとやり直して成功する", async () => {
+  const { dir, env, cleanup } = mockEnv("motion-then-good");
+  try {
+    const html = await generatePage(pageInput({ surface: "glass", motion: "animated", motionSamples: [] }), env);
+    assert.equal(checkMotion(html).ok, true, "返った HTML は動きの点検を通る");
+    assert.equal(readFileSync(join(dir, "counter.txt"), "utf8"), "2", "2 回だけ呼ぶ");
+  } finally {
+    cleanup();
+  }
+});
+
+void test("no-reduced-motion は LlmError (code bad-page) で、message に prefers-reduced-motion を含む", async () => {
+  const { env, cleanup } = mockEnv("no-reduced-motion");
+  try {
+    await assert.rejects(
+      () => generatePage(pageInput(), env),
+      (e: unknown) => e instanceof LlmError && e.code === "bad-page" && e.message.includes("prefers-reduced-motion"),
     );
   } finally {
     cleanup();
