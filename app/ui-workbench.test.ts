@@ -6,8 +6,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-// 作業台の本文 (PBI-010 で右のパネルと保存を分けた)。テストは 3 つを合わせて読む
-const WORKBENCH_FILES = ["ui-workbench.js", "ui-workbench-panels.js", "ui-workbench-project.js"] as const;
+// 作業台の本文 (PBI-010 で右のパネルと保存を分け、PBI-008 で表現の部品を分けた)。テストは 4 つを合わせて読む
+const WORKBENCH_FILES = ["ui-workbench.js", "ui-workbench-panels.js", "ui-workbench-project.js", "ui-workbench-treatment.js"] as const;
 
 function sourceOf(name: string): string {
   const file = fileURLToPath(new URL(name, import.meta.url));
@@ -165,4 +165,54 @@ void test("18. スタイルから始めたら、開いていたプロジェク�
   const body = functionBodyOf(sourceOf("ui-workbench.js"), "beginFromStyle");
   assert.match(body, /state\.projectId = null/, "プロジェクトの id が残ります");
   assert.match(body, /projectPanel\.discardPages\(\)/, "前のプロジェクトのページの一覧が残ります");
+});
+
+void test("19. 表現の部品は /api/treatments から面と動きの見本を読み、動きは /api/motions/ の見本で見せる", () => {
+  // 面の台帳と動きの見本集はサーバーが返す (PBI-008)。読めないときは「指定しない」「なし」だけで動く
+  const treatment = sourceOf("ui-workbench-treatment.js");
+  assert.ok(treatment.includes("createTreatmentPanel"), "createTreatmentPanel を export していません");
+  assert.ok(treatment.includes("/api/treatments"), "面と動きの一覧を /api/treatments から読んでいません");
+  assert.ok(treatment.includes("/api/motions/"), "動きの見本を /api/motions/ から開いていません");
+  // iframe は「動きを見る」を押したときだけ作る (12 枚を一度に動かさない)
+  assert.ok(treatment.includes("src = `/api/motions/"), "動きの見本の iframe の src がありません");
+});
+
+void test("20. 依頼・骨組みのプレビュー・ページの body にいまの表現を入れる", () => {
+  // 案を出す・骨組みを描く・ページを作るの 3 つが同じ表現を使う (PBI-008)
+  const directions = functionBodyOf(sourceOf("ui-workbench.js"), "generateFromForm");
+  assert.ok(directions.includes("/api/directions"), "案を出す関数に /api/directions がありません");
+  assert.match(directions, /treatment:\s*state\.treatment/, "案を出す body に treatment がありません");
+
+  const render = functionBodyOf(sourceOf("ui-workbench.js"), "requestRender");
+  assert.ok(render.includes("/api/render"), "骨組みを描く関数に /api/render がありません");
+  assert.match(render, /treatment:\s*state\.treatment/, "骨組みを描く body に treatment がありません");
+
+  const page = functionBodyOf(sourceOf("ui-workbench-project.js"), "createPage");
+  assert.ok(page.includes("/api/page"), "ページを作る関数に /api/page がありません");
+  assert.match(page, /treatment:\s*state\.treatment/, "ページを作る body に treatment がありません");
+});
+
+void test("21. 保存は版 3 で表現を送り、開き直しは treatment と items を読む", () => {
+  const project = sourceOf("ui-workbench-project.js");
+  const save = functionBodyOf(project, "projectForSave");
+  assert.match(save, /version:\s*3/, "保存の body が版 3 ではありません");
+  assert.match(save, /treatment:\s*state\.treatment/, "保存の body に treatment がありません");
+
+  const apply = functionBodyOf(sourceOf("ui-workbench.js"), "applyProject");
+  assert.match(apply, /project\.treatment/, "開き直しで project.treatment を読んでいません");
+  assert.match(apply, /project\.items/, "開き直しで project.items を読んでいません");
+});
+
+void test("22. 表現の部品も innerHTML を使わず、動きの見本も allow-scripts だけの sandbox で開く", () => {
+  const treatment = sourceOf("ui-workbench-treatment.js");
+  assert.ok(!treatment.includes("innerHTML"), "表現の部品が innerHTML を使っています");
+  assert.ok(!treatment.includes("allow-same-origin"), "表現の部品が allow-same-origin を使っています");
+  assert.match(treatment, /setAttribute\("sandbox",\s*"allow-scripts"\)/, "動きの見本の iframe の sandbox がありません");
+});
+
+void test("23. 動きの見本のチェックは 4 件までに止める", () => {
+  // 5 件目は選べない (core の validateTreatment と同じ上限)
+  const treatment = sourceOf("ui-workbench-treatment.js");
+  assert.match(treatment, /SAMPLE_MAX\s*=\s*4/, "見本の上限の値 (4) がありません");
+  assert.ok(treatment.includes("length >= SAMPLE_MAX"), "上限に達したらチェックを止めていません");
 });

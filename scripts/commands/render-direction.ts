@@ -17,6 +17,7 @@ type RawArgs = {
   style: string | undefined;
   family: string | undefined;
   mode: string | undefined;
+  surface: string | undefined;
   out: string | undefined;
 };
 
@@ -32,6 +33,7 @@ function readArgs(args: string[]): RawArgs {
         style: { type: "string" },
         family: { type: "string" },
         mode: { type: "string" },
+        surface: { type: "string" },
         out: { type: "string" },
       },
     });
@@ -40,6 +42,7 @@ function readArgs(args: string[]): RawArgs {
       style: parsed.values.style,
       family: parsed.values.family,
       mode: parsed.values.mode,
+      surface: parsed.values.surface,
       out: parsed.values.out,
     };
   } catch (e) {
@@ -95,8 +98,8 @@ export async function run(args: string[], env: NodeJS.ProcessEnv): Promise<unkno
   const direction = directionOf(raw);
   const family = familyOf(raw);
   const mode = modeOf(raw) ?? direction.seed.baseMode;
-  const { themeId, layout, checks, failed, html } = await renderDirection({ direction, family, mode }, env);
-  if (raw.out === undefined) return { themeId, family, layout, mode, file: null, html, checks, failed };
+  const { themeId, layout, surface, checks, failed, html } = await renderDirection({ direction, family, mode, surface: raw.surface }, env);
+  if (raw.out === undefined) return { themeId, family, layout, mode, surface, file: null, html, checks, failed };
   writeOut(raw.out, html);
-  return { themeId, family, layout, mode, file: raw.out, html: null, checks, failed };
+  return { themeId, family, layout, mode, surface, file: raw.out, html: null, checks, failed };
 }

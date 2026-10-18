@@ -85,7 +85,14 @@ CLI を直接使うこともできます。
 
 ```sh
 node ~/.claude/skills/design-studio/scripts/studio.ts styles
+node ~/.claude/skills/design-studio/scripts/studio.ts treatments
+node ~/.claude/skills/design-studio/scripts/studio.ts treatments motion spinning-border --out motion.html
+node ~/.claude/skills/design-studio/scripts/studio.ts render-direction --direction direction.json --family lp --surface glass --out skeleton.html
 ```
+
+- `treatments`: 面 4 つと動きの見本 12 件の一覧
+- `treatments motion <id> --out <file>`: 動きの見本 1 件を HTML に書く (省くと `html` を返す)
+- `render-direction --surface <id>`: 骨組みに面の CSS を重ねる (動きは入れない)
 
 ## できあがるもの
 

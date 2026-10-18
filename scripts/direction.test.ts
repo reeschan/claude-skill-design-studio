@@ -6,7 +6,9 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { CliExit } from "../core/cli-exit.ts";
 import { applyFineTune, mixDirections, padWeights, validateFineTune, validatePoints, type MixResult } from "../core/direction.ts";
+import { THEME_STYLE_TAG } from "../core/page-html.ts";
 import { loadStyles, validateDirection } from "../core/styles.ts";
+import { findSurface } from "../core/treatment.ts";
 import type { Direction, MixPoints, Style } from "../core/types.ts";
 import { runCli, tempEnv } from "./test-helper.ts";
 
@@ -638,6 +640,89 @@ void test("render-direction も --direction のファイルの誤りで終了コ
       assert.equal(res.code, 1, c.label);
       assert.equal(payload(res.json).error, c.error, c.label);
     }
+  } finally {
+    cleanup();
+  }
+});
+
+// 面の台帳の CSS。id が見つからなければテストの読み込み時に止める
+function surfaceCssOf(id: string): string {
+  const surface = findSurface(id);
+  if (surface === undefined) throw new Error(`data/surfaces.json に ${id} がありません`);
+  return surface.css;
+}
+
+void test("render-direction --surface は面の CSS をテーマの style のあとに重ね、check-page が通る", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    const outFile = join(dir, "glass-lp.html");
+    const args = ["render-direction", "--style", "minimal", "--family", "lp", "--surface", "glass", "--out", outFile];
+    const res = runCli(args, fakeEnv(env));
+    assert.equal(res.code, 0, res.stderr);
+    const json = payload(res.json);
+    assert.equal(json.surface, "glass");
+    assert.equal(json.html, null);
+
+    const html = readFileSync(outFile, "utf8");
+    const surfaceIndex = html.indexOf('<style id="surface">');
+    const themeIndex = html.indexOf(THEME_STYLE_TAG);
+    assert.ok(themeIndex !== -1, "テーマの style がある");
+    assert.ok(surfaceIndex > themeIndex, "面の style はテーマの style より後ろ");
+    assert.ok(html.includes(surfaceCssOf("glass")), "面の CSS がそのまま入っている");
+
+    const check = payload(runCli(["check-page", "--html", outFile], env).json);
+    assert.equal(check.ok, true, JSON.stringify(check.disallowed));
+    assert.equal(record(check.motion, "motion").hasMotion, false);
+  } finally {
+    cleanup();
+  }
+});
+
+void test("material と solid の面でも check-page が通り、面の style が入る", () => {
+  const { dir, env, cleanup } = tempEnv();
+  try {
+    for (const id of ["material", "solid"]) {
+      const outFile = join(dir, `${id}-lp.html`);
+      const res = runCli(["render-direction", "--style", "minimal", "--family", "lp", "--surface", id, "--out", outFile], fakeEnv(env));
+      assert.equal(res.code, 0, res.stderr);
+      assert.equal(payload(res.json).surface, id);
+
+      const html = readFileSync(outFile, "utf8");
+      assert.ok(html.includes('<style id="surface">'), id);
+      assert.ok(html.includes(surfaceCssOf(id)), id);
+
+      const check = payload(runCli(["check-page", "--html", outFile], env).json);
+      assert.equal(check.ok, true, `${id}: ${JSON.stringify(check.disallowed)}`);
+      assert.equal(record(check.motion, "motion").hasMotion, false, id);
+    }
+  } finally {
+    cleanup();
+  }
+});
+
+void test("--surface none と省略は同じ HTML で、どちらも面の style を持たない", () => {
+  const { env, cleanup } = tempEnv();
+  try {
+    const base = ["render-direction", "--style", "minimal", "--family", "lp"];
+    const omitted = payload(runCli(base, fakeEnv(env)).json);
+    const none = payload(runCli([...base, "--surface", "none"], fakeEnv(env)).json);
+    assert.equal(omitted.surface, "none");
+    assert.equal(none.surface, "none");
+    assert.equal(none.html, omitted.html);
+    assert.ok(!String(none.html).includes('id="surface"'));
+  } finally {
+    cleanup();
+  }
+});
+
+void test("知らない --surface は終了コード 1 の input で、面の id を並べる", () => {
+  const { env, cleanup } = tempEnv();
+  try {
+    const res = runCli(["render-direction", "--style", "minimal", "--family", "lp", "--surface", "no-such"], fakeEnv(env));
+    assert.equal(res.code, 1);
+    const body = payload(res.json);
+    assert.equal(body.error, "input");
+    assert.deepEqual(body.surfaces, ["none", "material", "glass", "solid"]);
   } finally {
     cleanup();
   }

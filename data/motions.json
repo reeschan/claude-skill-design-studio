@@ -1,0 +1,227 @@
+{
+  "motions": [
+    {
+      "id": "spinning-border",
+      "name": "回る光の枠",
+      "description": "枠に沿って光がゆっくり回るボタンとカード。主役の操作や料金カードの縁に使う。",
+      "uses": ["ボタン", "カード"],
+      "technique": "@property で角度を登録し conic-gradient の枠を回す",
+      "css": "/* 角度を登録して、conic-gradient の枠を回す */\n@property --ms-angle {\n  syntax: \"<angle>\";\n  inherits: false;\n  initial-value: 0deg;\n}\n.ms-spinning-border {\n  border: 2px solid transparent;\n  border-radius: 0.75rem;\n  background:\n    linear-gradient(var(--card), var(--card)) padding-box,\n    conic-gradient(from var(--ms-angle), color-mix(in oklab, var(--primary) 85%, transparent), transparent 35%, color-mix(in oklab, var(--brand-accent) 85%, transparent) 65%, transparent) border-box;\n  animation: ms-spinning-border 4.5s linear infinite;\n}\n@keyframes ms-spinning-border {\n  to {\n    --ms-angle: 360deg;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-spinning-border {\n    animation: none;\n  }\n}",
+      "html": "<button type='button' class='ms-spinning-border bg-card px-6 py-3 text-card-foreground'>光の枠のボタン</button>",
+      "support": "baseline",
+      "supportNote": "@property と conic-gradient は主要ブラウザで動く (Baseline)。",
+      "continuous": true,
+      "scrollLinked": false,
+      "reducedMotion": "回転を止め、光の位置を固定して枠の色だけ残す。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/@property",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/conic-gradient",
+        "https://learnwithjason.dev/blog/animated-css-gradient-border"
+      ]
+    },
+    {
+      "id": "shimmer-text",
+      "name": "光が流れる文字",
+      "description": "見出しの文字の中を光の帯が流れる。ページの主役の見出しに使う。",
+      "uses": ["見出し"],
+      "technique": "グラデーションを background-clip: text で文字に当てて動かす",
+      "css": ".ms-shimmer-text {\n  background-image: linear-gradient(100deg, var(--foreground) 25%, color-mix(in oklab, var(--primary) 75%, transparent) 50%, var(--foreground) 75%);\n  background-size: 220% 100%;\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  animation: ms-shimmer-text 3.2s linear infinite;\n}\n@keyframes ms-shimmer-text {\n  from {\n    background-position: 120% 0;\n  }\n  to {\n    background-position: -120% 0;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-shimmer-text {\n    animation: none;\n    background-image: none;\n    color: var(--foreground);\n  }\n}",
+      "html": "<h2 class='ms-shimmer-text font-heading text-4xl'>光が流れる見出し</h2>",
+      "support": "baseline",
+      "supportNote": "background-clip: text と CSS アニメーションは主要ブラウザで動く (Baseline)。",
+      "continuous": true,
+      "scrollLinked": false,
+      "reducedMotion": "光の移動を止め、文字を通常の前景色で読ませる。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/background-clip",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/linear-gradient",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
+      ]
+    },
+    {
+      "id": "scroll-reveal",
+      "name": "スクロールで現れる",
+      "description": "スクロールして視界に入ると、カードが下からふわりと現れる。長いページのセクションに使う。",
+      "uses": ["セクション", "カード"],
+      "technique": "animation-timeline: view() + animation-range",
+      "css": "@keyframes ms-scroll-reveal {\n  from {\n    opacity: 0;\n    transform: translateY(1.5rem);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n@supports (animation-timeline: view()) {\n  .ms-scroll-reveal {\n    animation: ms-scroll-reveal linear both;\n    animation-timeline: view();\n    animation-range: entry 0% cover 40%;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-scroll-reveal {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}",
+      "html": "<div class='h-56 overflow-y-auto rounded-lg border border-border bg-background p-4'>\n  <p class='text-sm text-muted-foreground'>枠の中を下にスクロールしてください</p>\n  <div class='h-40'></div>\n  <article class='ms-scroll-reveal rounded-lg border border-border bg-card p-4 text-card-foreground'>スクロールで現れるカード</article>\n  <div class='h-40'></div>\n</div>",
+      "support": "fallback",
+      "supportNote": "animation-timeline: view() が使えるブラウザだけで動かし、無いブラウザでは最初から見えている。",
+      "continuous": false,
+      "scrollLinked": true,
+      "reducedMotion": "現れる動きを止め、最初から最終の位置で見せる。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-driven_animations",
+        "https://modern-css.com/whats-new/"
+      ]
+    },
+    {
+      "id": "reading-progress",
+      "name": "読んだ量のバー",
+      "description": "ページを読んだ量に合わせて、上端のバーが伸びる。長い記事の進み具合を見せる。",
+      "uses": ["ブログ"],
+      "technique": "animation-timeline: scroll(root)",
+      "css": ".ms-reading-progress {\n  display: none;\n}\n@supports (animation-timeline: scroll(root)) {\n  .ms-reading-progress {\n    display: block;\n    position: fixed;\n    inset: 0 0 auto 0;\n    height: 0.25rem;\n    transform: scaleX(0);\n    transform-origin: left center;\n    background-color: var(--primary);\n    animation: ms-reading-progress linear both;\n    animation-timeline: scroll(root);\n  }\n}\n@keyframes ms-reading-progress {\n  from {\n    transform: scaleX(0);\n  }\n  to {\n    transform: scaleX(1);\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-reading-progress {\n    animation: none;\n    transform: scaleX(1);\n  }\n}",
+      "html": "<div class='ms-reading-progress' aria-hidden='true'></div>\n<article class='mx-auto max-w-md p-6'>\n  <h3 class='font-heading text-xl'>読んだ量のバー</h3>\n  <p class='mt-2 text-sm text-muted-foreground'>スクロールすると、上のバーが読んだ量に合わせて伸びます。</p>\n  <div class='mt-4 h-80 rounded-lg border border-border bg-card p-4 text-card-foreground'>最初の節</div>\n  <div class='mt-4 h-80 rounded-lg border border-border bg-card p-4 text-card-foreground'>真ん中の節</div>\n  <div class='mt-4 h-80 rounded-lg border border-border bg-card p-4 text-card-foreground'>最後の節</div>\n</article>",
+      "support": "fallback",
+      "supportNote": "animation-timeline: scroll() が使えるブラウザだけでバーを出し、無いブラウザでは出さない。",
+      "continuous": false,
+      "scrollLinked": true,
+      "reducedMotion": "スクロールへの追従を止め、バーを読み終わりの位置で止める。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-driven_animations",
+        "https://modern-css.com/whats-new/"
+      ]
+    },
+    {
+      "id": "entry-transition",
+      "name": "出てくるときの動き",
+      "description": "ポップオーバーが開くときに、下から少し浮き上がって見える。ボタンから開く補助の面に使う。",
+      "uses": ["モーダル", "ポップオーバー", "トースト"],
+      "technique": "@starting-style + transition-behavior: allow-discrete (popover 属性と popovertarget のボタンで、スクリプトなしで開閉できる)",
+      "css": ".ms-entry-pop {\n  position: fixed;\n  inset: 0;\n  width: min(20rem, calc(100% - 2rem));\n  height: fit-content;\n  margin: auto;\n  padding: 1rem 1.25rem;\n  border: 1px solid var(--border);\n  border-radius: 0.75rem;\n  background-color: var(--card);\n  color: var(--card-foreground);\n  box-shadow: 0 12px 32px color-mix(in oklab, var(--foreground) 18%, transparent);\n  opacity: 0;\n  transform: translateY(0.75rem) scale(0.98);\n  transition:\n    opacity 220ms ease-out,\n    transform 220ms ease-out,\n    display 220ms allow-discrete,\n    overlay 220ms allow-discrete;\n  transition-behavior: allow-discrete;\n}\n.ms-entry-pop:popover-open {\n  opacity: 1;\n  transform: translateY(0) scale(1);\n}\n@starting-style {\n  .ms-entry-pop:popover-open {\n    opacity: 0;\n    transform: translateY(0.75rem) scale(0.98);\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-entry-pop {\n    transition: none;\n  }\n}",
+      "html": "<button type='button' class='rounded-md bg-primary px-4 py-2 text-primary-foreground' popovertarget='ms-entry-pop'>開く</button>\n<div id='ms-entry-pop' popover class='ms-entry-pop'>出てくるときのポップオーバー</div>",
+      "support": "baseline",
+      "supportNote": "@starting-style と transition-behavior: allow-discrete は主要ブラウザで動く (Baseline)。",
+      "continuous": false,
+      "scrollLinked": false,
+      "reducedMotion": "開閉の動きを止め、表示と非表示をすぐ切り替える。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/@starting-style",
+        "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/popover",
+        "https://developer.chrome.com/blog/new-in-web-ui-io26"
+      ]
+    },
+    {
+      "id": "spring-press",
+      "name": "ばねで押し込む",
+      "description": "押し込むと、ばねのように少し縮んで戻るボタン。主な操作の手応えを出す。",
+      "uses": ["ボタンの押下"],
+      "technique": "linear() のイージング",
+      "css": ".ms-spring-press {\n  padding: 0.75rem 1.5rem;\n  border-radius: 0.75rem;\n  background-color: var(--primary);\n  color: var(--primary-foreground);\n  transition: transform 520ms linear(0, 0.32 15%, 0.58 30%, 0.82 45%, 0.96 60%, 1.02 75%, 1);\n}\n.ms-spring-press:active {\n  transform: scale(0.9);\n  transition-duration: 120ms;\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-spring-press {\n    transition: none;\n  }\n}",
+      "html": "<button type='button' class='ms-spring-press'>押してみる</button>",
+      "support": "baseline",
+      "supportNote": "linear() のイージングは主要ブラウザで動く (Baseline)。",
+      "continuous": false,
+      "scrollLinked": false,
+      "reducedMotion": "押下の伸縮を止め、ボタンを動かさない。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/linear",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/transition-timing-function",
+        "https://developer.chrome.com/blog/new-in-web-ui-io26"
+      ]
+    },
+    {
+      "id": "stagger",
+      "name": "ずらして出す",
+      "description": "一覧の項目が少しずつ時間をずらして現れる。カードの一覧やベントーグリッドに使う。",
+      "uses": ["一覧", "ベントーグリッド"],
+      "technique": "sibling-index() で遅れを付ける (無いブラウザでは同時に出す)",
+      "css": ".ms-stagger > * {\n  opacity: 0;\n  transform: translateY(0.75rem);\n  animation: ms-stagger 420ms ease-out forwards;\n}\n@supports (animation-delay: calc(sibling-index() * 1ms)) {\n  .ms-stagger > * {\n    animation-delay: calc((sibling-index() - 1) * 90ms);\n  }\n}\n@keyframes ms-stagger {\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-stagger > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}",
+      "html": "<ul class='ms-stagger space-y-2 p-4'>\n  <li class='rounded-md border border-border bg-card p-3 text-card-foreground'>一覧の項目 1</li>\n  <li class='rounded-md border border-border bg-card p-3 text-card-foreground'>一覧の項目 2</li>\n  <li class='rounded-md border border-border bg-card p-3 text-card-foreground'>一覧の項目 3</li>\n  <li class='rounded-md border border-border bg-card p-3 text-card-foreground'>一覧の項目 4</li>\n</ul>",
+      "support": "fallback",
+      "supportNote": "sibling-index() が使えるブラウザだけで遅れを付け、無いブラウザでは同時に現れる。",
+      "continuous": false,
+      "scrollLinked": false,
+      "reducedMotion": "ずらす動きを止め、すべての項目を最初から表示する。",
+      "references": [
+        "https://developer.chrome.com/blog/new-in-web-ui-io26",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-delay"
+      ]
+    },
+    {
+      "id": "aurora",
+      "name": "ゆっくり流れるオーロラの背景",
+      "description": "ヒーローの背景で、いくつもの光の玉がゆっくり流れる。第一印象を作る大きな面に使う。",
+      "uses": ["ヒーロー"],
+      "technique": "複数の radial-gradient の位置を @property で動かす",
+      "css": "@property --ms-aurora-x {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 20%;\n}\n@property --ms-aurora-y {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 30%;\n}\n.ms-aurora {\n  background-color: var(--background);\n  background-image:\n    radial-gradient(circle at var(--ms-aurora-x) var(--ms-aurora-y), color-mix(in oklab, var(--primary) 48%, transparent), transparent 60%),\n    radial-gradient(circle at calc(100% - var(--ms-aurora-x)) calc(100% - var(--ms-aurora-y)), color-mix(in oklab, var(--brand-accent) 42%, transparent), transparent 62%);\n  animation: ms-aurora 18s ease-in-out infinite alternate;\n}\n@keyframes ms-aurora {\n  from {\n    --ms-aurora-x: 20%;\n    --ms-aurora-y: 30%;\n  }\n  to {\n    --ms-aurora-x: 78%;\n    --ms-aurora-y: 68%;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-aurora {\n    animation: none;\n  }\n}",
+      "html": "<section class='ms-aurora rounded-xl p-8 text-foreground'>\n  <h2 class='font-heading text-2xl'>ゆっくり流れるオーロラ</h2>\n  <p class='mt-2 text-sm text-muted-foreground'>背景の光が静かに動き続けます。</p>\n</section>",
+      "support": "baseline",
+      "supportNote": "@property と radial-gradient は主要ブラウザで動く (Baseline)。",
+      "continuous": true,
+      "scrollLinked": false,
+      "reducedMotion": "光の移動を止め、最初の位置で静かに見せる。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/@property",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/radial-gradient",
+        "https://motionkit.io/blog/web-animation-trends-2026"
+      ]
+    },
+    {
+      "id": "skeleton-shimmer",
+      "name": "読み込み中のきらめき",
+      "description": "読み込みを待つカードの上を、光の帯が繰り返し横切る。内容が届く前の場所に使う。",
+      "uses": ["カード"],
+      "technique": "skeleton shimmer (グラデーションの位置を動かす)",
+      "css": ".ms-skeleton-shimmer {\n  position: relative;\n  overflow: hidden;\n  border-radius: 0.75rem;\n  background-color: var(--muted);\n}\n.ms-skeleton-shimmer::after {\n  content: '';\n  position: absolute;\n  inset: 0;\n  background-image: linear-gradient(90deg, transparent, color-mix(in oklab, var(--foreground) 16%, transparent), transparent);\n  background-size: 200% 100%;\n  background-position: 150% 0;\n  animation: ms-skeleton-shimmer 1.6s ease-in-out infinite;\n}\n@keyframes ms-skeleton-shimmer {\n  to {\n    background-position: -150% 0;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-skeleton-shimmer::after {\n    animation: none;\n    background-position: 50% 0;\n  }\n}",
+      "html": "<div class='ms-skeleton-shimmer h-36 p-4'>\n  <div class='h-3 w-2/3 rounded bg-muted-foreground/20'></div>\n  <div class='mt-3 h-3 w-1/2 rounded bg-muted-foreground/20'></div>\n  <div class='mt-3 h-3 w-3/4 rounded bg-muted-foreground/20'></div>\n</div>",
+      "support": "baseline",
+      "supportNote": "グラデーションと CSS アニメーションは主要ブラウザで動く (Baseline)。",
+      "continuous": true,
+      "scrollLinked": false,
+      "reducedMotion": "光の移動を止め、灰色の面のまま表示する。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/linear-gradient",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
+      ]
+    },
+    {
+      "id": "line-draw",
+      "name": "線が描かれていく SVG",
+      "description": "アイコンの線が、はじめから描かれていくように現れる。図やアイコンの説明に使う。",
+      "uses": ["アイコン", "図"],
+      "technique": "stroke-dasharray と stroke-dashoffset",
+      "css": ".ms-line-draw path,\n.ms-line-draw circle {\n  fill: none;\n  stroke: var(--primary);\n  stroke-width: 3;\n  stroke-linecap: round;\n  stroke-linejoin: round;\n  stroke-dasharray: 1;\n  stroke-dashoffset: 1;\n  animation: ms-line-draw 2.4s ease-in-out infinite;\n}\n@keyframes ms-line-draw {\n  0% {\n    stroke-dashoffset: 1;\n  }\n  60% {\n    stroke-dashoffset: 0;\n  }\n  100% {\n    stroke-dashoffset: 0;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-line-draw path,\n  .ms-line-draw circle {\n    animation: none;\n    stroke-dashoffset: 0;\n  }\n}",
+      "html": "<svg viewBox='0 0 120 72' class='ms-line-draw h-28 w-44' role='img' aria-label='線で描いた山と丸'>\n  <path pathLength='1' d='M8 60 L34 26 L58 50 L86 18 L112 44' />\n  <circle pathLength='1' cx='60' cy='64' r='4' />\n</svg>",
+      "support": "baseline",
+      "supportNote": "SVG の stroke-dasharray と stroke-dashoffset は主要ブラウザで動く (Baseline)。",
+      "continuous": false,
+      "scrollLinked": false,
+      "reducedMotion": "描く動きを止め、線を最後まで描いた状態で見せる。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/stroke-dasharray",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/stroke-dashoffset"
+      ]
+    },
+    {
+      "id": "blob",
+      "name": "形が揺らぐ blob",
+      "description": "装飾の面の形が、ゆっくりと揺らぎ続ける。背景の飾りやヒーローの添え物に使う。",
+      "uses": ["装飾"],
+      "technique": "border-radius の変化",
+      "css": ".ms-blob {\n  width: 9rem;\n  height: 9rem;\n  background-image: linear-gradient(140deg, color-mix(in oklab, var(--primary) 70%, transparent), color-mix(in oklab, var(--brand-accent) 65%, transparent));\n  border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;\n  animation: ms-blob 9s ease-in-out infinite alternate;\n}\n@keyframes ms-blob {\n  0% {\n    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;\n  }\n  50% {\n    border-radius: 58% 42% 37% 63% / 56% 59% 41% 44%;\n  }\n  100% {\n    border-radius: 50% 50% 62% 38% / 48% 38% 62% 52%;\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-blob {\n    animation: none;\n  }\n}",
+      "html": "<div class='flex items-center justify-center p-6'>\n  <div class='ms-blob'></div>\n</div>",
+      "support": "baseline",
+      "supportNote": "border-radius の変化は主要ブラウザで動く (Baseline)。",
+      "continuous": true,
+      "scrollLinked": false,
+      "reducedMotion": "形の変化を止め、1 つの形のまま見せる。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/border-radius",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
+      ]
+    },
+    {
+      "id": "marquee",
+      "name": "流れ続ける帯",
+      "description": "ロゴや言葉の帯が、途切れずに左へ流れ続ける。実績や特徴を並べる帯に使う。",
+      "uses": ["ロゴの帯"],
+      "technique": "translate の無限ループ",
+      "css": ".ms-marquee {\n  overflow: hidden;\n}\n.ms-marquee__track {\n  display: flex;\n  width: max-content;\n  animation: ms-marquee 16s linear infinite;\n}\n.ms-marquee__group {\n  display: flex;\n  flex-shrink: 0;\n  gap: 2rem;\n  padding-right: 2rem;\n}\n@keyframes ms-marquee {\n  from {\n    transform: translateX(0);\n  }\n  to {\n    transform: translateX(-50%);\n  }\n}\n@media (prefers-reduced-motion: reduce) {\n  .ms-marquee__track {\n    animation: none;\n  }\n}",
+      "html": "<div class='ms-marquee rounded-lg border border-border bg-card p-4'>\n  <div class='ms-marquee__track'>\n    <div class='ms-marquee__group text-sm text-muted-foreground'>\n      <span>高速</span><span>安全</span><span>日本語</span><span>無料</span>\n    </div>\n    <div class='ms-marquee__group text-sm text-muted-foreground' aria-hidden='true'>\n      <span>高速</span><span>安全</span><span>日本語</span><span>無料</span>\n    </div>\n  </div>\n</div>",
+      "support": "baseline",
+      "supportNote": "transform のアニメーションは主要ブラウザで動く (Baseline)。",
+      "continuous": true,
+      "scrollLinked": false,
+      "reducedMotion": "流れる動きを止め、先頭の並びをそのまま見せる。",
+      "references": [
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/transform",
+        "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
+      ]
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import * as project from "./commands/project.ts";
 import * as renderDirection from "./commands/render-direction.ts";
 import * as styles from "./commands/styles.ts";
 import * as theme from "./commands/theme.ts";
+import * as treatments from "./commands/treatments.ts";
 
 type Command = (args: string[], env: NodeJS.ProcessEnv) => Promise<unknown>;
 
@@ -25,6 +26,7 @@ const COMMANDS: Record<string, Command> = {
   mix: mix.run,
   "check-page": checkPage.run,
   project: project.run,
+  treatments: treatments.run,
 };
 
 const COMMAND_LIST = Object.keys(COMMANDS).join(" / ");

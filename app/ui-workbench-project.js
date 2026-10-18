@@ -108,7 +108,7 @@ export function createProjectPanel(ctx) {
     setNote(ui.note, "", false);
     const stop = startElapsed(ui.progress, "ページを作っています…");
     try {
-      const body = { brief, direction: record(state.tuned), pageType };
+      const body = { brief, direction: record(state.tuned), pageType, treatment: state.treatment };
       const payload = await requestJson("/api/page", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
       const html = text(record(payload).html);
       if (html === "") throw new Error("ページが返りませんでした");
@@ -253,18 +253,19 @@ export function createProjectPanel(ctx) {
     return "";
   }
 
-  // 版 2 のプロジェクト (依頼・回・点・微調整)。ページは今のものを別に添える
+  // 版 3 のプロジェクト (依頼・回・点・微調整・表現)。ページ (items) はサーバーが足す
   function projectForSave(brief, pageType) {
     return {
-      version: 2,
+      version: 3,
       id: state.projectId === null ? newProjectId(brief) : state.projectId,
       brief,
       pageType,
+      treatment: state.treatment,
       rounds: state.rounds,
       roundIndex: state.roundIndex,
       points: state.points,
       fineTune: state.fineTune,
-      pages: [],
+      items: [],
     };
   }
 
@@ -322,15 +323,16 @@ export function createProjectPanel(ctx) {
     const payload = await requestJson("/api/projects", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
     if (entry !== undefined) entry.dirty = false;
     const saved = record(record(payload).project);
-    syncPageKeys(saved.pages);
+    syncPageKeys(saved.items);
     return saved;
   }
 
-  // 保存の応答のページの一覧から、キー (保存の住所) を手元の一覧に写す
+  // 保存の応答のページの一覧 (items) から、キー (保存の住所) を手元の一覧に写す
   function syncPageKeys(value) {
     if (!Array.isArray(value)) return;
     for (const raw of value) {
       const page = record(raw);
+      if (text(page.kind) !== "page") continue;
       const name = text(page.name);
       const entry = state.pageList.find((item) => item.name === name);
       if (entry === undefined) {
@@ -366,8 +368,10 @@ export function createProjectPanel(ctx) {
     const item = el("li", "wb-project");
     const info = el("div", "wb-project-info");
     info.append(el("p", "wb-project-name", text(project.name)));
-    const pageNames = (Array.isArray(project.pages) ? project.pages : [])
-      .map((page) => text(record(page).name))
+    const pageNames = (Array.isArray(project.items) ? project.items : [])
+      .map((page) => record(page))
+      .filter((page) => text(page.kind) === "page")
+      .map((page) => text(page.name))
       .filter((name) => name !== "");
     const lines = [
       `${text(project.what)} ・ ${text(record(project.pageType).name)}`,

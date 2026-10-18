@@ -24,6 +24,10 @@ const FAKE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Noto+Sans+JP&di
 const MIX_POINTS = { color: { x: 0, y: 0 }, font: { x: 1, y: 0 }, shape: { x: 0, y: 1 }, layout: { x: 0, y: 0 } };
 // 4 軸とも案 A の隅
 const POINTS_A = { color: { x: 0, y: 0 }, font: { x: 0, y: 0 }, shape: { x: 0, y: 0 }, layout: { x: 0, y: 0 } };
+// 表現の既定 (版 2 から直したときの treatment)
+const DEFAULT_TREATMENT = { surface: "none", motion: "none", motionSamples: [] };
+// テストで使う表現。面は Glass、動きは見せる (見本は marquee)
+const GLASS_TREATMENT = { surface: "glass", motion: "animated", motionSamples: ["marquee"] };
 
 function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null && !Array.isArray(x);
@@ -65,6 +69,29 @@ let child: ChildProcess | null = null;
 let dir = "";
 let base = "";
 let port = 0;
+// サーバーの env。モードを変えた別のサーバーを起こすテストが土台にする
+let serverEnv: NodeJS.ProcessEnv = {};
+
+type RunningServer = { child: ChildProcess; base: string };
+
+// サーバーを子プロセスで起動し、1 行目の URL から叩き先を決める
+async function startServer(env: NodeJS.ProcessEnv): Promise<RunningServer> {
+  const server = spawn(process.execPath, ["app/server.ts", "--port", "0", "--no-browser"], {
+    cwd: REPO_ROOT,
+    env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  server.stderr?.resume(); // 子プロセスの標準エラーで詰まらせない
+  const url = await serverUrl(server);
+  return { child: server, base: url.endsWith("/") ? url.slice(0, -1) : url };
+}
+
+async function stopServer(server: ChildProcess): Promise<void> {
+  if (server.exitCode !== null) return;
+  const exited = new Promise<void>((resolve) => server.once("exit", () => resolve()));
+  server.kill();
+  await exited;
+}
 
 // サーバーの 1 行目から URL を読む
 function serverUrl(server: ChildProcess): Promise<string> {
@@ -108,26 +135,17 @@ before(async () => {
     DESIGN_STUDIO_LLM_CMD: JSON.stringify([process.execPath, MOCK_LLM]),
     MOCK_LLM_ARGS_FILE: join(dir, "llm-args.json"),
   };
-  const server = spawn(process.execPath, ["app/server.ts", "--port", "0", "--no-browser"], {
-    cwd: REPO_ROOT,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  child = server;
-  server.stderr?.resume(); // 子プロセスの標準エラーで詰まらせない
-  const url = await serverUrl(server);
-  base = url.endsWith("/") ? url.slice(0, -1) : url;
+  serverEnv = env;
+  const started = await startServer(env);
+  child = started.child;
+  base = started.base;
   port = Number(new URL(base).port);
 });
 
 after(async () => {
   const server = child;
   child = null;
-  if (server !== null && server.exitCode === null) {
-    const exited = new Promise<void>((resolve) => server.once("exit", () => resolve()));
-    server.kill();
-    await exited;
-  }
+  if (server !== null) await stopServer(server);
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -142,8 +160,8 @@ function parseJson(text: string): unknown {
   }
 }
 
-async function fetchPath(path: string): Promise<HttpResult> {
-  const r = await fetch(base + path);
+async function fetchPath(path: string, at = base): Promise<HttpResult> {
+  const r = await fetch(at + path);
   const text = await r.text();
   return {
     status: r.status,
@@ -154,9 +172,9 @@ async function fetchPath(path: string): Promise<HttpResult> {
   };
 }
 
-async function post(path: string, body: unknown, headers: Record<string, string> = {}): Promise<HttpResult> {
+async function post(path: string, body: unknown, headers: Record<string, string> = {}, at = base): Promise<HttpResult> {
   const raw = typeof body === "string" ? body : JSON.stringify(body);
-  const r = await fetch(base + path, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body: raw });
+  const r = await fetch(at + path, { method: "POST", headers: { "Content-Type": "application/json", ...headers }, body: raw });
   const text = await r.text();
   return {
     status: r.status,
@@ -195,6 +213,12 @@ function rawRequest(method: "GET" | "POST", path: string, body: string, headers:
 // サーバーが一時ファイルに使う接頭辞のディレクトリ。使い終わったら消えていることを確かめる
 const tempDirs = (prefix: string): string[] => readdirSync(tmpdir()).filter((name) => name.startsWith(prefix));
 
+// 偽の LLM が最後に受け取ったプロンプト (MOCK_LLM_ARGS_FILE の記録)
+function lastMockPrompt(): string {
+  const raw: unknown = JSON.parse(readFileSync(join(dir, "llm-args.json"), "utf8"));
+  return str(get(raw, "prompt"));
+}
+
 let cachedDirections: unknown[] | null = null;
 
 // 4 件の方向性の案。テストで何度も使うので覚える
@@ -220,10 +244,9 @@ async function mixForTest(): Promise<unknown> {
   return cachedMix;
 }
 
-// 版 2 のプロジェクト (POST /api/projects の入力)。画面の種類は自由な名前
-function projectForTest(id: string, directions: unknown[]): Record<string, unknown> {
+// 版 2・3 で同じ項目 (POST /api/projects の入力)。画面の種類は自由な名前
+function projectContentForTest(id: string, directions: unknown[]): Record<string, unknown> {
   return {
-    version: 2,
     id,
     brief: { what: "落ち着いた請求書アプリ", mood: "", audience: "", mustHave: "" },
     pageType: { name: "請求書一覧", family: "dashboard" },
@@ -231,8 +254,17 @@ function projectForTest(id: string, directions: unknown[]): Record<string, unkno
     roundIndex: 0,
     points: MIX_POINTS,
     fineTune: {},
-    pages: [],
   };
+}
+
+// 版 2 のプロジェクト
+function projectForTest(id: string, directions: unknown[]): Record<string, unknown> {
+  return { version: 2, ...projectContentForTest(id, directions), pages: [] };
+}
+
+// 版 3 のプロジェクト
+function projectVersion3ForTest(id: string, directions: unknown[], treatment: Record<string, unknown>): Record<string, unknown> {
+  return { version: 3, ...projectContentForTest(id, directions), treatment, items: [] };
 }
 
 void test("1. GET / が 200 で HTML、/app の不正なパスは 404", async () => {
@@ -483,7 +515,7 @@ void test("12. POST /api/tokens が Tailwind・JSON・CSS の 3 形式を返す"
   assert.equal(get(bad.json, "error"), "input");
 });
 
-void test("13. POST /api/projects が版 2 を保存し、一覧・詳細・ページが返る", async () => {
+void test("13. POST /api/projects が版 2 の入力を版 3 として保存し、一覧・詳細・ページが返る", async () => {
   const directions = await directionsForTest();
   const pageHtml = makePageHtml({
     title: "保存したページ",
@@ -500,8 +532,10 @@ void test("13. POST /api/projects が版 2 を保存し、一覧・詳細・ペ�
   const created = await post("/api/projects", { project: projectForTest("test-project", directions), page: { pageType, html: pageHtml } });
   assert.equal(created.status, 200, created.text);
   assert.equal(get(created.json, "project", "id"), "test-project");
-  assert.equal(get(created.json, "project", "version"), 2);
-  assert.deepEqual(get(created.json, "project", "pages"), [{ key, name: "請求書一覧", family: "dashboard" }]);
+  assert.equal(get(created.json, "project", "version"), 3);
+  assert.deepEqual(get(created.json, "project", "items"), [
+    { kind: "page", key, name: "請求書一覧", family: "dashboard", treatment: DEFAULT_TREATMENT },
+  ]);
 
   // theme.css はサーバーが今の回を混ぜ直した方向性の seed で作って保存する
   const themeCss = readFileSync(join(dir, "home", "projects", "test-project", "theme.css"), "utf8");
@@ -535,7 +569,9 @@ void test("13. POST /api/projects が版 2 を保存し、一覧・詳細・ペ�
     page: { pageType: { name: "料金ページ", family: "pricing" }, html: pageHtml },
   });
   assert.equal(pricing.status, 200, pricing.text);
-  assert.deepEqual(get(pricing.json, "project", "pages"), [{ key: "pricing", name: "料金ページ", family: "pricing" }]);
+  assert.deepEqual(get(pricing.json, "project", "items"), [
+    { kind: "page", key: "pricing", name: "料金ページ", family: "pricing", treatment: DEFAULT_TREATMENT },
+  ]);
   assert.equal((await fetchPath("/api/projects/test-project-pricing/pages/pricing")).status, 200);
 
   // CSP の meta より前にスクリプトがある html は 400 で、保存されない
@@ -554,12 +590,13 @@ void test("13. POST /api/projects が版 2 を保存し、一覧・詳細・ペ�
   // page を省いた保存もできる (アプリは保存するまでページを持たない)
   const second = await post("/api/projects", { project: projectForTest("test-project-2", directions) });
   assert.equal(second.status, 200, second.text);
-  assert.deepEqual(get(second.json, "project", "pages"), []);
+  assert.deepEqual(get(second.json, "project", "items"), []);
+  assert.deepEqual(get(second.json, "project", "treatment"), DEFAULT_TREATMENT);
 
   // 旧 pageType・html の最上位のキーは使わない (page を省いたのと同じ)
   const old = await post("/api/projects", { project: projectForTest("test-project-old", directions), pageType: "lp", html: pageHtml });
   assert.equal(old.status, 200, old.text);
-  assert.deepEqual(get(old.json, "project", "pages"), []);
+  assert.deepEqual(get(old.json, "project", "items"), []);
 
   const list = await fetchPath("/api/projects");
   assert.equal(list.status, 200);
@@ -639,4 +676,194 @@ void test("16. 上限を超える本物の本文の POST も、読み捨てて�
   );
   assert.equal(big.status, 413, big.text);
   assert.equal(get(big.json, "error"), "too-large");
+});
+
+void test("17. GET /api/treatments が面と動きの一覧、GET /api/motions/<id>/preview が見本の HTML を返す", async () => {
+  const listing = await fetchPath("/api/treatments");
+  assert.equal(listing.status, 200, listing.text);
+  const surfaces = arr(get(listing.json, "surfaces"));
+  const motions = arr(get(listing.json, "motions"));
+  assert.deepEqual(
+    surfaces.map((surface) => get(surface, "id")),
+    ["none", "material", "glass", "solid"],
+  );
+  assert.deepEqual(
+    surfaces.map((surface) => get(surface, "name")),
+    ["指定しない", "Material", "Glass", "Solid"],
+  );
+  assert.equal(motions.length, 12, listing.text);
+  const aurora = motions.find((motion) => get(motion, "id") === "aurora");
+  assert.equal(get(aurora, "name"), "ゆっくり流れるオーロラの背景");
+  assert.ok(str(get(aurora, "css")).includes("prefers-reduced-motion"), "動きの見本に reduced-motion の扱いがありません");
+
+  const preview = await fetchPath("/api/motions/aurora/preview");
+  assert.equal(preview.status, 200, preview.text);
+  assert.match(preview.type, /^text\/html; charset=utf-8/);
+  assert.equal(preview.csp, "sandbox allow-scripts");
+  assert.ok(preview.text.includes('<style id="motion">'), preview.text.slice(0, 500));
+  assert.ok(preview.text.includes(str(get(aurora, "html"))), "見本の html が入っていません");
+  assert.ok(preview.text.includes("--fake-radius"), "見本帳の minimal のテーマが入っていません");
+
+  assert.equal((await fetchPath("/api/motions/no-such/preview")).status, 404);
+  assert.equal((await fetchPath("/api/motions/aurora")).status, 404);
+});
+
+void test("18. POST /api/directions と POST /api/page が treatment を LLM のプロンプトに通す", async () => {
+  // 方向性の案: 面の名前 (Glass) がプロンプトに入る
+  const directions = await post("/api/directions", {
+    brief: { what: "素材感のある料金ページ" },
+    pageType: { name: "料金ページ" },
+    treatment: GLASS_TREATMENT,
+  });
+  assert.equal(directions.status, 200, directions.text);
+  assert.equal(arr(get(directions.json, "directions")).length, 4);
+  const directionsPrompt = lastMockPrompt();
+  assert.ok(directionsPrompt.includes("## 表現"), "方向性のプロンプトに表現の節がありません");
+  assert.ok(directionsPrompt.includes("Glass"), "方向性のプロンプトに面の名前がありません");
+
+  // ページ: 選んだ見本 (marquee) の名前がプロンプトに入る
+  const direction = rec(await mixForTest());
+  const page = await post("/api/page", {
+    brief: { what: "素材感のある料金ページ" },
+    direction,
+    pageType: { name: "料金ページ", family: "pricing" },
+    treatment: GLASS_TREATMENT,
+  });
+  assert.equal(page.status, 200, page.text);
+  assert.ok(str(get(page.json, "html")).includes('id="theme"'), page.text.slice(0, 300));
+  const pagePrompt = lastMockPrompt();
+  assert.ok(pagePrompt.includes("## 表現"), "ページのプロンプトに表現の節がありません");
+  assert.ok(pagePrompt.includes("流れ続ける帯"), "ページのプロンプトに見本 marquee の name がありません");
+});
+
+void test("19. treatment を省いた POST /api/directions・POST /api/page は今までどおり", async () => {
+  const directions = await post("/api/directions", { brief: { what: "落ち着いた請求書アプリ" }, pageType: { name: "ブログ記事" } });
+  assert.equal(directions.status, 200, directions.text);
+  assert.equal(arr(get(directions.json, "directions")).length, 4);
+  assert.ok(!lastMockPrompt().includes("## 表現"), "既定の表現なのに表現の節があります");
+
+  const direction = rec(await mixForTest());
+  const page = await post("/api/page", {
+    brief: { what: "料金の比較ページを作る" },
+    direction,
+    pageType: { name: "料金ページ", family: "pricing" },
+  });
+  assert.equal(page.status, 200, page.text);
+  assert.match(str(get(page.json, "html")), /id="theme"/);
+  assert.ok(!lastMockPrompt().includes("## 表現"), "既定の表現なのに表現の節があります");
+});
+
+void test("20. treatment の面の id が台帳に無ければ 400 (error: input)", async () => {
+  const direction = rec(await mixForTest());
+  const targets: { path: string; body: Record<string, unknown> }[] = [
+    { path: "/api/directions", body: { brief: { what: "料金ページ" }, pageType: { name: "料金ページ" } } },
+    { path: "/api/page", body: { brief: { what: "料金ページ" }, direction, pageType: { name: "料金ページ", family: "pricing" } } },
+    { path: "/api/render", body: { direction, family: "pricing" } },
+  ];
+  for (const target of targets) {
+    const r = await post(target.path, { ...target.body, treatment: { surface: "no-such" } });
+    assert.equal(r.status, 400, `${target.path}: ${r.text}`);
+    assert.equal(get(r.json, "error"), "input", `${target.path}: ${r.text}`);
+  }
+});
+
+void test("21. POST /api/render は treatment の面を骨組みに重ねる", async () => {
+  const direction = rec(await mixForTest());
+  const solid = await post("/api/render", {
+    direction,
+    family: "settings",
+    treatment: { surface: "solid", motion: "none", motionSamples: [] },
+  });
+  assert.equal(solid.status, 200, solid.text);
+  assert.equal(get(solid.json, "surface"), "solid");
+  assert.ok(str(get(solid.json, "html")).includes('<style id="surface">'), "面の style が入っていません");
+
+  const none = await post("/api/render", { direction, family: "settings" });
+  assert.equal(none.status, 200, none.text);
+  assert.equal(get(none.json, "surface"), "none");
+  assert.ok(!str(get(none.json, "html")).includes('<style id="surface">'), "既定なのに面の style が入っています");
+});
+
+void test("22. ページの動きの点検: motion-then-good は 2 回で通り、no-reduced-motion は 502", async () => {
+  const pageBody = {
+    brief: { what: "動きのある料金ページ" },
+    direction: rec(await mixForTest()),
+    pageType: { name: "料金ページ", family: "pricing" },
+  };
+
+  // 1 回目は reduced-motion の指定が無く、2 回目で通る。偽の LLM は 2 回呼ばれる
+  const motionServer = await startServer({
+    ...serverEnv,
+    MOCK_LLM_MODE: "motion-then-good",
+    MOCK_LLM_COUNTER: join(dir, "counter-motion.txt"),
+  });
+  try {
+    const r = await post("/api/page", pageBody, {}, motionServer.base);
+    assert.equal(r.status, 200, r.text);
+    assert.match(str(get(r.json, "html")), /id="theme"/);
+    assert.equal(readFileSync(join(dir, "counter-motion.txt"), "utf8"), "2", "偽の LLM が 2 回呼ばれていません");
+  } finally {
+    await stopServer(motionServer.child);
+  }
+
+  // 2 回とも reduced-motion の指定が無ければ bad-page (502)
+  const badServer = await startServer({ ...serverEnv, MOCK_LLM_MODE: "no-reduced-motion" });
+  try {
+    const r = await post("/api/page", pageBody, {}, badServer.base);
+    assert.equal(r.status, 502, r.text);
+    assert.equal(get(r.json, "error"), "bad-page");
+  } finally {
+    await stopServer(badServer.child);
+  }
+});
+
+void test("23. 版 3 の project が treatment と items ごと保存され、版 2 の project.json は版 3 として読める", async () => {
+  const directions = await directionsForTest();
+  const pageType = { name: "商品詳細", family: "product" } as const;
+  const key = pageKeyOf(pageType);
+  const pageHtml = makePageHtml({
+    title: "表現つきのページ",
+    themeId: "test-project-v3",
+    mode: "light",
+    cssForPage: "",
+    fontsUrl: "https://fonts.googleapis.com/css2?family=Inter",
+    body: "<p>表現つきのページ</p>",
+  });
+
+  const created = await post("/api/projects", {
+    project: projectVersion3ForTest("test-project-v3", directions, GLASS_TREATMENT),
+    page: { pageType, html: pageHtml },
+  });
+  assert.equal(created.status, 200, created.text);
+  assert.equal(get(created.json, "project", "version"), 3);
+  assert.deepEqual(get(created.json, "project", "treatment"), GLASS_TREATMENT);
+  assert.equal(get(created.json, "project", "items", 0, "kind"), "page");
+  assert.equal(get(created.json, "project", "items", 0, "key"), key);
+  assert.deepEqual(get(created.json, "project", "items", 0, "treatment"), GLASS_TREATMENT);
+
+  // 読み戻しても同じ
+  const read = await fetchPath("/api/projects/test-project-v3");
+  assert.equal(read.status, 200, read.text);
+  assert.deepEqual(get(read.json, "project", "treatment"), GLASS_TREATMENT);
+  assert.equal(get(read.json, "project", "items", 0, "kind"), "page");
+  assert.deepEqual(get(read.json, "project", "items", 0, "treatment"), GLASS_TREATMENT);
+
+  // 版 2 の project.json を置いたプロジェクトも、読むと版 3 になる (ページは既定の表現の item)
+  const version2 = {
+    ...projectForTest("test-project-v2", directions),
+    pages: [{ key: "dashboard", name: "請求書一覧", family: "dashboard" }],
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-02T00:00:00.000Z",
+  };
+  const version2Dir = join(dir, "home", "projects", "test-project-v2");
+  mkdirSync(version2Dir, { recursive: true });
+  writeFileSync(join(version2Dir, "project.json"), JSON.stringify(version2, null, 2) + "\n", "utf8");
+
+  const upgraded = await fetchPath("/api/projects/test-project-v2");
+  assert.equal(upgraded.status, 200, upgraded.text);
+  assert.equal(get(upgraded.json, "project", "version"), 3);
+  assert.deepEqual(get(upgraded.json, "project", "treatment"), DEFAULT_TREATMENT);
+  assert.deepEqual(get(upgraded.json, "project", "items"), [
+    { kind: "page", key: "dashboard", name: "請求書一覧", family: "dashboard", treatment: DEFAULT_TREATMENT },
+  ]);
 });

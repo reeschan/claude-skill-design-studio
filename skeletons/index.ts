@@ -30,6 +30,7 @@ export type SkeletonRequest = {
   cssForPage: string;
   fontsUrl: string;
   title: string;
+  surfaceCss?: string; // 面の台帳の CSS。空・省略なら層を足さない (骨組みの HTML を変えない)
 };
 
 function pickSkeleton<F extends SkeletonFamily>(family: F, layout: string): Skeleton | undefined {
@@ -48,6 +49,7 @@ export function renderSkeleton(request: SkeletonRequest): string {
     });
   }
   const body = skeleton({ copy: request.copy, mode: request.mode });
+  const extraStyles = surfaceStylesOf(request.surfaceCss);
   return pageHtml({
     title: request.title,
     themeId: request.themeId,
@@ -55,5 +57,11 @@ export function renderSkeleton(request: SkeletonRequest): string {
     cssForPage: request.cssForPage,
     fontsUrl: request.fontsUrl,
     body,
+    ...(extraStyles === undefined ? {} : { extraStyles }),
   });
+}
+
+// 面の CSS を、テーマの style のあとに重ねる層にする。空・省略なら層を足さない
+function surfaceStylesOf(css: string | undefined): { id: string; css: string }[] | undefined {
+  return css === undefined || css === "" ? undefined : [{ id: "surface", css }];
 }

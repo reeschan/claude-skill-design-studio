@@ -6,11 +6,12 @@ import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
-import { findDisallowedUrls, hasPageCsp, PAGE_CSP } from "./page-html.ts";
+import { checkMotion, findDisallowedUrls, hasPageCsp, PAGE_CSP } from "./page-html.ts";
 import { llmCommand } from "./paths.ts";
 import { validateDirection } from "./styles.ts";
+import { findMotion, findSurface, isDefaultTreatment, loadMotions } from "./treatment.ts";
 import { LAYOUTS, SKELETON_FAMILIES } from "./types.ts";
-import type { Brief, Direction, FontMood, PageType, SkeletonFamily } from "./types.ts";
+import type { Brief, Direction, FontMood, MotionLevel, MotionSample, PageType, SkeletonFamily, Treatment } from "./types.ts";
 
 // claude CLI の既定のモデルと、種類ごとのタイムアウト (方向性 180 秒・ページ 600 秒)
 const LLM_MODEL = "sonnet";
@@ -190,6 +191,7 @@ export type GenerateDirectionsInput = {
   pageType: { name: string; family?: SkeletonFamily }; // 画面の名前と、あてが分かっているときの骨組みの種類
   screenshotPath?: string; // 参考にする画像。一時ディレクトリにコピーして、その 1 ファイルだけを読ませる
   fontPairs: FontPair[]; // style-guide の data/fonts.json の組。呼び出し側が読んで渡す
+  treatment?: Treatment; // 利用者が選んだ表現。省略か既定なら「## 表現」を足さない (プロンプトは今のまま)
 };
 
 const str = { type: "string" };
@@ -344,6 +346,77 @@ function userBriefLines(brief: Brief): string[] {
   ];
 }
 
+// 「## 表現」の節に出す、動きの強さの決まり
+const MOTION_LABELS: Record<MotionLevel, string> = {
+  none: "動かさない。フォーカスの表示だけを残す。",
+  subtle: "控えめ。ホバー・押下・開閉の短い transition だけを使い、0.3 秒くらいまでにする。ずっと動くものとスクロール連動は使わない。",
+  animated: "見せる。動きの見本集から 2〜4 件を主役に使ってよい。",
+};
+
+type PromptPurpose = "directions" | "page";
+
+// 表現の節の面の行。面を指定していない (none) ときは空
+function surfaceLines(treatment: Treatment): string[] {
+  const surface = findSurface(treatment.surface);
+  if (surface === undefined || surface.instructions.length === 0) return [];
+  return [`面: ${surface.name} — ${surface.description}`, "面の作り方:", ...surface.instructions.map((line) => `- ${line}`)];
+}
+
+// 表現の節の動きの行
+function motionLines(treatment: Treatment): string[] {
+  return [`動き: ${MOTION_LABELS[treatment.motion]}`];
+}
+
+// プロンプトに渡す見本 1 件。html は指定された見本のときだけ渡す
+type PromptSample = {
+  id: string;
+  name: string;
+  uses: string[];
+  technique: string;
+  css: string;
+  support: MotionSample["support"];
+  supportNote: string;
+  reducedMotion: string;
+  html?: string;
+};
+
+function promptSample(sample: MotionSample, withHtml: boolean): PromptSample {
+  const fields = {
+    id: sample.id,
+    name: sample.name,
+    uses: sample.uses,
+    technique: sample.technique,
+    css: sample.css,
+    support: sample.support,
+    supportNote: sample.supportNote,
+    reducedMotion: sample.reducedMotion,
+  };
+  return withHtml ? { ...fields, html: sample.html } : fields;
+}
+
+// animated のときの見本。指定があれば html 付きで「必ず使う」と伝え、
+// 無ければ 12 件すべてを候補として渡して 2〜4 件を選ばせる
+function sampleLines(treatment: Treatment): string[] {
+  if (treatment.motionSamples.length === 0) {
+    const candidates = loadMotions().map((sample) => promptSample(sample, false));
+    return ["動きの見本の候補 (この中から 2〜4 件を選ぶ):", JSON.stringify(candidates)];
+  }
+  const chosen = treatment.motionSamples.map((id) => findMotion(id)).filter((sample): sample is MotionSample => sample !== undefined);
+  return ["次の動きの見本は必ず使ってください (ほかの見本は候補):", JSON.stringify(chosen.map((sample) => promptSample(sample, true)))];
+}
+
+const DIRECTIONS_TREATMENT_NOTE = "- 表現に合う配色・形・字組みの案にしてください。表現 (面と動き) は 4 つの案で変えないでください。";
+const PAGE_TREATMENT_NOTE = "- この表現を、ページ全体の面と動きの土台にしてください。";
+
+// プロンプトに差し込む「## 表現」の節。既定の表現なら空にする (方向性のプロンプトを 1 文字も変えない)
+function treatmentSection(treatment: Treatment | undefined, purpose: PromptPurpose): string[] {
+  if (treatment === undefined || isDefaultTreatment(treatment)) return [];
+  const lines = ["## 表現", ...surfaceLines(treatment), ...motionLines(treatment)];
+  if (purpose === "page" && treatment.motion === "animated") lines.push(...sampleLines(treatment));
+  lines.push(purpose === "directions" ? DIRECTIONS_TREATMENT_NOTE : PAGE_TREATMENT_NOTE);
+  return [...lines, ""];
+}
+
 function directionsPrompt(input: GenerateDirectionsInput, shot: Screenshot | null): string {
   const { brief, pageType } = input;
   const lines = [
@@ -360,6 +433,7 @@ function directionsPrompt(input: GenerateDirectionsInput, shot: Screenshot | nul
       ? ["この名前に一番近い骨組みの種類を family に答えてください。"]
       : [`当てる骨組みの種類: ${pageType.family}`]),
     "",
+    ...treatmentSection(input.treatment, "directions"),
     "## 4 つの案の条件",
     "- 案どうしで、基調の明暗 (light / dark)・彩度・形 (角丸・影)・配置の型のうち、少なくとも 2 つをはっきり変えてください。",
     "- name は短い日本語、rationale は「なぜこの案か」を 1 文で書いてください。",
@@ -436,6 +510,7 @@ export type GeneratePageInput = {
   pageType: PageType; // 画面の名前と骨組みの種類。名前はプロンプトに、family は配置の出発点に使う
   cssForPage: string; // render --seed の css から先頭の @import "tailwindcss"; の行を除いたもの
   fontsUrl: string;
+  treatment?: Treatment; // 利用者が選んだ表現。省略か既定なら「## 表現」を足さない
 };
 
 const HTML_TAG_RE = /<html\b[^>]*>/i;
@@ -473,6 +548,7 @@ function checkPageOutput(out: unknown, input: GeneratePageInput): PageCandidate 
   const urls = findDisallowedUrls(html);
   if (urls.length > 0) issues.push(`許可していない URL があります: ${urls.join(", ")}`);
   if (!hasDataTheme(html, input.direction.seed.id)) issues.push(`data-theme="${input.direction.seed.id}" ではありません`);
+  if (!checkMotion(html).ok) issues.push("動きがあるのに prefers-reduced-motion の指定がありません");
   return { html, issues };
 }
 
@@ -493,6 +569,7 @@ function pagePrompt(input: GeneratePageInput): string {
       JSON.stringify(direction),
       `- 配置は layouts.${pageType.family} = 「${layout}」を出発点にしてよいですが、骨組みより作り込んでください。`,
       "",
+      ...treatmentSection(input.treatment, "page"),
       "## 参照のページ HTML の形",
       `- ルート要素: <html lang="ja" data-theme="${direction.seed.id}" data-mode="${direction.seed.baseMode}">`,
       '- <head> の順: <meta charset="utf-8"> → 次の CSP の meta → viewport → <title> → preconnect (fonts.googleapis.com) → preconnect (fonts.gstatic.com、crossorigin) → fonts の <link> → Tailwind の <script> → テーマの <style>',
@@ -502,6 +579,11 @@ function pagePrompt(input: GeneratePageInput): string {
       '- テーマの <style> は <style type="text/tailwindcss" id="theme"> で、中身は空でよい (こちらで入れる)。',
       "- インラインの <script> と on*= 属性は使わない (CSP で止まる)。動きは CSS だけで表す。",
       "- 色・角丸・影・フォント・余白はテーマのユーティリティだけで指定する: bg-background text-foreground bg-card text-card-foreground bg-primary text-primary-foreground bg-secondary bg-muted text-muted-foreground border-border bg-accent text-accent-foreground bg-brand-accent ring-ring rounded-sm|md|lg shadow-md font-heading font-sans font-mono。色の直書き (#fff や bg-blue-500 など) はしない。",
+      "- テーマの <style> とは別に、自分で書く <style> (ふつうの CSS。テーマの style のあと) を置いてよい。そこでは @keyframes・@property・backdrop-filter・mask を書いてよい。",
+      "- 自分で書く <style> でも、色はテーマの CSS 変数 (var(--primary) など。--color-primary ではない) か、それを color-mix() で薄めたものだけにする。色の直書き (#fff や bg-blue-500 など) はしない。",
+      "- ユーティリティでは、透明度の付け方 (bg-card/60 など) と backdrop-blur-* を使ってよい。",
+      "- 動き (@keyframes・animation・transition・animate-*・transition*) を使うときは、@media (prefers-reduced-motion: reduce) か Tailwind の motion-safe:・motion-reduce: で、止めるか弱める指定を必ず置く。",
+      "- Chromium だけの機能 (sibling-index()・scroll-triggered animations・corner-shape・SVG フィルタの屈折) は、@supports で無いときの見た目を用意したときだけ使う。",
       "- 画像は使わない。グラデーションとインラインの SVG で表す。",
       "- 外部から読み込んでよいのは Tailwind の browser 版と Google Fonts だけ。mailto:・tel: のリンクと、同じページ内の参照 (#top など) は置いてよい。",
       "- 文章は日本語。",

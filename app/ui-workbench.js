@@ -2,11 +2,14 @@
 // 中央に端末を切り替えられるライブプレビュー (骨組み / ページ)、右に調整のパネル
 //   (パッド・微調整・コントラスト・トークン・ページ・保存。PBI-010 で下の 2 つのファイルに分けた)。
 // 見本帳の「これに近いもので作る」から studio:start-from-style を受けたら、そのスタイルを原案 1 つの回にして始める。
-// API: GET /api/meta /api/styles /api/projects、POST /api/directions /api/mix /api/render /api/tokens /api/page /api/projects
+// API: GET /api/meta /api/styles /api/projects /api/treatments、POST /api/directions /api/mix /api/render /api/tokens /api/page /api/projects
 import { createPanels } from "./ui-workbench-panels.js";
 import { createProjectPanel } from "./ui-workbench-project.js";
+import { createTreatmentPanel } from "./ui-workbench-treatment.js";
 
 const LETTERS = ["A", "B", "C", "D"];
+// 表現の動きの強さ (core/types.ts の MOTION_LEVELS と同じ 3 つ)
+const MOTION_LEVELS = ["none", "subtle", "animated"];
 // 骨組みの種類 (core と同じ 7 つ)。候補の並びは /api/meta の pageTypes に合わせる
 const SKELETON_FAMILIES = ["lp", "dashboard", "blog", "pricing", "product", "portfolio", "settings"];
 const SHADOWS = [
@@ -116,6 +119,7 @@ const state = {
   fineTune: {}, // 微調整 (右の列が作る。空 = 混ぜた値のまま)
   device: "desktop", // プレビューの端末
   previewMode: "skeleton", // 中央のプレビュー (骨組み / ページ)
+  treatment: { surface: "none", motion: "none", motionSamples: [] }, // 表現 (面・動き・動きの見本。依頼・プレビュー・ページ・保存に効く)
   mixed: null, // 最後の /api/mix の mixed (混ぜただけ。微調整の初期値に使う)
   tuned: null, // 最後の /api/mix の direction (微調整込み。トークンとページに使う)
   page: null, // 中央に出しているページ { pageType, html }
@@ -136,6 +140,9 @@ let panels = null;
 
 // 右の列のページ・保存 (app/ui-workbench-project.js)
 let projectPanel = null;
+
+// 依頼のフォームの表現 (app/ui-workbench-treatment.js)
+let treatmentPanel = null;
 
 const frameObserver = new ResizeObserver(() => {
   sizeFrame();
@@ -428,6 +435,9 @@ function buildBriefPanel(root) {
   buildTypeField(form);
   buildFamilyRow(form);
   buildBriefFields(form);
+  // 表現 (面・動き・動きの見本) は依頼のフォームの中で選ぶ (PBI-008)
+  treatmentPanel = createTreatmentPanel(panelContext());
+  treatmentPanel.build(form);
   buildScreenshotRow(form);
   const button = el("button", "btn btn-primary", "案を出す");
   button.type = "button";
@@ -488,7 +498,7 @@ async function generateFromForm() {
   const session = nextSession();
   const stop = startElapsed(state.status, "案を考えています…");
   try {
-    const body = { brief, pageType: { name: pageTypeName() } };
+    const body = { brief, pageType: { name: pageTypeName() }, treatment: state.treatment };
     if (state.screenshot !== null) body.screenshot = state.screenshot.dataUrl;
     const payload = await requestJson("/api/directions", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
     if (state.session !== session) return; // あとから始めた作業がある → この応答は捨てる
@@ -1204,7 +1214,7 @@ async function requestRender(direction, token, show) {
     return null;
   }
   try {
-    const body = { direction, family: state.pageType.family };
+    const body = { direction, family: state.pageType.family, treatment: state.treatment };
     const payload = await requestJson("/api/render", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
     return state.previewToken === token ? record(payload) : null;
   } catch (error) {
@@ -1250,6 +1260,7 @@ function panelContext() {
     effectiveDirections,
     collectBrief,
     pageTypeName,
+    fieldOf,
     fontPairs,
     layoutsOf,
     showPage,
@@ -1289,10 +1300,22 @@ function roundsOf(value) {
 
 function pageEntriesOf(value) {
   if (!Array.isArray(value)) return [];
-  return value.map((entry) => {
-    const page = record(entry);
-    return { name: text(page.name), family: text(page.family), key: text(page.key), html: null };
-  });
+  return value
+    .map((entry) => record(entry))
+    .filter((item) => text(item.kind) === "page")
+    .map((item) => ({ name: text(item.name), family: text(item.family), key: text(item.key), html: null }));
+}
+
+// 保存したプロジェクトの表現。motionSamples は animated のときだけ持つ (core の validateTreatment と同じ)
+function treatmentOf(value) {
+  const treatment = record(value);
+  const motion = text(treatment.motion);
+  const samples = Array.isArray(treatment.motionSamples) ? treatment.motionSamples.map((id) => text(id)).filter((id) => id !== "") : [];
+  return {
+    surface: text(treatment.surface) === "" ? "none" : text(treatment.surface),
+    motion: MOTION_LEVELS.includes(motion) ? motion : "none",
+    motionSamples: motion === "animated" ? samples : [],
+  };
 }
 
 // 保存したプロジェクトの依頼・回・点・微調整・ページの一覧を画面に戻す
@@ -1314,7 +1337,9 @@ function applyProject(raw) {
   state.editing = -1;
   state.points = pointsOf(project.points);
   state.fineTune = structuredClone(record(project.fineTune));
-  state.pageList = pageEntriesOf(project.pages);
+  state.treatment = treatmentOf(project.treatment);
+  if (treatmentPanel !== null) treatmentPanel.setTreatment(state.treatment);
+  state.pageList = pageEntriesOf(project.items);
   state.page = null;
   state.projectId = text(project.id);
   state.mixed = null;

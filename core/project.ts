@@ -1,5 +1,5 @@
 // プロジェクト (1 つの依頼から作ったもの) を <home>/projects/<id>/ に保存し、読み戻す。
-// 保存の形は版 2 (依頼・回の履歴・点・微調整・画面の種類ごとのページ)。版の無い古い形は読むときに直す。
+// 保存の形は版 3 (依頼・回の履歴・点・微調整・表現・保存した 1 件ごとの item)。版 2 と版の無い古い形は読むときに直す。
 // 書き込みは同じディレクトリの一時ファイルに書いてから rename する (途中で壊れたファイルを残さない)。
 // 外部入力の検証は style-guide の core/explicit.ts に倣って手で書く
 import { randomUUID } from "node:crypto";
@@ -13,8 +13,9 @@ import { readJsonFile } from "./json-file.ts";
 import { pageKeyOf, validatePageType } from "./page-type.ts";
 import { studioHome } from "./paths.ts";
 import { validateDirection } from "./styles.ts";
+import { DEFAULT_TREATMENT, validateTreatment } from "./treatment.ts";
 import { PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "./types.ts";
-import type { Direction, MixPoint, MixPoints, PageEntry, PageType, Project, Round, SkeletonFamily } from "./types.ts";
+import type { Direction, MixPoint, MixPoints, PageType, Project, Round, SavedItem, SkeletonFamily, Treatment } from "./types.ts";
 
 const PROJECT_FILE = "project.json";
 const THEME_FILE = "theme.css";
@@ -70,22 +71,35 @@ function timeOf(value: unknown, label: string): string {
   return value;
 }
 
-// ===== 検証 (版 2 の形。contract.md の 7 節) =====
+// ===== 検証 (版 3 の形。contract.md の 7 節) =====
 
 // 保存に要る項目。時刻は保存するときに決める
 type ProjectContent = Omit<Project, "createdAt" | "updatedAt">;
+// 版 2・3 で同じ項目 (版・表現・items 以外)
+type SharedContent = Omit<ProjectContent, "version" | "treatment" | "items">;
+// ページの項目 (items の kind と treatment 以外)
+type PageFields = Omit<SavedItem, "kind" | "treatment">;
 
-// 入力のプロジェクトを検証する。版が無ければ古い形として直し、2 以外の数なら入力の誤り
+// 入力のプロジェクトを検証する。版が無ければ古い形として直し、2 は版 3 に直し、3 以外の数なら入力の誤り
 function validateProjectContent(x: unknown): ProjectContent {
   const raw = recordOf(x, "project");
-  return raw.version === undefined ? upgradedContent(raw) : newContentOf(raw);
+  if (raw.version === 3) {
+    return {
+      ...sharedContentOf(raw),
+      version: 3,
+      treatment: validateTreatment(raw.treatment),
+      items: validateSavedItems(raw.items),
+    };
+  }
+  if (raw.version === 2) return version3From(sharedContentOf(raw), validatePageEntries(raw.pages));
+  if (raw.version === undefined) return upgradedContent(raw);
+  throw inputError("project.version は 3 で指定してください");
 }
 
-function newContentOf(raw: Record<string, unknown>): ProjectContent {
-  if (raw.version !== 2) throw inputError("project.version は 2 で指定してください");
+// 版 2・3 で同じ項目を検証する
+function sharedContentOf(raw: Record<string, unknown>): SharedContent {
   const rounds = validateRounds(raw.rounds);
   return {
-    version: 2,
     id: validateProjectId(raw.id),
     brief: validateBrief(raw.brief),
     pageType: pageTypeWithFamily(raw.pageType),
@@ -93,7 +107,21 @@ function newContentOf(raw: Record<string, unknown>): ProjectContent {
     roundIndex: validateRoundIndex(raw.roundIndex, rounds.length),
     points: validatePoints(raw.points),
     fineTune: validateFineTune(raw.fineTune),
-    pages: validatePageEntries(raw.pages),
+  };
+}
+
+// 既定の表現の写し (item ごとに別のオブジェクトにする)
+function defaultTreatmentCopy(): Treatment {
+  return { ...DEFAULT_TREATMENT, motionSamples: [] };
+}
+
+// 直したページに、作ったときの表現 (既定) を足して版 3 にする
+function version3From(shared: SharedContent, pages: PageFields[]): ProjectContent {
+  return {
+    ...shared,
+    version: 3,
+    treatment: defaultTreatmentCopy(),
+    items: pages.map((page): SavedItem => ({ kind: "page", ...page, treatment: defaultTreatmentCopy() })),
   };
 }
 
@@ -141,35 +169,49 @@ function validateRoundIndex(value: unknown, count: number): number {
   return value;
 }
 
-// 保存したページの一覧
-function validatePageEntries(value: unknown): PageEntry[] {
-  if (!Array.isArray(value)) throw inputError("pages は配列で指定してください");
-  return value.map((entry, index) => validatePageEntry(entry, index));
+// 保存した 1 件の一覧。kind は第 2 段では "page" だけ
+function validateSavedItems(value: unknown): SavedItem[] {
+  if (!Array.isArray(value)) throw inputError("items は配列で指定してください");
+  return value.map((entry, index) => validateSavedItem(entry, index));
 }
 
-function validatePageEntry(value: unknown, index: number): PageEntry {
-  const raw = recordOf(value, `pages[${index}]`);
+function validateSavedItem(value: unknown, index: number): SavedItem {
+  const raw = recordOf(value, `items[${index}]`);
+  if (raw.kind !== "page") throw inputError(`items[${index}].kind は page で指定してください`);
+  const page = pageFieldsOf(raw, `items[${index}]`);
+  return { kind: "page", ...page, treatment: validateTreatment(raw.treatment) };
+}
+
+// 版 2 のページの一覧 (items に直す前の形)
+function validatePageEntries(value: unknown): PageFields[] {
+  if (!Array.isArray(value)) throw inputError("pages は配列で指定してください");
+  return value.map((entry, index) => pageFieldsOf(recordOf(entry, `pages[${index}]`), `pages[${index}]`));
+}
+
+// ページの項目。name・family は validatePageType、key は保存のキーの形で確かめる
+function pageFieldsOf(raw: Record<string, unknown>, label: string): PageFields {
   const parsed = validatePageType(raw);
   if (parsed.family === undefined) {
-    throw inputError(`pages[${index}].family は ${SKELETON_FAMILIES.join(" / ")} のいずれかで指定してください`);
+    throw inputError(`${label}.family は ${SKELETON_FAMILIES.join(" / ")} のいずれかで指定してください`);
   }
-  return { key: keyOf(raw.key, `pages[${index}].key`), name: parsed.name, family: parsed.family };
+  return { key: keyOf(raw.key, `${label}.key`), name: parsed.name, family: parsed.family };
 }
 
-// ===== 古い形 (版が無い) を版 2 に直す =====
+// ===== 古い形 (版が無い) を版 3 に直す =====
 
 function upgradedContent(raw: Record<string, unknown>): ProjectContent {
   const family = oneOf(raw.pageType, SKELETON_FAMILIES, "pageType");
   return {
-    version: 2,
+    version: 3,
     id: validateProjectId(raw.id),
     brief: validateBrief({ what: raw.prompt }),
     pageType: candidateOfFamily(family),
+    treatment: defaultTreatmentCopy(),
     rounds: [{ drafts: [validateDirection(raw.direction)], edits: [null] }],
     roundIndex: 0,
     points: pointsA(),
     fineTune: {},
-    pages: oldPagesOf(raw.pages),
+    items: oldPagesOf(raw.pages),
   };
 }
 
@@ -178,13 +220,13 @@ function candidateOfFamily(family: SkeletonFamily): PageType {
   return PAGE_TYPE_CANDIDATES.find((candidate) => candidate.family === family) ?? { name: family, family };
 }
 
-// 古い形の pages は骨組みの種類の並び。保存のキーと候補の名前を補う
-function oldPagesOf(value: unknown): PageEntry[] {
+// 古い形の pages は骨組みの種類の並び。保存のキーと候補の名前、既定の表現を補う
+function oldPagesOf(value: unknown): SavedItem[] {
   if (!Array.isArray(value)) throw inputError("pages は配列で指定してください");
   return value.map((item, index) => {
     const family = oneOf(item, SKELETON_FAMILIES, `pages[${index}]`);
     const candidate = candidateOfFamily(family);
-    return { key: family, name: candidate.name, family };
+    return { kind: "page", key: family, name: candidate.name, family, treatment: defaultTreatmentCopy() };
   });
 }
 
@@ -222,14 +264,20 @@ function writeFileAt(path: string, content: string, label: string): void {
   }
 }
 
-// 既存の pages に今回のページを足す。同じ key があれば name と family を新しくする (足した順)
-function mergePageEntries(existing: PageEntry[], pageType: PageType | undefined): PageEntry[] {
+// 既存の items に今回のページを足す。同じ key があれば name・family・treatment を新しくする (足した順)
+function mergeSavedItems(existing: SavedItem[], pageType: PageType | undefined, treatment: Treatment): SavedItem[] {
   const merged = [...existing];
   if (pageType === undefined) return merged;
-  const entry: PageEntry = { key: pageKeyOf(pageType), name: pageType.name, family: pageType.family };
-  const index = merged.findIndex((page) => page.key === entry.key);
-  if (index < 0) merged.push(entry);
-  else merged[index] = entry;
+  const item: SavedItem = {
+    kind: "page",
+    key: pageKeyOf(pageType),
+    name: pageType.name,
+    family: pageType.family,
+    treatment: { ...treatment, motionSamples: [...treatment.motionSamples] },
+  };
+  const index = merged.findIndex((entry) => entry.key === item.key);
+  if (index < 0) merged.push(item);
+  else merged[index] = item;
   return merged;
 }
 
@@ -272,7 +320,7 @@ export function saveProject(env: NodeJS.ProcessEnv, input: SaveProjectInput): Pr
   const now = new Date().toISOString();
   const project: Project = {
     ...content,
-    pages: mergePageEntries(existing?.project.pages ?? [], pageType),
+    items: mergeSavedItems(existing?.project.items ?? [], pageType, content.treatment),
     createdAt: existing?.project.createdAt ?? now,
     updatedAt: now,
   };
@@ -324,7 +372,7 @@ export type ProjectSummary = {
   what: string;
   pageType: PageType;
   name: string;
-  pages: PageEntry[];
+  items: SavedItem[];
   updatedAt: string;
 };
 
@@ -344,7 +392,7 @@ function summaryOf(found: { project: Project; dir: string }): ProjectSummary {
     what: project.brief.what,
     pageType: project.pageType,
     name: currentDirectionOf(project).name,
-    pages: project.pages,
+    items: project.items,
     updatedAt: project.updatedAt,
   };
 }
