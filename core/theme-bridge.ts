@@ -11,6 +11,7 @@ import type { BaseMode, Seed } from "./types.ts";
 export type CheckCounts = { pass: number; total: number; adjusted: number };
 export type ThemeSummary = { id: string; name: string; fontsUrl: string; checks: Record<BaseMode, CheckCounts> };
 export type RenderThemeResult = { css: string; themes: unknown[]; summary: ThemeSummary[]; failed: number };
+export type ThemeWithDoc = { theme: RenderThemeResult; styleGuideMd: string | null };
 
 type PipelineResult = { code: number; stdout: string; stderr: string };
 
@@ -39,9 +40,10 @@ export function plainCssOf(css: string): string {
   return visible.join("\n");
 }
 
-/** style-guide の pipeline.ts を子プロセスで起動する */
-function runPipeline(pipeline: string, seedFile: string, env: NodeJS.ProcessEnv): Promise<PipelineResult> {
+/** style-guide の pipeline.ts を子プロセスで起動する。withDoc なら `--doc` も渡す */
+function runPipeline(pipeline: string, seedFile: string, env: NodeJS.ProcessEnv, withDoc = false): Promise<PipelineResult> {
   const args = [pipeline, "render", "--seed", seedFile];
+  if (withDoc) args.push("--doc");
   return new Promise((resolve, reject) => {
     execFile(process.execPath, args, { env, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error === null) return resolve({ code: 0, stdout, stderr });
@@ -74,6 +76,15 @@ function pipelineFailure(res: PipelineResult, dir: string): CliExit {
     return new CliExit(EXIT_ACTION, { error: "style-guide-outdated", dir });
   }
   return new CliExit(EXIT_EXTERNAL, { error: "style-guide-failed", stderr: res.stderr.trim() });
+}
+
+// 失敗が「--doc を知らない古い style-guide」の印か。本物の古い版は parseArgs で止まり
+// "Unknown option '--doc'." を返す。--seed の文面とは別なので先に見分ける
+function docUnknown(res: PipelineResult): boolean {
+  const payload = parseStderrJson(res.stderr);
+  if (payload?.error !== "usage") return false;
+  const message = payload.message;
+  return typeof message === "string" && message.includes("--doc");
 }
 
 function countOf(value: unknown, label: string): number {
@@ -116,6 +127,16 @@ function renderOutput(x: unknown): RenderThemeResult {
   return { css, themes, summary: summary.map((entry, index) => summaryOf(entry, index)), failed };
 }
 
+// 成功したときの応答を検証する。--doc の応答は docs に文書が 1 つ入る
+function themeWithDocOutput(x: unknown): ThemeWithDoc {
+  const theme = renderOutput(x);
+  const docs = isRecord(x) ? x.docs : undefined;
+  if (!Array.isArray(docs) || docs.length !== 1) throw outputError("docs は長さ 1 の配列ではありません");
+  const markdown = isRecord(docs[0]) ? docs[0].markdown : undefined;
+  if (typeof markdown !== "string") throw outputError("docs[0].markdown は文字列ではありません");
+  return { theme, styleGuideMd: markdown };
+}
+
 function parseStdout(stdout: string): unknown {
   try {
     return JSON.parse(stdout);
@@ -136,6 +157,27 @@ export async function renderTheme(seeds: Seed[], env: NodeJS.ProcessEnv): Promis
     const res = await runPipeline(pipeline, seedFile, env);
     if (res.code !== 0) throw pipelineFailure(res, dir);
     return renderOutput(parseStdout(res.stdout));
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+/** Seed 1 つを `render --seed <file> --doc` に渡し、テーマとスタイルガイドの文書を受け取る。
+ *  style-guide が --doc を知らない (古い) ときは、--doc なしの renderTheme([seed]) で取り直し、styleGuideMd を null にする */
+export async function renderThemeWithDoc(seed: Seed, env: NodeJS.ProcessEnv): Promise<ThemeWithDoc> {
+  const dir = styleGuideDir(env);
+  const pipeline = join(dir, "scripts", "pipeline.ts");
+  if (!existsSync(pipeline)) throw new CliExit(EXIT_ACTION, { error: "style-guide-missing", dir });
+  const tmp = mkdtempSync(join(tmpdir(), "design-studio-render-"));
+  try {
+    const seedFile = join(tmp, "seeds.json");
+    writeFileSync(seedFile, JSON.stringify([seed]), "utf8");
+    const res = await runPipeline(pipeline, seedFile, env, true);
+    if (res.code === 0) return themeWithDocOutput(parseStdout(res.stdout));
+    if (!docUnknown(res)) throw pipelineFailure(res, dir);
+    const themeOnly = await runPipeline(pipeline, seedFile, env);
+    if (themeOnly.code !== 0) throw pipelineFailure(themeOnly, dir);
+    return { theme: renderOutput(parseStdout(themeOnly.stdout)), styleGuideMd: null };
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }

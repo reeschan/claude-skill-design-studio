@@ -289,3 +289,51 @@ void test("28. 開き直しは items の 3 つの kind を一覧に戻し、見�
   assert.match(draw, /page\.kind/, "プレビューの見出しが作ったものの種類を見ていません");
   assert.match(draw, /record\(page\.pageType\)\.name/, "プレビューの見出しが名前を出していません");
 });
+
+void test("29. 作るものの選択肢にデザインガイドを持つ", () => {
+  // 「デザインガイド」を選ぶと make に design-guide を送り、ボタンは「デザインガイドを作る」になる (contract.md の 8 節)
+  const project = sourceOf("ui-workbench-project.js");
+  const start = project.indexOf("const MAKE_OPTIONS");
+  assert.notEqual(start, -1, "作るものの選択肢の定数がありません");
+  const block = project.slice(start, project.indexOf("];", start));
+  assert.ok(block.includes('value: "design-guide"'), "作るものの選択肢に design-guide がありません");
+  assert.ok(block.includes('label: "デザインガイド"'), "作るものの選択肢の表示が「デザインガイド」ではありません");
+  assert.ok(functionBodyOf(project, "currentMake").includes('kind: "design-guide"'), "生成に design-guide の kind を送っていません");
+  assert.ok(functionBodyOf(project, "kindLabel").includes('"デザインガイド"'), "ボタンの文言にデザインガイドがありません");
+});
+
+void test("30. デザインガイドの読み出しは /design-guide/ の 3 つのファイルを使い、保存は designGuide で送る", () => {
+  // 開き直しは /api/projects/<id>/design-guide/<name> から読む。保存は designGuide: {files} で送る (contract.md の 8 節)
+  const project = sourceOf("ui-workbench-project.js");
+  assert.ok(functionBodyOf(project, "guidePathOf").includes("/design-guide/"), "デザインガイドの読み出しのパスがありません");
+  assert.ok(functionBodyOf(project, "entryPathOf").includes("component-sheet.html"), "部品帳の HTML のパスがありません");
+  const start = project.indexOf("const DESIGN_GUIDE_FILES");
+  assert.notEqual(start, -1, "デザインガイドのファイルの定数がありません");
+  const block = project.slice(start, project.indexOf("];", start));
+  for (const name of ["component-sheet.html", "design-guide.md", "style-guide.md"]) {
+    assert.ok(block.includes(`"${name}"`), `デザインガイドの ${name} の読み出しがありません`);
+  }
+  assert.match(functionBodyOf(project, "postProject"), /body\.designGuide = \{ files:/, "保存の本文に designGuide がありません");
+});
+
+void test("31. 応答の designGuideDir を保存先に出し、古い style-guide のときは notice を出す", () => {
+  // 保存の応答の designGuideDir を「保存先: <パス>」に、生成の応答の notice を古い style-guide の案内に使う
+  const project = sourceOf("ui-workbench-project.js");
+  assert.ok(functionBodyOf(project, "postProject").includes("designGuideDir"), "保存の応答の designGuideDir を使っていません");
+  const payload = functionBodyOf(project, "guideOfPayload");
+  assert.ok(payload.includes("payload.designGuide"), "生成の応答の designGuide を読んでいません");
+  assert.ok(payload.includes("notice"), "生成の応答の notice を使っていません");
+  const render = functionBodyOf(project, "renderGuide");
+  assert.match(render, /styleGuide\) === "outdated"/, "古い style-guide の分岐がありません");
+  assert.ok(render.includes("guideNoticeOf"), "古い style-guide の案内を出していません");
+  assert.ok(render.includes("保存先"), "保存先を出していません");
+  assert.ok(functionBodyOf(project, "guideNoticeOf").includes("guide.notice"), "notice の文言を使っていません");
+});
+
+void test("32. 開き直したデザインガイドは部品帳と文書を読み、文書が 404 なら古い style-guide として扱う", () => {
+  // design-guide.md が無いときは outdated にして notice を出し、保存し直すのは読めたファイルだけにする
+  const project = sourceOf("ui-workbench-project.js");
+  assert.match(functionBodyOf(project, "readGuideFileOrNull"), /status === 404/, "404 を古い style-guide として扱っていません");
+  assert.match(functionBodyOf(project, "guideOfFiles"), /outdated \? "outdated" : "ok"/, "outdated の判定がありません");
+  assert.ok(functionBodyOf(project, "restoreDesignGuide").includes('"design-guide"'), "開き直しがデザインガイドを一覧に戻していません");
+});

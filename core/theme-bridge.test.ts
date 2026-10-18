@@ -2,10 +2,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { plainCssOf, tokensOf } from "./theme-bridge.ts";
+import { plainCssOf, renderTheme, renderThemeWithDoc, tokensOf } from "./theme-bridge.ts";
+import { CliExit, EXIT_ACTION, EXIT_EXTERNAL } from "./cli-exit.ts";
 import type { Seed } from "./types.ts";
 
 const FAKE_GUIDE = fileURLToPath(new URL("../test/fixtures/fake-style-guide", import.meta.url));
+const NO_GUIDE = fileURLToPath(new URL("../test/fixtures/no-such-style-guide", import.meta.url));
+
+// 偽 style-guide を差し込み、モードを指定する
+const fakeEnv = (mode?: string): NodeJS.ProcessEnv => ({
+  ...process.env,
+  STYLE_GUIDE_DIR: FAKE_GUIDE,
+  ...(mode === undefined ? {} : { FAKE_SG_MODE: mode }),
+});
+
+const isCliExit =
+  (code: number, error: string) =>
+  (e: unknown): boolean =>
+    e instanceof CliExit && e.code === code && e.payload.error === error;
 
 // 偽 style-guide の応答は種の id と name しか見ないので、最小の形でよい
 const SEED: Seed = {
@@ -46,4 +60,32 @@ void test("tokensOf は 3 形式の文字列を返す", async () => {
   assert.ok(Array.isArray(parsed), `json は配列ではありません: ${tokens.json}`);
   assert.ok(!tokens.css.includes("@import"));
   assert.ok(tokens.css.includes(":root { --fake-radius: 4px; }"));
+});
+
+void test("renderThemeWithDoc はテーマとスタイルガイドの文書を返す", async () => {
+  const result = await renderThemeWithDoc(SEED, fakeEnv());
+  assert.equal(result.styleGuideMd, `# スタイルガイド (偽): ${SEED.name}\n\n- id: ${SEED.id}\n`);
+  assert.deepEqual(result.theme, await renderTheme([SEED], fakeEnv()));
+});
+
+void test("renderThemeWithDoc は --doc を知らない style-guide で文書を null にし、テーマは取る", async () => {
+  const result = await renderThemeWithDoc(SEED, fakeEnv("no-doc"));
+  assert.equal(result.styleGuideMd, null);
+  assert.equal(typeof result.theme.css, "string");
+  assert.ok(result.theme.css.length > 0);
+});
+
+void test("renderThemeWithDoc は render を持たない style-guide で style-guide-outdated を投げる", async () => {
+  await assert.rejects(renderThemeWithDoc(SEED, fakeEnv("outdated")), isCliExit(EXIT_ACTION, "style-guide-outdated"));
+});
+
+void test("renderThemeWithDoc は style-guide の失敗で style-guide-failed を投げる", async () => {
+  await assert.rejects(renderThemeWithDoc(SEED, fakeEnv("fail")), isCliExit(EXIT_EXTERNAL, "style-guide-failed"));
+});
+
+void test("renderThemeWithDoc は style-guide のフォルダが無いとき style-guide-missing を投げる", async () => {
+  await assert.rejects(
+    renderThemeWithDoc(SEED, { ...process.env, STYLE_GUIDE_DIR: NO_GUIDE }),
+    isCliExit(EXIT_ACTION, "style-guide-missing"),
+  );
 });

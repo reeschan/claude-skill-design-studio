@@ -2,8 +2,8 @@
 // (例: ["<node のパス>", "app/mock-llm.mjs"])。
 // MOCK_LLM_MODE: ok (既定) / error / bad-then-good / bad-page / no-csp / no-reduced-motion / motion-then-good
 // 受け取った --json-schema の形 (properties.directions か properties.html) で、方向性の案か
-// 1 ファイルの HTML かを見分ける。HTML のうちページ・部品帳・部品は、標準入力の
-// 「作るもの:」の行 (component-sheet / component) で見分けて、決まった出力を返す
+// 1 ファイルの HTML かを見分ける。部品帳・部品・デザインガイドは、標準入力の
+// 「作るもの:」の行 (component-sheet / component / design-guide) で見分けて、決まった出力を返す
 import fs from "node:fs";
 
 const argv = process.argv.slice(2);
@@ -36,6 +36,7 @@ const hasHtmlSchema = typeof properties === "object" && properties !== null && O
 // プロンプトの 2 行目の「作るもの:」の行で、部品帳・部品を見分ける。
 // ページと方向性は今までどおり --json-schema の形 (properties.html) で見分ける
 function kindOf() {
+  if (/^作るもの: design-guide$/m.test(stdin)) return "design-guide";
   if (/^作るもの: component-sheet$/m.test(stdin)) return "component-sheet";
   if (/^作るもの: component$/m.test(stdin)) return "component";
   return hasHtmlSchema ? "page" : "directions";
@@ -72,6 +73,43 @@ function counter() {
   fs.writeFileSync(file, String(n + 1));
   return n;
 }
+
+// デザインガイドの部品の id (core/types.ts の COMPONENT_CANDIDATES と同じ並び)
+const DESIGN_GUIDE_COMPONENT_IDS = ["button", "input", "card", "nav", "tabs", "badge", "modal", "toast", "table", "pricing-card"];
+
+// デザインガイドの値。core/design-guide.ts の validateDesignGuideValues を通る形にする
+// (改行を含めない、keywords は 3 件、components の id は候補の順)
+function designGuideValues() {
+  return {
+    tone: {
+      words: {
+        voice: "です・ます",
+        style: "短い文で、語尾は「です・ます」にそろえます。",
+        useWords: ["保存", "完了", "確認"],
+        avoidWords: ["バグ", "失敗", "エラー"],
+        examples: [
+          { situation: "保存ボタン", text: "保存する" },
+          { situation: "通信エラー", text: "通信できませんでした。もう一度お試しください。" },
+        ],
+      },
+      visual: {
+        keywords: ["落ち着き", "余白", "読みやすい"],
+        treatmentUsage: ["カードの面は指定の面を使う", "見出しの動きは控えめにする"],
+        avoid: ["強いグラデーション", "文字の詰め込み"],
+      },
+    },
+    components: DESIGN_GUIDE_COMPONENT_IDS.map((id) => ({
+      id,
+      purpose: `${id} の用途`,
+      states: "通常・ホバー・押下・フォーカス・無効",
+      whereToUse: "主要な操作と、その確認",
+      dont: "意味のない強調をしない",
+    })),
+  };
+}
+
+// 決まりを満たさない値 (validateDesignGuideValues に落ちる)
+const BAD_DESIGN_GUIDE_VALUES = { tone: {}, components: [] };
 
 // 方向性の案 4 つと family。どれも core/styles.ts の validateDirection を通る形。
 // family は決めて "pricing" と答える (family 付きで呼ばれたときは呼び出し側が LLM の答えを使わない)
@@ -374,12 +412,23 @@ function directionsOutput() {
   return n === 0 ? { directions: good.directions.slice(0, 2) } : good;
 }
 
+// デザインガイドの値の出力。error は先に止まる。bad-page は決まりを満たさない値、
+// bad-then-good は 1 回目だけ決まりを満たさない値、それ以外 (ok / no-csp / no-reduced-motion /
+// motion-then-good) は決まった値
+function designGuideOutput() {
+  if (mode === "bad-page") return BAD_DESIGN_GUIDE_VALUES;
+  if (mode === "bad-then-good") return counter() === 0 ? BAD_DESIGN_GUIDE_VALUES : designGuideValues();
+  return designGuideValues();
+}
+
 const htmlOutput = (html) => ({ is_error: false, structured_output: { html } });
 
 if (mode === "error") {
   out({ is_error: true, result: "boom" });
 } else if (kind === "directions") {
   out({ is_error: false, structured_output: directionsOutput() });
+} else if (kind === "design-guide") {
+  out({ is_error: false, structured_output: designGuideOutput() });
 } else if (mode === "bad-page") {
   out(htmlOutput(badHtmlFor(kind, seedId(), baseMode())));
 } else if (mode === "no-csp") {

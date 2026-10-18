@@ -119,6 +119,99 @@ design-studio でページ (1 ファイルの HTML) を作る手順。見本帳�
 
 部品帳は作り直すと上書きする。部品は名前ごとに別の 1 件として残る。どちらもページの保存とは別の 1 件になる。
 
-## 7. 点検と仕上げ (必要に応じて)
+## 7. デザインガイドを作る
+
+デザインガイドは、1 つのプロジェクトの見た目と言葉の決まりを、持ち出せる形にまとめた 1 つのフォルダ。次の 5 ファイルからなる。
+
+- `design-guide.md`: トンマナ・表現・部品の使い方の文書 (design-studio が組み立てる)
+- `style-guide.md`: スタイルガイド (style-guide が作る。design-studio も Claude も手を加えない)
+- `component-sheet.html`: 部品帳
+- `theme.css`・`theme.json`: テーマ
+
+`design-guide.md` の形は design-studio が組み立てる。Claude が書くのは部品帳の HTML と、下の値の JSON だけで、Markdown は書かない。
+
+### 部品帳を作る
+
+部品帳は 6 節どおりに作り、`node <スキル>/scripts/studio.ts check-page --html <file>` で `ok` が true になるまで直す。この HTML がデザインガイドの `component-sheet.html` になる。
+
+### 値の JSON を書く
+
+トンマナと部品の使い方を、1 つの JSON (`values.json`) に書く。決まったキーだけを置き、次の決まりを守る。
+
+- 文字数は trim した後の値で、コードポイント (`[...s].length`) で数える
+- 値の文字列に改行と制御文字 (U+0000〜U+001F・U+007F) を入れない。JSON を整えるための改行と字下げはよい
+- `components` はちょうど 10 件。`id` は部品帳の順 (button / input / card / nav / tabs / badge / modal / toast / table / pricing-card) にする
+
+| キー                         | 中身                                | 決まり                                                 |
+| ---------------------------- | ----------------------------------- | ------------------------------------------------------ |
+| `tone.words.voice`           | 口調 (例「です・ます」)             | 1〜80 文字                                             |
+| `tone.words.style`           | 文体 (文の長さ・語尾・記号の使い方) | 1〜200 文字                                            |
+| `tone.words.useWords`        | 使う言葉                            | 1〜12 件、各 1〜40 文字                                |
+| `tone.words.avoidWords`      | 避ける言葉                          | 1〜12 件、各 1〜40 文字                                |
+| `tone.words.examples`        | 文言の例                            | 1〜8 件。`situation` 1〜40 文字・`text` 1〜200 文字    |
+| `tone.visual.keywords`       | 性格を表すキーワード                | 3〜5 件、各 1〜20 文字                                 |
+| `tone.visual.treatmentUsage` | 表現 (面と動き) の使いどころ        | 1〜8 件、各 1〜200 文字                                |
+| `tone.visual.avoid`          | 見た目で避けること                  | 1〜8 件、各 1〜200 文字                                |
+| `components`                 | 部品ごとの使い方                    | 10 件。`id`・`purpose`・`states`・`whereToUse`・`dont` |
+| `components[i].purpose`      | 用途                                | 1〜300 文字                                            |
+| `components[i].states`       | 状態                                | 1〜300 文字                                            |
+| `components[i].whereToUse`   | 使いどころ                          | 1〜300 文字                                            |
+| `components[i].dont`         | してはいけないこと                  | 1〜300 文字                                            |
+
+短い例:
+
+```json
+{
+  "tone": {
+    "words": {
+      "voice": "です・ます",
+      "style": "1 文を短くし、語尾をそろえる。感嘆符と絵文字は使わない。",
+      "useWords": ["できます", "安心", "かんたん"],
+      "avoidWords": ["しなければならない", "最強", "絶対"],
+      "examples": [
+        { "situation": "保存ボタン", "text": "保存する" },
+        { "situation": "通信エラー", "text": "通信できませんでした。時間をおいて、もう一度お試しください。" }
+      ]
+    },
+    "visual": {
+      "keywords": ["落ち着き", "余白", "静か"],
+      "treatmentUsage": ["カードの面はうっすら透けさせ、背景になじませる", "押したときは短い transition で反応を返す"],
+      "avoid": ["強いグラデーション", "画面の端まで動き続ける装飾"]
+    }
+  },
+  "components": [
+    {
+      "id": "button",
+      "purpose": "画面の主な操作を 1 つに絞って示す",
+      "states": "通常・ホバー・押下・フォーカス・無効",
+      "whereToUse": "フォームの送信と、一覧から 1 件を選ぶとき",
+      "dont": "1 つの画面に主なボタンを 2 つ以上並べない"
+    }
+  ]
+}
+```
+
+例の `components` は 1 件だけ。`input`・`card`・`nav`・`tabs`・`badge`・`modal`・`toast`・`table`・`pricing-card` も同じ形で続けて…10 件にする。
+
+### フォルダを組み立てる
+
+`node <スキル>/scripts/studio.ts design-guide (--direction <file> | --style <id>) --sheet <file> --values <file> --out <dir> [--treatment '<JSON>']` を実行する。
+
+- `--direction` と `--style` はどちらか 1 つ (`theme` と同じ読み方)。`--style` は見本帳のスタイルの id
+- `--sheet` は部品帳の HTML、`--values` は値の JSON、`--out` は書き出すフォルダ。この 3 つは必須
+- `--treatment` は表現の JSON の文字列 (`mix` の `--points` と同じくインラインで渡す。例 `'{"surface":"glass","motion":"subtle","motionSamples":[]}'`)。省くと指定しない
+
+出力の `styleGuide` と `notice` を見る。
+
+- `styleGuide` が `ok`: 5 ファイルが書かれている
+- `styleGuide` が `outdated`: style-guide が古い。部品帳とテーマ (`component-sheet.html`・`theme.css`・`theme.json`) だけが書かれ、`design-guide.md`・`style-guide.md` は作られない。利用者に「style-guide を更新するとデザインガイドも作れます」と伝える
+
+### 保存する
+
+`node <スキル>/scripts/studio.ts project save --project <project.json> --design-guide <dir>` で保存する。`--design-guide` は `--out` のフォルダ。`--page-name`・`--component`・`--component-sheet`・`--html` とは一緒に使えない。
+
+デザインガイドはプロジェクトに 1 件で、作り直すと置き換わる。古い style-guide で 3 ファイルになったときは、前の `design-guide.md`・`style-guide.md` は消える。
+
+## 8. 点検と仕上げ (必要に応じて)
 
 点検のスキル (Call the Skill tool with "fixing-accessibility" など) と仕上げのスキル (Call the Skill tool with "make-interfaces-feel-better" など) を段階に応じて使う。

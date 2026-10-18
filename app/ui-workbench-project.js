@@ -1,5 +1,5 @@
-// 作業台の右の列の後半 (作るもの・保存)。ページ・部品帳・部品を作って中央のプレビューに出し、
-// プロジェクトとして保存・開き直す。
+// 作業台の右の列の後半 (作るもの・保存)。ページ・部品帳・部品・デザインガイドを作って中央のプレビューに出し、
+// プロジェクトとして保存・開き直す。デザインガイドは部品帳の HTML と文書 (design-guide.md・style-guide.md) を持つ。
 // LLM が作ったものは sandbox="allow-scripts" の iframe に包んで別タブで開く (アプリの API に届かないように)。
 // 作るものの生成と保存は、案の世代 (state.session) を進めない。進めると、出している途中の案や作ったものの応答が
 // 知らせなしに捨てられる (生成は数分かかる)。連打は busy の印で防ぐ。
@@ -12,13 +12,17 @@ const PAGE_CSS = `
 .wb-project p { margin: 0; }
 .wb-project-info { min-width: 0; }
 .wb-project-name { font-weight: 600; overflow-wrap: anywhere; }
+.wb-guide { margin: 8px 0 0; }
+.wb-guide-doc { margin-top: 6px; }
+.wb-guide-body { max-height: 240px; margin: 4px 0 0; padding: 8px; overflow: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); font-size: 12px; white-space: pre-wrap; }
 `;
 
-// 作るものの種類。デザインガイドは第 4 段で足す
+// 作るものの種類。デザインガイドは部品帳の HTML と文書一式を作る
 const MAKE_OPTIONS = [
   { value: "page", label: "ページ" },
   { value: "component-sheet", label: "部品帳" },
   { value: "component", label: "部品" },
+  { value: "design-guide", label: "デザインガイド" },
 ];
 // 部品の候補 (core/types.ts の COMPONENT_CANDIDATES と同じ 10 個。並びもこのとおり)
 const COMPONENT_CANDIDATES = [
@@ -35,12 +39,19 @@ const COMPONENT_CANDIDATES = [
 ];
 // 部品帳の名前 (core/component.ts の COMPONENT_SHEET_NAME と同じ)
 const COMPONENT_SHEET_NAME = "部品帳";
+// デザインガイドの名前と、プロジェクトの中のフォルダのファイル (core/design-guide.ts と同じ並び)
+const DESIGN_GUIDE_NAME = "デザインガイド";
+const DESIGN_GUIDE_FILES = ["design-guide.md", "style-guide.md", "component-sheet.html", "theme.css", "theme.json"];
+// 画面に中身を出す文書
+const GUIDE_DOCUMENT_NAMES = ["design-guide.md", "style-guide.md"];
+// 古い style-guide で作ったデザインガイドの案内 (core/design-guide.ts の STYLE_GUIDE_UPDATE_NOTICE と同じ)
+const STYLE_GUIDE_UPDATE_NOTICE = "style-guide を更新するとデザインガイドも作れます";
 // 自由な名前を選んだときの値
 const FREE_NAME = "";
 // 部品の名前の上限 (core/component.ts の validateComponentName と同じ)
 const COMPONENT_NAME_MAX = 40;
 // 開き直したときに一覧へ戻す、保存したものの種類
-const SAVED_KINDS = ["page", "component-sheet", "component"];
+const SAVED_KINDS = ["page", "component-sheet", "component", "design-guide"];
 
 // HTML の属性用のエスケープ (& " < > を文字参照にする)
 const escapeAttribute = (value) => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -66,11 +77,14 @@ export function createProjectPanel(ctx) {
     save: null,
     saveNote: null,
     projects: null,
+    guide: null,
   };
   let busy = false;
   let readToken = 0;
   let makeKind = "page";
   let componentChoice = COMPONENT_CANDIDATES[0].name;
+  // 中央に出している一覧の 1 件 (デザインガイドの文書を出すときに使う)
+  let currentEntry = null;
 
   const selectOf = (value, options) => {
     const select = el("select", "wb-input");
@@ -102,7 +116,9 @@ export function createProjectPanel(ctx) {
     const section = el("section", "wb-section");
     section.dataset.panel = "make";
     section.append(el("h3", null, "作るもの"));
-    section.append(el("p", "wb-note", "いまの依頼と見た目で、ページ・部品帳・部品を LLM に作らせます。数分かかることがあります。"));
+    section.append(
+      el("p", "wb-note", "いまの依頼と見た目で、ページ・部品帳・部品・デザインガイドを LLM に作らせます。数分かかることがあります。"),
+    );
     const makeSelect = selectOf(makeKind, MAKE_OPTIONS);
     makeSelect.setAttribute("aria-label", "作るもの");
     makeSelect.addEventListener("change", () => {
@@ -144,6 +160,8 @@ export function createProjectPanel(ctx) {
     nameRow.append(el("span", "wb-caption", "自由な名前"), nameInput);
 
     const pages = el("ul", "wb-pages");
+    // デザインガイドを選んでいるときだけ、文書 (design-guide.md・style-guide.md) をここに出す
+    const guide = el("div", "wb-guide");
     const open = el("button", "btn", "別タブで開く");
     open.type = "button";
     open.disabled = true;
@@ -153,7 +171,7 @@ export function createProjectPanel(ctx) {
     const actions = el("div", "wb-row");
     actions.append(open);
     const note = el("p", "wb-note");
-    section.append(row, componentRow, nameRow, pages, actions, note);
+    section.append(row, componentRow, nameRow, pages, guide, actions, note);
     ui.button = button;
     ui.retry = retry;
     ui.progress = progress;
@@ -163,6 +181,7 @@ export function createProjectPanel(ctx) {
     ui.nameRow = nameRow;
     ui.nameInput = nameInput;
     ui.note = note;
+    ui.guide = guide;
     syncMakeFields();
     return section;
   }
@@ -177,9 +196,10 @@ export function createProjectPanel(ctx) {
 
   const currentPageType = () => ({ name: ctx.pageTypeName(), family: text(state.pageType.family) });
 
-  // 送る作るもの。ページは画面の種類、部品帳は種類だけ、部品は名前
+  // 送る作るもの。ページは画面の種類、部品帳・デザインガイドは種類だけ、部品は名前
   function currentMake(pageType) {
     if (makeKind === "component-sheet") return { kind: "component-sheet" };
+    if (makeKind === "design-guide") return { kind: "design-guide" };
     if (makeKind === "component") return { kind: "component", name: componentName() };
     return { kind: "page", pageType };
   }
@@ -221,9 +241,11 @@ export function createProjectPanel(ctx) {
       const payload = await requestJson("/api/generate", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
       const html = text(record(payload).html);
       if (html === "") throw new Error("作ったものが返りませんでした");
-      const entry = upsertEntry(entryOfMake(make), html);
+      const guide = make.kind === "design-guide" ? guideOfPayload(payload) : undefined;
+      const entry = upsertEntry(entryOfMake(make), html, guide);
       selectEntry(entry);
-      setNote(ui.note, `${entryLabel(entry)}を作りました。中央のプレビューに出しています。`, false);
+      const previewNote = make.kind === "design-guide" ? "中央のプレビューに部品帳を出しています。" : "中央のプレビューに出しています。";
+      setNote(ui.note, `${entryLabel(entry)}を作りました。${previewNote}`, false);
     } catch (error) {
       setNote(ui.note, `${kindLabel(make.kind)}を作れませんでした: ${errorMessage(error)}`, true);
       ui.retry.hidden = false;
@@ -235,29 +257,32 @@ export function createProjectPanel(ctx) {
     }
   }
 
-  // 作るものから一覧の 1 件の種類と名前を作る (部品帳・部品の family は空文字)
+  // 作るものから一覧の 1 件の種類と名前を作る (部品帳・デザインガイド・部品の family は空文字)
   function entryOfMake(make) {
     if (make.kind === "component-sheet") return { kind: "component-sheet", name: COMPONENT_SHEET_NAME, family: "" };
+    if (make.kind === "design-guide") return { kind: "design-guide", name: DESIGN_GUIDE_NAME, family: "" };
     if (make.kind === "component") return { kind: "component", name: make.name, family: "" };
     return { kind: "page", name: make.pageType.name, family: make.pageType.family };
   }
 
-  // 同じ kind・同じ名前で作り直したら入れ替える (部品帳は 1 件、部品は名前ごと、ページは画面の種類ごと)
-  function upsertEntry(identity, html) {
+  // 同じ kind・同じ名前で作り直したら入れ替える (部品帳・デザインガイドは 1 件、部品は名前ごと、ページは画面の種類ごと)
+  function upsertEntry(identity, html, guide) {
     const found = state.pageList.find((entry) => entry.kind === identity.kind && entry.name === identity.name);
     // dirty: 作った・作り直したが、まだ保存していない
     if (found === undefined) {
-      const entry = { ...identity, key: null, html, dirty: true };
+      const entry = { ...identity, key: null, html, dirty: true, guide: guide === undefined ? null : guide };
       state.pageList.push(entry);
       return entry;
     }
     found.family = identity.family;
     found.html = html;
     found.dirty = true;
+    if (guide !== undefined) found.guide = guide;
     return found;
   }
 
   function selectEntry(entry) {
+    currentEntry = entry;
     state.page = { kind: entry.kind, pageType: { name: entry.name, family: entry.family }, html: entry.html };
     ctx.showPage(state.page);
     renderMakes();
@@ -277,10 +302,15 @@ export function createProjectPanel(ctx) {
     const token = readToken;
     setNote(ui.note, `${entryLabel(entry)}を読み込んでいます…`, false);
     try {
-      const html = await requestText(entryPathOf(entry));
+      if (entry.kind === "design-guide") {
+        await loadGuideEntry(entry, token);
+      } else {
+        const html = await requestText(entryPathOf(entry));
+        if (token !== readToken) return;
+        entry.html = html;
+        selectEntry(entry);
+      }
       if (token !== readToken) return;
-      entry.html = html;
-      selectEntry(entry);
       setNote(ui.note, "", false);
     } catch (error) {
       if (token !== readToken) return;
@@ -288,11 +318,76 @@ export function createProjectPanel(ctx) {
     }
   }
 
-  // 保存したものの HTML の住所。ページは /pages、部品帳・部品は /components から読む
+  // 開き直したデザインガイドを読む。HTML (部品帳) と文書を読み、design-guide.md が無ければ
+  // 古い style-guide で作ったものとして扱う (contract.md の 8 節)
+  async function loadGuideEntry(entry, token) {
+    const contents = await Promise.all(DESIGN_GUIDE_FILES.map((name) => readGuideFileOrNull(name)));
+    if (token !== readToken) return;
+    const files = filesOfContents(contents);
+    const html = fileContentOf(files, "component-sheet.html");
+    if (html === null) throw new Error("部品帳の HTML がありません");
+    entry.html = html;
+    entry.guide = guideOfFiles(files);
+    selectEntry(entry);
+  }
+
+  // デザインガイドのファイルを 1 つ読む。無ければ null (古い style-guide のときの design-guide.md)
+  async function readGuideFileOrNull(name) {
+    const res = await fetch(guidePathOf(name));
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`HTTP ${String(res.status)}`);
+    return await res.text();
+  }
+
+  // 読めたファイルだけを DESIGN_GUIDE_FILES の並びで組む
+  function filesOfContents(contents) {
+    return DESIGN_GUIDE_FILES.flatMap((name, index) => {
+      const content = contents[index];
+      return content === null ? [] : [{ name, content }];
+    });
+  }
+
+  // 読めたファイルから、デザインガイドの表示に使う値を作る。文書が片方でも無ければ古い style-guide とみなし、
+  // 文書 2 つを外す (保存し直すときは component-sheet.html・theme.css・theme.json だけを送る)
+  function guideOfFiles(files) {
+    const designGuide = fileContentOf(files, "design-guide.md");
+    const styleGuide = fileContentOf(files, "style-guide.md");
+    const outdated = designGuide === null || styleGuide === null;
+    return {
+      styleGuide: outdated ? "outdated" : "ok",
+      notice: outdated ? STYLE_GUIDE_UPDATE_NOTICE : "",
+      files: outdated ? files.filter((file) => !GUIDE_DOCUMENT_NAMES.includes(file.name)) : files,
+      dir: "",
+    };
+  }
+
+  // 生成の応答 (/api/generate) の designGuide から、一覧の 1 件に持たせる値を取り出す
+  function guideOfPayload(payload) {
+    const guide = record(payload.designGuide);
+    return {
+      styleGuide: text(guide.styleGuide) === "outdated" ? "outdated" : "ok",
+      notice: text(guide.notice),
+      files: Array.isArray(guide.files) ? guide.files : [],
+      dir: "",
+    };
+  }
+
+  function fileContentOf(files, name) {
+    const found = files.map((file) => record(file)).find((file) => text(file.name) === name);
+    return found === undefined ? null : text(found.content);
+  }
+
+  // 保存したものの HTML の住所。ページは /pages、部品帳・部品は /components、デザインガイドは /design-guide から読む
   function entryPathOf(entry) {
+    if (entry.kind === "design-guide") return guidePathOf("component-sheet.html");
     const base = `/api/projects/${encodeURIComponent(text(state.projectId))}`;
     const key = encodeURIComponent(text(entry.key));
     return entry.kind === "page" ? `${base}/pages/${key}` : `${base}/components/${key}`;
+  }
+
+  // 保存したデザインガイドのファイルの住所 (/api/projects/<id>/design-guide/<name>)
+  function guidePathOf(name) {
+    return `/api/projects/${encodeURIComponent(text(state.projectId))}/design-guide/${name}`;
   }
 
   function renderMakes() {
@@ -300,11 +395,49 @@ export function createProjectPanel(ctx) {
     if (list === null) return;
     list.replaceChildren();
     if (state.pageList.length === 0) {
-      list.append(el("li", "wb-note", "ページ・部品帳・部品を作ると、ここに並びます。"));
+      list.append(el("li", "wb-note", "ページ・部品帳・部品・デザインガイドを作ると、ここに並びます。"));
     } else {
       for (const entry of state.pageList) list.append(listItemOf(entry));
     }
     ui.open.disabled = state.page === null;
+    renderGuide();
+  }
+
+  // 選んでいるのがデザインガイドのときだけ、文書 (design-guide.md・style-guide.md) を読める場所を出す。
+  // styleGuide が outdated のときは文書の代わりに notice を出す
+  function renderGuide() {
+    const box = ui.guide;
+    if (box === null) return;
+    box.replaceChildren();
+    if (currentEntry === null) return;
+    if (currentEntry.kind !== "design-guide") return;
+    const guide = record(currentEntry.guide);
+    if (text(guide.styleGuide) === "outdated") {
+      box.append(el("p", "wb-note", guideNoticeOf(guide)));
+    } else {
+      for (const name of GUIDE_DOCUMENT_NAMES) {
+        const content = fileContentOf(Array.isArray(guide.files) ? guide.files : [], name);
+        if (content !== null) box.append(guideDocumentOf(name, content));
+      }
+    }
+    const dir = text(guide.dir);
+    if (dir !== "") box.append(el("p", "wb-note", `保存先: ${dir}`));
+  }
+
+  function guideNoticeOf(guide) {
+    const notice = text(guide.notice);
+    return notice === "" ? STYLE_GUIDE_UPDATE_NOTICE : notice;
+  }
+
+  // 文書 1 つ。見出し (summary) を押すと折りたためる。中身は textContent で入れる (HTML として解釈させない)
+  function guideDocumentOf(name, content) {
+    const details = el("details", "wb-guide-doc");
+    details.open = true;
+    details.append(el("summary", null, name));
+    const body = el("pre", "wb-guide-body");
+    body.textContent = content;
+    details.append(body);
+    return details;
   }
 
   function listItemOf(entry) {
@@ -320,14 +453,16 @@ export function createProjectPanel(ctx) {
     return item;
   }
 
-  // 一覧のボタンの文言。種類が分かるようにする (例: 「部品帳」「部品: ボタン」「ページ: LP」)
+  // 一覧のボタンの文言。種類が分かるようにする (例: 「部品帳」「デザインガイド」「部品: ボタン」「ページ: LP」)
   function entryLabel(entry) {
     if (entry.kind === "component-sheet") return COMPONENT_SHEET_NAME;
+    if (entry.kind === "design-guide") return DESIGN_GUIDE_NAME;
     return `${kindLabel(entry.kind)}: ${entry.name}`;
   }
 
   function kindLabel(kind) {
     if (kind === "component-sheet") return "部品帳";
+    if (kind === "design-guide") return "デザインガイド";
     if (kind === "component") return "部品";
     return "ページ";
   }
@@ -347,6 +482,7 @@ export function createProjectPanel(ctx) {
     readToken += 1; // 途中の読み込みも捨てる
     state.pageList = [];
     state.page = null;
+    currentEntry = null;
     if (state.pageOpenUrl !== null) {
       URL.revokeObjectURL(state.pageOpenUrl);
       state.pageOpenUrl = null;
@@ -361,7 +497,11 @@ export function createProjectPanel(ctx) {
     section.dataset.panel = "save";
     section.append(el("h3", null, "保存"));
     section.append(
-      el("p", "wb-note", "依頼・回の履歴・パッドの点・微調整・作ったもの (ページ・部品帳・部品) を保存して、あとから開き直せます。"),
+      el(
+        "p",
+        "wb-note",
+        "依頼・回の履歴・パッドの点・微調整・作ったもの (ページ・部品帳・部品・デザインガイド) を保存して、あとから開き直せます。",
+      ),
     );
     const button = el("button", "btn btn-primary", "保存");
     button.type = "button";
@@ -436,7 +576,7 @@ export function createProjectPanel(ctx) {
       let saved = await postProject(project, pending[0]);
       for (const entry of pending.slice(1)) saved = await postProject(project, entry);
       state.projectId = text(saved.id) === "" ? text(project.id) : text(saved.id);
-      setNote(ui.saveNote, `保存しました: ${state.projectId}`, false);
+      setNote(ui.saveNote, `保存しました: ${state.projectId}${savedGuideLine()}`, false);
       await loadProjects();
     } catch (error) {
       setNote(ui.saveNote, `保存できませんでした: ${errorMessage(error)}`, true);
@@ -450,21 +590,39 @@ export function createProjectPanel(ctx) {
     return state.pageList.filter((entry) => entry.dirty === true && typeof entry.html === "string");
   }
 
+  // 保存の応答の designGuideDir の案内。デザインガイドを保存していないときは空文字
+  function savedGuideLine() {
+    const entry = state.pageList.find((candidate) => candidate.kind === "design-guide" && text(record(candidate.guide).dir) !== "");
+    if (entry === undefined) return "";
+    return ` ・ デザインガイドの保存先: ${text(record(entry.guide).dir)}`;
+  }
+
   // プロジェクトを 1 回保存する。entry があればそれを添え、保存できたら dirty を外す
   async function postProject(project, entry) {
     const body = { project };
     if (entry !== undefined) {
       if (entry.kind === "page") {
         body.page = { pageType: { name: entry.name, family: entry.family }, html: entry.html };
+      } else if (entry.kind === "design-guide") {
+        body.designGuide = { files: guideFilesOf(entry) };
       } else {
         body.component = { target: targetOf(entry), html: entry.html };
       }
     }
     const payload = await requestJson("/api/projects", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) });
     if (entry !== undefined) entry.dirty = false;
+    if (entry !== undefined && entry.kind === "design-guide") {
+      // 応答の designGuideDir を「保存先」として出せるように、一覧の 1 件に持たせる
+      entry.guide = { ...record(entry.guide), dir: text(record(payload).designGuideDir) };
+    }
     const saved = record(record(payload).project);
     syncEntryKeys(saved.items);
     return saved;
+  }
+
+  function guideFilesOf(entry) {
+    const files = record(entry.guide).files;
+    return Array.isArray(files) ? files : [];
   }
 
   // 一覧の 1 件から、保存に送る部品の側の作るものを作る
@@ -474,7 +632,7 @@ export function createProjectPanel(ctx) {
   }
 
   // 保存の応答の一覧 (items) から、キー (保存の住所) を手元の一覧に写す。
-  // 部品帳は kind だけで、ページと部品は kind と名前で突き合わせる
+  // 部品帳は kind だけで、ページ・部品・デザインガイドは kind と名前で突き合わせる
   function syncEntryKeys(value) {
     if (!Array.isArray(value)) return;
     for (const raw of value) {
@@ -495,6 +653,7 @@ export function createProjectPanel(ctx) {
           key: text(item.key),
           html: null,
           dirty: false,
+          guide: null,
         });
         continue;
       }
@@ -514,6 +673,7 @@ export function createProjectPanel(ctx) {
         key: text(item.key),
         html: null,
         dirty: false,
+        guide: null,
       });
       return;
     }
@@ -585,9 +745,14 @@ export function createProjectPanel(ctx) {
       if (state.session !== session) return;
       const project = record(record(payload).project);
       ctx.applyProject(project);
+      currentEntry = null;
+      restoreDesignGuide(record(project).items);
       const entry = entryForCurrent();
       if (entry === null) {
         renderMakes();
+      } else if (entry.kind === "design-guide") {
+        await loadGuideEntry(entry, readToken);
+        if (state.session !== session) return;
       } else {
         const html = await requestText(entryPathOf(entry));
         if (state.session !== session) return;
@@ -607,6 +772,24 @@ export function createProjectPanel(ctx) {
   function entryForCurrent() {
     const wanted = text(state.pageType.name);
     return state.pageList.find((entry) => entry.kind === "page" && entry.name === wanted) ?? state.pageList[0] ?? null;
+  }
+
+  // 開き直したプロジェクトの items のデザインガイドを一覧に戻す (ui-workbench.js の pageEntriesOf は
+  // ページ・部品帳・部品だけを戻すため、ここで足す)。HTML と文書は開いたときに読む
+  function restoreDesignGuide(value) {
+    if (!Array.isArray(value)) return;
+    if (state.pageList.some((entry) => entry.kind === "design-guide")) return;
+    const item = value.map((raw) => record(raw)).find((raw) => text(raw.kind) === "design-guide");
+    if (item === undefined) return;
+    state.pageList.push({
+      kind: "design-guide",
+      name: text(item.name) === "" ? DESIGN_GUIDE_NAME : text(item.name),
+      family: "",
+      key: text(item.key),
+      html: null,
+      dirty: false,
+      guide: null,
+    });
   }
 
   return { build, discardPages };
