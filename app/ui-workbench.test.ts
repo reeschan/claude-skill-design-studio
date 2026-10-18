@@ -173,8 +173,15 @@ void test("19. 表現の部品は /api/treatments から面と動きの見本を
   assert.ok(treatment.includes("createTreatmentPanel"), "createTreatmentPanel を export していません");
   assert.ok(treatment.includes("/api/treatments"), "面と動きの一覧を /api/treatments から読んでいません");
   assert.ok(treatment.includes("/api/motions/"), "動きの見本を /api/motions/ から開いていません");
-  // iframe は「動きを見る」を押したときだけ作る (12 枚を一度に動かさない)
-  assert.ok(treatment.includes("src = `/api/motions/"), "動きの見本の iframe の src がありません");
+  // 見本はダイアログで選び、動く見本は選んでいる 1 件だけを出す (12 枚を一度に動かさない)。
+  // sandbox の iframe の src では描かれないブラウザ (Claude のブラウザのペイン) があるため、
+  // 骨組みのプレビューと同じく HTML を読んで srcdoc に入れる
+  assert.ok(treatment.includes('createElement("dialog")'), "動きの見本を選ぶダイアログがありません");
+  assert.ok(treatment.includes("showModal()"), "ダイアログをモーダルで開いていません");
+  const preview = functionBodyOf(treatment, "showSamplePreview");
+  assert.ok(preview.includes("`/api/motions/"), "動きの見本の HTML を /api/motions/ から読んでいません");
+  assert.ok(preview.includes(".srcdoc = "), "動きの見本を srcdoc に入れていません");
+  assert.ok(!treatment.includes(".src = "), "動きの見本の iframe に src を使っています");
 });
 
 void test("20. 依頼・骨組みのプレビュー・ページの body にいまの表現を入れる", () => {
