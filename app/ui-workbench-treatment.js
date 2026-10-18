@@ -14,7 +14,7 @@ const TREATMENT_CSS = `
 .wb-treatment-desc { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
 .wb-motion-samples { margin-top: 8px; display: grid; gap: 6px; }
 .wb-motion-summary { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
-.wb-motion-dialog { width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--fg); }
+.wb-motion-dialog { width: min(980px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--fg); }
 .wb-motion-dialog::backdrop { background: color-mix(in oklch, var(--bg) 70%, transparent); }
 .wb-motion-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
 .wb-motion-head, .wb-motion-foot { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 12px 16px; }

@@ -17,45 +17,47 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Murecho:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
     />
     <style>
-      /* 見た目は見本帳のスタイル「ブループリント」(data/styles.json の blueprint) のトークン。
-         紺の方眼にシアンの線とオレンジの印を置く。ダークを基本にし、ライトは data-mode="light" か、
-         選んでいないときの OS の設定で使う */
+      /* 見た目は作業台で作ったプロジェクト「ネオンターミナル」(漆黒の地にシアンが走る、鋭く精緻なコンソール) の
+         トークンと、面 Glass (data/surfaces.json の glass)。背景にシアンと紫の光を敷き、ヘッダー・カード・
+         パネルを半透明にしてぼかす。ダークを基本にし、ライトは data-mode="light" か、選んでいないときの OS の設定で使う */
       :root {
         color-scheme: dark;
-        --background: oklch(0.16 0.05 250);
-        --foreground: oklch(0.98 0.01 250);
-        --card: oklch(0.2 0.05 250);
-        --surface: oklch(0.25 0.05 250);
-        --muted-foreground: oklch(0.7 0.05 250);
-        --border: oklch(0.3 0.05 250);
-        --primary: oklch(0.7 0.133 225);
-        --primary-foreground: oklch(0.18 0.05 250);
-        --marker: oklch(0.72 0.106 55);
-        --ring: oklch(0.62 0.118 225);
-        --accent-soft: oklch(0.28 0.042 225);
-        --accent-soft-fg: oklch(0.85 0.1 225);
+        --background: oklch(0.16 0.02 249.9);
+        --foreground: oklch(0.96 0.02 249.9);
+        --card: oklch(0.2 0.02 249.9);
+        --surface: oklch(0.25 0.02 249.9);
+        --muted-foreground: oklch(0.68 0.02 249.9);
+        --border: oklch(0.3 0.02 249.9);
+        --primary: oklch(0.7 0.12 205);
+        --primary-foreground: oklch(0.18 0.02 249.9);
+        --marker: oklch(0.72 0.128 300);
+        --ring: oklch(0.62 0.106 205);
+        --accent-soft: oklch(0.28 0.049 205);
+        --accent-soft-fg: oklch(0.85 0.127 205);
         --warning: oklch(0.75 0.136 75);
         --destructive: oklch(0.62 0.2 25);
-        --grid-minor: oklch(0.7 0.133 225 / 5%);
-        --grid-major: oklch(0.7 0.133 225 / 11%);
-        --glow-a: oklch(0.7 0.133 225 / 12%);
-        --glow-b: oklch(0.72 0.106 55 / 9%);
-        --header-bg: oklch(0.16 0.05 250 / 82%);
-        --shadow: 3px 3px 0 0 oklch(0.98 0.01 250 / 12%);
-        --shadow-pop: 3px 3px 0 0 var(--marker);
-        --gradient: linear-gradient(var(--primary), var(--primary));
-        --radius: 4px;
+        /* 面 Glass: 背景の光の濃さ、半透明の面の濃さ、縁の光 */
+        --glow-a: color-mix(in oklab, var(--primary) 30%, transparent);
+        --glow-b: color-mix(in oklab, var(--marker) 26%, transparent);
+        --glow-c: color-mix(in oklab, var(--accent-soft) 70%, transparent);
+        --glass: 66%;
+        --glass-highlight: inset 0 1px 0 color-mix(in oklab, var(--foreground) 20%, transparent);
+        --header-bg: color-mix(in oklab, var(--card) 62%, transparent);
+        --shadow: var(--glass-highlight), 0 12px 32px -20px color-mix(in oklab, var(--primary) 55%, transparent);
+        --shadow-pop: 0 0 0 1px var(--marker), 0 0 18px -4px var(--marker);
+        --gradient: linear-gradient(120deg, var(--primary), var(--marker));
+        --radius: 5px;
         --radius-sm: 3px;
-        --font-heading: "Murecho", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
-        --font-body: "Murecho", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --font-heading: "Zen Kaku Gothic New", system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --font-body: "Noto Sans JP", system-ui, "Hiragino Sans", sans-serif;
         --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
 
-        /* 画面の JS (作業台など) が使う名前。上のトークンに結び付ける */
+        /* 画面の JS (作業台など) が使う名前。上のトークンに結び付ける。パネルは Glass の半透明の面 */
         --bg: var(--background);
-        --panel: var(--card);
+        --panel: color-mix(in oklab, var(--card) var(--glass), transparent);
         --fg: var(--foreground);
         --muted: var(--muted-foreground);
         --line: var(--border);
@@ -69,51 +71,66 @@
 
       :root[data-mode="light"] {
         color-scheme: light;
-        --background: oklch(0.985 0.007 250);
-        --foreground: oklch(0.16 0.05 250);
-        --card: oklch(1 0 250);
-        --surface: oklch(0.955 0.022 250);
-        --muted-foreground: oklch(0.44 0.05 250);
-        --border: oklch(0.9 0.05 250);
-        --primary: oklch(0.55 0.105 225);
-        --primary-foreground: oklch(0.985 0.007 250);
-        --marker: oklch(0.6 0.112 55);
-        --accent-soft: oklch(0.95 0.032 225);
-        --accent-soft-fg: oklch(0.35 0.067 225);
+        --background: oklch(0.985 0.007 249.9);
+        --foreground: oklch(0.2 0.02 249.9);
+        --card: oklch(1 0 249.9);
+        --surface: oklch(0.955 0.02 249.9);
+        --muted-foreground: oklch(0.48 0.02 249.9);
+        --border: oklch(0.9 0.02 249.9);
+        --primary: oklch(0.55 0.094 205);
+        --primary-foreground: oklch(0.995 0.003 249.9);
+        --marker: oklch(0.6 0.136 300);
+        --accent-soft: oklch(0.95 0.051 205);
+        --accent-soft-fg: oklch(0.35 0.061 205);
         --warning: oklch(0.55 0.13 75);
         --destructive: oklch(0.55 0.198 25);
-        --grid-minor: oklch(0.55 0.105 225 / 6%);
-        --grid-major: oklch(0.55 0.105 225 / 12%);
-        --glow-a: oklch(0.55 0.105 225 / 10%);
-        --glow-b: oklch(0.6 0.112 55 / 8%);
-        --header-bg: oklch(0.985 0.007 250 / 82%);
-        --shadow: 3px 3px 0 0 oklch(0.16 0.05 250 / 10%);
+        --glow-a: color-mix(in oklab, var(--primary) 18%, transparent);
+        --glow-b: color-mix(in oklab, var(--marker) 16%, transparent);
+        --glass: 72%;
+        --glass-highlight: inset 0 1px 0 color-mix(in oklab, var(--card) 80%, transparent);
+        --shadow: var(--glass-highlight), 0 12px 30px -22px color-mix(in oklab, var(--foreground) 40%, transparent);
         --notice-bg: color-mix(in oklch, var(--warning) 12%, var(--card));
       }
 
       @media (prefers-color-scheme: light) {
         :root:not([data-mode]) {
           color-scheme: light;
-          --background: oklch(0.985 0.007 250);
-          --foreground: oklch(0.16 0.05 250);
-          --card: oklch(1 0 250);
-          --surface: oklch(0.955 0.022 250);
-          --muted-foreground: oklch(0.44 0.05 250);
-          --border: oklch(0.9 0.05 250);
-          --primary: oklch(0.55 0.105 225);
-          --primary-foreground: oklch(0.985 0.007 250);
-          --marker: oklch(0.6 0.112 55);
-          --accent-soft: oklch(0.95 0.032 225);
-          --accent-soft-fg: oklch(0.35 0.067 225);
+          --background: oklch(0.985 0.007 249.9);
+          --foreground: oklch(0.2 0.02 249.9);
+          --card: oklch(1 0 249.9);
+          --surface: oklch(0.955 0.02 249.9);
+          --muted-foreground: oklch(0.48 0.02 249.9);
+          --border: oklch(0.9 0.02 249.9);
+          --primary: oklch(0.55 0.094 205);
+          --primary-foreground: oklch(0.995 0.003 249.9);
+          --marker: oklch(0.6 0.136 300);
+          --accent-soft: oklch(0.95 0.051 205);
+          --accent-soft-fg: oklch(0.35 0.061 205);
           --warning: oklch(0.55 0.13 75);
           --destructive: oklch(0.55 0.198 25);
-          --grid-minor: oklch(0.55 0.105 225 / 6%);
-          --grid-major: oklch(0.55 0.105 225 / 12%);
-          --glow-a: oklch(0.55 0.105 225 / 10%);
-          --glow-b: oklch(0.6 0.112 55 / 8%);
-          --header-bg: oklch(0.985 0.007 250 / 82%);
-          --shadow: 3px 3px 0 0 oklch(0.16 0.05 250 / 10%);
+          --glow-a: color-mix(in oklab, var(--primary) 18%, transparent);
+          --glow-b: color-mix(in oklab, var(--marker) 16%, transparent);
+          --glass: 72%;
+          --glass-highlight: inset 0 1px 0 color-mix(in oklab, var(--card) 80%, transparent);
+          --shadow: var(--glass-highlight), 0 12px 30px -22px color-mix(in oklab, var(--foreground) 40%, transparent);
           --notice-bg: color-mix(in oklch, var(--warning) 12%, var(--card));
+        }
+      }
+
+      /* 面 Glass: ヘッダー・カード・パネルの背景をぼかす。ぼかせないブラウザでは不透明に近い面にする */
+      .app-header,
+      .tabs,
+      .card,
+      .overlay-panel,
+      .install,
+      .wb-section {
+        backdrop-filter: blur(12px) saturate(140%);
+      }
+
+      @supports not (backdrop-filter: blur(1px)) {
+        :root {
+          --glass: 94%;
+          --header-bg: color-mix(in oklab, var(--card) 94%, var(--background));
         }
       }
 
@@ -124,13 +141,11 @@
       body {
         margin: 0;
         min-height: 100vh;
-        /* 方眼: 8px の細い線と 40px の太い線 */
+        /* 面 Glass: 背景にシアン・紫・淡いシアンの光を敷き、半透明の面の向こうに透かして見せる */
         background:
-          linear-gradient(var(--grid-major) 1px, transparent 1px) 0 0 / 40px 40px,
-          linear-gradient(90deg, var(--grid-major) 1px, transparent 1px) 0 0 / 40px 40px,
-          linear-gradient(var(--grid-minor) 1px, transparent 1px) 0 0 / 8px 8px,
-          linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px) 0 0 / 8px 8px,
-          var(--background);
+          radial-gradient(70rem 42rem at 8% -12%, var(--glow-a), transparent 70%),
+          radial-gradient(54rem 38rem at 92% 8%, var(--glow-b), transparent 72%),
+          radial-gradient(46rem 34rem at 50% 108%, var(--glow-c), transparent 75%), var(--background);
         background-attachment: fixed;
         color: var(--fg);
         font-family: var(--font-body);
@@ -204,14 +219,13 @@
         height: 34px;
         border: 1.5px solid var(--primary);
         border-radius: var(--radius-sm);
-        /* 製図の印: 中心の十字と 4 等分の方眼、オレンジの点 */
+        /* 照準の印: 中心の十字と紫の点。縁をシアンで光らせる */
         background:
           radial-gradient(circle at 50% 50%, var(--marker) 0 3px, transparent 3.5px),
           linear-gradient(var(--primary), var(--primary)) 50% 50% / 1px 100% no-repeat,
           linear-gradient(var(--primary), var(--primary)) 50% 50% / 100% 1px no-repeat,
-          linear-gradient(var(--grid-major) 1px, transparent 1px) 0 0 / 8px 8px,
-          linear-gradient(90deg, var(--grid-major) 1px, transparent 1px) 0 0 / 8px 8px,
           var(--card);
+        box-shadow: 0 0 14px -4px var(--primary);
       }
 
       .app-name {
@@ -616,8 +630,10 @@
         position: sticky;
         left: 0;
         z-index: 1;
-        padding: 10px 12px 10px 0;
-        background: var(--bg);
+        padding: 10px 12px;
+        /* 横に流した見本の上に重なるので、Glass の面でぼかして読めるようにする */
+        background: var(--panel);
+        backdrop-filter: blur(12px) saturate(140%);
         border-radius: var(--radius-sm);
       }
 
