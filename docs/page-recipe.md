@@ -78,6 +78,47 @@ design-studio でページ (1 ファイルの HTML) を作る手順。見本帳�
 
 見本帳の見本を作るときは、プロジェクトではなく `<スキル>/gallery/<styleId>/<family>.html` (骨組みの種類の名前) に置く。
 
-## 6. 点検と仕上げ (必要に応じて)
+## 6. 部品帳と部品を作る
+
+部品帳と部品も、ページと同じく 1 ファイルの HTML。ページと同じ殻 (3 節の形) をそのまま使い、CSS の決まりと「表現を効かせる」に従う。
+
+- **部品帳**: 次の 10 個を 1 枚に並べた 1 ファイルの HTML。並びもこのとおりにする。
+  1. ボタン
+  2. 入力欄 (テキスト・選択・チェック・スイッチ)
+  3. カード
+  4. ヘッダーのナビ
+  5. タブ
+  6. バッジ/タグ
+  7. モーダル
+  8. トースト
+  9. 表
+  10. 料金カード
+- **部品**: 上の 10 個から 1 つ選ぶか、自由な名前で 1 つ作る。その部品だけを並べる。
+
+部品ごとに日本語の見出しを付ける。表は数行の見本データ、料金カードは 2〜3 プランにする。
+
+### 見せ方
+
+状態は 2 段で見せる。
+
+1. **止まった見本**: 状態 (通常・ホバー・押下・フォーカス・無効) ごとに並べ、その状態の見た目をクラスで固定する。
+2. **触れる見本**: 実際にホバー・押下・フォーカスできる見本。手触りは CSS (`:hover`・`:active`・`:focus-visible`・`details`・`popover` 属性) だけで出す。
+
+- モーダルとトーストは、開いた状態を枠 (`position: relative` の箱) の中に置く。画面全体に `position: fixed` で被せない。
+- 大きさの違い (S / M / L) がある部品は、大きさごとに並べる。
+- スクリプトは使わない。
+
+### 点検する
+
+ページと同じく `node <スキル>/scripts/studio.ts check-page --html <file>` を実行し、`ok` が true になるまで直す。
+
+### 保存する
+
+- 部品帳: `node <スキル>/scripts/studio.ts project save --project <project.json> --theme-css <theme.css> --component-sheet --html <file>`
+- 部品: `node <スキル>/scripts/studio.ts project save --project <project.json> --theme-css <theme.css> --component <名前> --html <file>`
+
+部品帳は作り直すと上書きする。部品は名前ごとに別の 1 件として残る。どちらもページの保存とは別の 1 件になる。
+
+## 7. 点検と仕上げ (必要に応じて)
 
 点検のスキル (Call the Skill tool with "fixing-accessibility" など) と仕上げのスキル (Call the Skill tool with "make-interfaces-feel-better" など) を段階に応じて使う。

@@ -1,8 +1,9 @@
 // テスト用の偽 claude CLI。DESIGN_STUDIO_LLM_CMD に JSON の配列で差し込む
 // (例: ["<node のパス>", "app/mock-llm.mjs"])。
 // MOCK_LLM_MODE: ok (既定) / error / bad-then-good / bad-page / no-csp / no-reduced-motion / motion-then-good
-// 受け取った --json-schema の形 (properties.directions か properties.html) で、
-// 方向性の案か 1 ファイルのページかを見分けて、決まった出力を返す
+// 受け取った --json-schema の形 (properties.directions か properties.html) で、方向性の案か
+// 1 ファイルの HTML かを見分ける。HTML のうちページ・部品帳・部品は、標準入力の
+// 「作るもの:」の行 (component-sheet / component) で見分けて、決まった出力を返す
 import fs from "node:fs";
 
 const argv = process.argv.slice(2);
@@ -30,7 +31,17 @@ function schema() {
 
 const parsedSchema = schema();
 const properties = typeof parsedSchema === "object" && parsedSchema !== null ? (parsedSchema.properties ?? {}) : {};
-const isPage = typeof properties === "object" && properties !== null && Object.hasOwn(properties, "html");
+const hasHtmlSchema = typeof properties === "object" && properties !== null && Object.hasOwn(properties, "html");
+
+// プロンプトの 2 行目の「作るもの:」の行で、部品帳・部品を見分ける。
+// ページと方向性は今までどおり --json-schema の形 (properties.html) で見分ける
+function kindOf() {
+  if (/^作るもの: component-sheet$/m.test(stdin)) return "component-sheet";
+  if (/^作るもの: component$/m.test(stdin)) return "component";
+  return hasHtmlSchema ? "page" : "directions";
+}
+
+const kind = kindOf();
 
 // MOCK_LLM_ARGS_FILE があれば、受け取った引数・標準入力 (プロンプト) と --add-dir の中身を書く (テストが見る)
 const argsFile = process.env.MOCK_LLM_ARGS_FILE;
@@ -250,8 +261,9 @@ function baseMode() {
   return extracted(/"baseMode"\s*:\s*"(light|dark)"/, "light");
 }
 
-// 参照のページ HTML の形 (01M510GAC7MMH7RB6D594WSPVY) にそろえたモックのページ
-function pageHtml(themeId, mode) {
+// ページ・部品帳・部品で共通の殻 (参照のページ HTML の形 01M510GAC7MMH7RB6D594WSPVY)。
+// title と body だけを差し替える
+function shellHtml(themeId, mode, title, body) {
   return [
     "<!doctype html>",
     `<html lang="ja" data-theme="${themeId}" data-mode="${mode}">`,
@@ -259,7 +271,7 @@ function pageHtml(themeId, mode) {
     '<meta charset="utf-8">',
     `<meta http-equiv="Content-Security-Policy" content="${CSP}">`,
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    "<title>モックのページ</title>",
+    `<title>${title}</title>`,
     '<link rel="preconnect" href="https://fonts.googleapis.com">',
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" id="theme-fonts">',
@@ -269,32 +281,75 @@ function pageHtml(themeId, mode) {
     "</style>",
     "</head>",
     '<body class="bg-background font-sans text-foreground">',
-    '<main class="mx-auto max-w-3xl p-8">',
-    '<h1 class="font-heading text-3xl text-primary">モックの見出し</h1>',
-    '<p class="text-muted-foreground">モックの本文。</p>',
-    "</main>",
+    body,
     "</body>",
     "</html>",
     "",
   ].join("\n");
 }
 
-// 許可していない外部 URL を含むページ (generatePage の検証に落ちる)
-function badPageHtml(themeId, mode) {
-  return pageHtml(themeId, mode).replace(
-    '<p class="text-muted-foreground">モックの本文。</p>',
-    '<img src="https://example.com/photo.png" alt="写真">',
-  );
+// 作るものごとの title と body。部品帳・部品の body には動きを入れない
+const CONTENTS = {
+  page: {
+    title: "モックのページ",
+    body: [
+      '<main class="mx-auto max-w-3xl p-8">',
+      '<h1 class="font-heading text-3xl text-primary">モックの見出し</h1>',
+      '<p class="text-muted-foreground">モックの本文。</p>',
+      "</main>",
+    ].join("\n"),
+  },
+  "component-sheet": {
+    title: "モックの部品帳",
+    body: [
+      '<main class="mx-auto max-w-3xl space-y-8 p-8">',
+      '<h1 class="font-heading text-3xl text-primary">モックの部品帳</h1>',
+      "<section>",
+      '<h2 class="font-heading text-xl">ボタン</h2>',
+      '<div class="flex items-center gap-3">',
+      '<button class="rounded-md bg-primary px-4 py-2 text-primary-foreground">ボタン</button>',
+      '<button class="rounded-md bg-primary px-4 py-2 text-primary-foreground" disabled>無効</button>',
+      "</div>",
+      "</section>",
+      "<section>",
+      '<h2 class="font-heading text-xl">カード</h2>',
+      '<div class="rounded-lg border border-border bg-card p-4 text-card-foreground">モックのカード</div>',
+      "</section>",
+      "</main>",
+    ].join("\n"),
+  },
+  component: {
+    title: "モックの部品",
+    body: ['<main class="mx-auto max-w-3xl p-8">', '<h1 class="font-heading text-3xl text-primary">モックの部品</h1>', "</main>"].join(
+      "\n",
+    ),
+  },
+};
+
+function contentOf(kind) {
+  return CONTENTS[kind] ?? CONTENTS.page;
 }
 
-// CSP の meta の行だけを除いたページ (generatePage の検証に落ちる)
-function noCspPageHtml(themeId, mode) {
-  return pageHtml(themeId, mode).replace(`<meta http-equiv="Content-Security-Policy" content="${CSP}">\n`, "");
+// 作るものの殻。title と body だけが違う
+function htmlFor(kind, themeId, mode) {
+  const content = contentOf(kind);
+  return shellHtml(themeId, mode, content.title, content.body);
 }
 
-// 動きはあるが prefers-reduced-motion の指定が無いページ (generatePage の点検に落ちる)
-function noReducedMotionPageHtml(themeId, mode) {
-  return pageHtml(themeId, mode).replace(
+// 許可していない外部 URL を含む HTML (generatePage・generateComponent の検証に落ちる)
+function badHtmlFor(kind, themeId, mode) {
+  const content = contentOf(kind);
+  return shellHtml(themeId, mode, content.title, `${content.body}\n<img src="https://example.com/photo.png" alt="写真">`);
+}
+
+// CSP の meta の行だけを除いた HTML (検証に落ちる)
+function noCspHtmlFor(kind, themeId, mode) {
+  return htmlFor(kind, themeId, mode).replace(`<meta http-equiv="Content-Security-Policy" content="${CSP}">\n`, "");
+}
+
+// 動きはあるが prefers-reduced-motion の指定が無い HTML (点検に落ちる)
+function noReducedMotionHtmlFor(kind, themeId, mode) {
+  return htmlFor(kind, themeId, mode).replace(
     "</head>",
     [
       "<style>",
@@ -311,35 +366,37 @@ function noReducedMotionPageHtml(themeId, mode) {
 
 const out = (o) => console.log(JSON.stringify(o));
 
+// 方向性の出力。bad-then-good だけ 1 回目に不正な形を返す
+function directionsOutput() {
+  if (mode !== "bad-then-good") return directions();
+  const n = counter();
+  const good = directions();
+  return n === 0 ? { directions: good.directions.slice(0, 2) } : good;
+}
+
+const htmlOutput = (html) => ({ is_error: false, structured_output: { html } });
+
 if (mode === "error") {
   out({ is_error: true, result: "boom" });
+} else if (kind === "directions") {
+  out({ is_error: false, structured_output: directionsOutput() });
 } else if (mode === "bad-page") {
-  out({ is_error: false, structured_output: isPage ? { html: badPageHtml(seedId(), baseMode()) } : directions() });
+  out(htmlOutput(badHtmlFor(kind, seedId(), baseMode())));
 } else if (mode === "no-csp") {
-  out({ is_error: false, structured_output: isPage ? { html: noCspPageHtml(seedId(), baseMode()) } : directions() });
+  out(htmlOutput(noCspHtmlFor(kind, seedId(), baseMode())));
 } else if (mode === "bad-then-good") {
   const n = counter();
-  if (isPage) {
-    out({ is_error: false, structured_output: { html: n === 0 ? badPageHtml(seedId(), baseMode()) : pageHtml(seedId(), baseMode()) } });
-  } else {
-    const good = directions();
-    out({ is_error: false, structured_output: n === 0 ? { directions: good.directions.slice(0, 2) } : good });
-  }
+  out(htmlOutput(n === 0 ? badHtmlFor(kind, seedId(), baseMode()) : htmlFor(kind, seedId(), baseMode())));
 } else if (mode === "no-reduced-motion") {
-  out({ is_error: false, structured_output: isPage ? { html: noReducedMotionPageHtml(seedId(), baseMode()) } : directions() });
+  // 回数は MOCK_LLM_COUNTER で見る (ページも部品も 2 回で止まる)
+  counter();
+  out(htmlOutput(noReducedMotionHtmlFor(kind, seedId(), baseMode())));
 } else if (mode === "motion-then-good") {
-  // ページは 1 回目だけ reduced-motion の指定が無く、2 回目からは ok と同じ。方向性は ok と同じ
+  // 1 回目だけ reduced-motion の指定が無く、2 回目からは ok と同じ
   const n = counter();
-  if (isPage) {
-    out({
-      is_error: false,
-      structured_output: { html: n === 0 ? noReducedMotionPageHtml(seedId(), baseMode()) : pageHtml(seedId(), baseMode()) },
-    });
-  } else {
-    out({ is_error: false, structured_output: directions() });
-  }
+  out(htmlOutput(n === 0 ? noReducedMotionHtmlFor(kind, seedId(), baseMode()) : htmlFor(kind, seedId(), baseMode())));
 } else if (mode === "ok") {
-  out({ is_error: false, structured_output: isPage ? { html: pageHtml(seedId(), baseMode()) } : directions() });
+  out(htmlOutput(htmlFor(kind, seedId(), baseMode())));
 } else {
   console.error(`unknown mode: ${mode}`);
   process.exit(1);

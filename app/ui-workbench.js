@@ -2,7 +2,7 @@
 // 中央に端末を切り替えられるライブプレビュー (骨組み / ページ)、右に調整のパネル
 //   (パッド・微調整・コントラスト・トークン・ページ・保存。PBI-010 で下の 2 つのファイルに分けた)。
 // 見本帳の「これに近いもので作る」から studio:start-from-style を受けたら、そのスタイルを原案 1 つの回にして始める。
-// API: GET /api/meta /api/styles /api/projects /api/treatments、POST /api/directions /api/mix /api/render /api/tokens /api/page /api/projects
+// API: GET /api/meta /api/styles /api/projects /api/treatments、POST /api/directions /api/mix /api/render /api/tokens /api/generate /api/projects
 import { createPanels } from "./ui-workbench-panels.js";
 import { createProjectPanel } from "./ui-workbench-project.js";
 import { createTreatmentPanel } from "./ui-workbench-treatment.js";
@@ -122,8 +122,8 @@ const state = {
   treatment: { surface: "none", motion: "none", motionSamples: [] }, // 表現 (面・動き・動きの見本。依頼・プレビュー・ページ・保存に効く)
   mixed: null, // 最後の /api/mix の mixed (混ぜただけ。微調整の初期値に使う)
   tuned: null, // 最後の /api/mix の direction (微調整込み。トークンとページに使う)
-  page: null, // 中央に出しているページ { pageType, html }
-  pageList: [], // 画面の種類ごとに作ったページ { name, family, key, html }
+  page: null, // 中央に出しているもの { kind, pageType, html } (部品帳・部品は pageType.name に名前、family は空文字)
+  pageList: [], // 作ったもの (ページ・部品帳・部品) { kind, name, family, key, html, dirty }
   pageOpenUrl: null, // 「別タブで開く」の Blob の URL (次に開くときに捨てる)
   projectId: null, // 保存したプロジェクトの id
   screenshot: null, // { name, dataUrl }
@@ -1132,8 +1132,15 @@ function drawPagePreview() {
   if (page === null) return;
   state.frameBox.hidden = false;
   state.frame.srcdoc = page.html;
-  frameStatus(`いまのページ: ${text(record(page.pageType).name)}`, false);
+  frameStatus(`いまの${kindLabelOf(page.kind)}: ${text(record(page.pageType).name)}`, false);
   sizeFrame();
+}
+
+// 作ったものの種類の名前 (部品帳は kind だけで名前が決まる)
+function kindLabelOf(kind) {
+  if (kind === "component-sheet") return "部品帳";
+  if (kind === "component") return "部品";
+  return "ページ";
 }
 
 // 幅に合わせて縮めて見せる (枠の幅より端末の幅が大きければ零点の倍率、小さければ中央に置く)
@@ -1302,8 +1309,16 @@ function pageEntriesOf(value) {
   if (!Array.isArray(value)) return [];
   return value
     .map((entry) => record(entry))
-    .filter((item) => text(item.kind) === "page")
-    .map((item) => ({ name: text(item.name), family: text(item.family), key: text(item.key), html: null }));
+    .filter((item) => ["page", "component-sheet", "component"].includes(text(item.kind)))
+    .map((item) => ({
+      kind: text(item.kind),
+      name: text(item.name),
+      // 部品帳・部品は骨組みの種類を持たない
+      family: text(item.kind) === "page" ? text(item.family) : "",
+      key: text(item.key),
+      html: null,
+      dirty: false,
+    }));
 }
 
 // 保存したプロジェクトの表現。motionSamples は animated のときだけ持つ (core の validateTreatment と同じ)

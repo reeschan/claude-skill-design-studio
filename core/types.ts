@@ -39,6 +39,24 @@ export const PAGE_TYPE_CANDIDATES: readonly PageType[] = [
   { name: "設定画面", family: "settings" },
 ];
 
+// 部品の候補 (部品帳に並ぶ 10 個と同じ。並びもこのとおり)
+export type ComponentCandidate = { id: string; name: string };
+export const COMPONENT_CANDIDATES: readonly ComponentCandidate[] = [
+  { id: "button", name: "ボタン" },
+  { id: "input", name: "入力欄" }, // テキスト・選択・チェック・スイッチ
+  { id: "card", name: "カード" },
+  { id: "nav", name: "ヘッダーのナビ" },
+  { id: "tabs", name: "タブ" },
+  { id: "badge", name: "バッジ/タグ" },
+  { id: "modal", name: "モーダル" },
+  { id: "toast", name: "トースト" },
+  { id: "table", name: "表" },
+  { id: "pricing-card", name: "料金カード" },
+];
+
+// 作るもののうち部品の側。ページは PageType で表す。デザインガイドは第 4 段で足す
+export type ComponentTarget = { kind: "component-sheet" } | { kind: "component"; name: string };
+
 // 依頼。what は必須 (trim 後 1〜2000 文字)、ほかは任意 (無ければ空文字、trim 後 0〜500 文字)
 export type Brief = { what: string; mood: string; audience: string; mustHave: string };
 
@@ -107,8 +125,13 @@ export type MotionLevel = (typeof MOTION_LEVELS)[number];
 // 表現 = 面と動きの組。surface は data/surfaces.json の id (コードを変えずに面を足せるよう、型は string)。
 // motionSamples は動きの見本の id の並び (0〜4 件、重複なし)。motion が animated のときだけ中身を持ち、それ以外は []
 export type Treatment = { surface: string; motion: MotionLevel; motionSamples: string[] };
-// 保存した 1 件。kind は作ったもの (第 2 段は "page" だけ。第 3 段で部品帳などを足す)。treatment は作ったときの表現
-export type SavedItem = { kind: "page"; key: string; name: string; family: SkeletonFamily; treatment: Treatment };
+// 保存した 1 件。kind は作ったもの (ページ・部品帳・部品)。treatment は作ったときの表現
+export type PageItem = { kind: "page"; key: string; name: string; family: SkeletonFamily; treatment: Treatment };
+// 部品帳はプロジェクトに 1 件。key は "component-sheet"、name は "部品帳" で固定
+export type ComponentSheetItem = { kind: "component-sheet"; key: string; name: string; treatment: Treatment };
+// 部品は名前ごとに 1 件。key は componentKeyOf(name)
+export type ComponentItem = { kind: "component"; key: string; name: string; treatment: Treatment };
+export type SavedItem = PageItem | ComponentSheetItem | ComponentItem;
 
 // 保存の形 (版 3)。開き直したときに作業台の続きから作業できるようにする
 export type Project = {

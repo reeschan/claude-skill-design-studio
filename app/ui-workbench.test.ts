@@ -17,8 +17,21 @@ function sourceOf(name: string): string {
 const SOURCE = WORKBENCH_FILES.map((name) => sourceOf(name)).join("\n");
 // 作業台が使う API のパス
 const API_PATHS = ["/api/meta", "/api/directions", "/api/mix", "/api/render"] as const;
-// 右のパネルと保存が使う API のパス (PBI-010)
-const PANEL_API_PATHS = ["/api/tokens", "/api/page", "/api/projects", "/pages/"] as const;
+// 右のパネルと保存が使う API のパス (PBI-010・PBI-006)
+const PANEL_API_PATHS = ["/api/tokens", "/api/projects", "/pages/"] as const;
+// 部品の候補の名前 (core/types.ts の COMPONENT_CANDIDATES と同じ 10 個。並びもこのとおり)
+const COMPONENT_NAMES = [
+  "ボタン",
+  "入力欄",
+  "カード",
+  "ヘッダーのナビ",
+  "タブ",
+  "バッジ/タグ",
+  "モーダル",
+  "トースト",
+  "表",
+  "料金カード",
+] as const;
 // 端末の切り替えの幅 (デスクトップ・タブレット・モバイル)
 const DEVICE_WIDTHS = ["1280", "768", "375"] as const;
 
@@ -125,7 +138,7 @@ void test("14. 保存とページを作る処理は、案の世代を進めな�
   // 保存やページ作りが案の世代 (state.session) を進めると、出している途中の案やページの応答が知らせなしに捨てられる
   // (PBI-010 差し戻し 1)。連打は busy の印で防ぐ
   const project = sourceOf("ui-workbench-project.js");
-  for (const name of ["createPage", "saveProject"]) {
+  for (const name of ["createMake", "saveProject"]) {
     const body = functionBodyOf(project, name);
     assert.ok(!body.includes("nextSession"), `${name} が案の世代を進めています`);
     assert.ok(!body.includes("state.session"), `${name} が案の世代で応答を捨てています`);
@@ -150,14 +163,14 @@ void test("16. トークンは、要求したときと今の見た目が違え�
   assert.match(body, /!==\s*id\)\s*(?:\{\s*)?return null/, "古いトークンを捨てていません (出さない・覚えない)");
 });
 
-void test("17. 保存は、まだ保存していないページを 1 枚ずつ全部送る", () => {
-  // 画面の種類を変えて 2 枚作ってから保存しても、両方がプロジェクトに入る (PR #1 のレビュー)
+void test("17. 保存は、まだ保存していないものを 1 件ずつ全部送る", () => {
+  // 画面の種類を変えて 2 枚作ってから保存しても、両方がプロジェクトに入る (PR #1 のレビュー・PBI-006)
   const source = sourceOf("ui-workbench-project.js");
   const save = functionBodyOf(source, "saveProject");
-  assert.match(save, /unsavedPages\(\)/, "保存がまだのページを集めていません");
-  assert.match(save, /for \(const entry of pending\.slice\(1\)\)/, "2 枚目以降のページを送っていません");
-  assert.match(functionBodyOf(source, "upsertPage"), /dirty: true/, "作ったページに保存がまだの印を付けていません");
-  assert.match(functionBodyOf(source, "postProject"), /entry\.dirty = false/, "保存できたページの印を外していません");
+  assert.match(save, /unsavedEntries\(\)/, "保存がまだのものを集めていません");
+  assert.match(save, /for \(const entry of pending\.slice\(1\)\)/, "2 件目以降を送っていません");
+  assert.match(functionBodyOf(source, "upsertEntry"), /dirty: true/, "作ったものに保存がまだの印を付けていません");
+  assert.match(functionBodyOf(source, "postProject"), /entry\.dirty = false/, "保存できたものの印を外していません");
 });
 
 void test("18. スタイルから始めたら、開いていたプロジェクトの id とページの一覧を捨てる", () => {
@@ -184,8 +197,8 @@ void test("19. 表現の部品は /api/treatments から面と動きの見本を
   assert.ok(!treatment.includes(".src = "), "動きの見本の iframe に src を使っています");
 });
 
-void test("20. 依頼・骨組みのプレビュー・ページの body にいまの表現を入れる", () => {
-  // 案を出す・骨組みを描く・ページを作るの 3 つが同じ表現を使う (PBI-008)
+void test("20. 依頼・骨組みのプレビュー・作るものの body にいまの表現を入れる", () => {
+  // 案を出す・骨組みを描く・作るものを作るの 3 つが同じ表現を使う (PBI-008・PBI-006)
   const directions = functionBodyOf(sourceOf("ui-workbench.js"), "generateFromForm");
   assert.ok(directions.includes("/api/directions"), "案を出す関数に /api/directions がありません");
   assert.match(directions, /treatment:\s*state\.treatment/, "案を出す body に treatment がありません");
@@ -194,9 +207,10 @@ void test("20. 依頼・骨組みのプレビュー・ページの body にい�
   assert.ok(render.includes("/api/render"), "骨組みを描く関数に /api/render がありません");
   assert.match(render, /treatment:\s*state\.treatment/, "骨組みを描く body に treatment がありません");
 
-  const page = functionBodyOf(sourceOf("ui-workbench-project.js"), "createPage");
-  assert.ok(page.includes("/api/page"), "ページを作る関数に /api/page がありません");
-  assert.match(page, /treatment:\s*state\.treatment/, "ページを作る body に treatment がありません");
+  const make = functionBodyOf(sourceOf("ui-workbench-project.js"), "createMake");
+  assert.ok(make.includes("/api/generate"), "作るものを作る関数に /api/generate がありません");
+  assert.match(make, /make,/, "作るものを作る body に make がありません");
+  assert.match(make, /treatment:\s*state\.treatment/, "作るものを作る body に treatment がありません");
 });
 
 void test("21. 保存は版 3 で表現を送り、開き直しは treatment と items を読む", () => {
@@ -222,4 +236,56 @@ void test("23. 動きの見本のチェックは 4 件までに止める", () =>
   const treatment = sourceOf("ui-workbench-treatment.js");
   assert.match(treatment, /SAMPLE_MAX\s*=\s*4/, "見本の上限の値 (4) がありません");
   assert.ok(treatment.includes("length >= SAMPLE_MAX"), "上限に達したらチェックを止めていません");
+});
+
+void test("24. 作るものは /api/generate で作り、作業台は /api/page を使わない", () => {
+  // ページ・部品帳・部品の生成を 1 つの API にそろえる (contract.md の 7・8 節)
+  assert.match(
+    functionBodyOf(sourceOf("ui-workbench-project.js"), "createMake"),
+    /\/api\/generate/,
+    "作るものの生成に /api/generate を使っていません",
+  );
+  for (const name of WORKBENCH_FILES) {
+    assert.ok(!sourceOf(name).includes("/api/page"), `${name} が /api/page を使っています`);
+  }
+});
+
+void test("25. 部品帳・部品の読み出しは /components/ の経路を使う", () => {
+  // ページは /pages、部品帳・部品は /components から読む (contract.md の 8 節)
+  const path = functionBodyOf(sourceOf("ui-workbench-project.js"), "entryPathOf");
+  assert.ok(path.includes("/pages/"), "ページの読み出しに /pages/ がありません");
+  assert.ok(path.includes("/components/"), "部品帳・部品の読み出しに /components/ がありません");
+  assert.match(path, /entry\.kind === "page"/, "ページと部品帳・部品で経路を分けていません");
+});
+
+void test("26. 作るものの kind (component-sheet / component) を送る値として持つ", () => {
+  // 生成は make、保存は component.target に作るものを入れる (contract.md の 7・8 節)
+  const project = sourceOf("ui-workbench-project.js");
+  const make = functionBodyOf(project, "currentMake");
+  assert.ok(make.includes('kind: "component-sheet"'), "部品帳の kind を送っていません");
+  assert.ok(make.includes('kind: "component"'), "部品の kind を送っていません");
+  assert.match(functionBodyOf(project, "createMake"), /make,/, "作るものを make として送っていません");
+  assert.match(functionBodyOf(project, "postProject"), /body\.component = \{ target:/, "部品帳・部品を component として保存していません");
+});
+
+void test("27. 部品の候補 10 個の名前をソースに持つ", () => {
+  // JS は core を import できないので、core/types.ts の COMPONENT_CANDIDATES と同じ並びをこのファイルに持つ
+  const project = sourceOf("ui-workbench-project.js");
+  const start = project.indexOf("const COMPONENT_CANDIDATES");
+  assert.notEqual(start, -1, "部品の候補の定数がありません");
+  const block = project.slice(start, project.indexOf("];", start));
+  for (const name of COMPONENT_NAMES) {
+    assert.ok(block.includes(`name: "${name}"`), `部品の候補「${name}」がありません`);
+  }
+});
+
+void test("28. 開き直しは items の 3 つの kind を一覧に戻し、見出しは部品帳・部品でも名前を出す", () => {
+  // 保存したプロジェクトを開き直すと、ページ・部品帳・部品が一覧に戻る (contract.md の 8 節)
+  const entries = functionBodyOf(sourceOf("ui-workbench.js"), "pageEntriesOf");
+  for (const kind of ["page", "component-sheet", "component"]) {
+    assert.ok(entries.includes(`"${kind}"`), `開き直しが ${kind} を一覧に戻していません`);
+  }
+  const draw = functionBodyOf(sourceOf("ui-workbench.js"), "drawPagePreview");
+  assert.match(draw, /page\.kind/, "プレビューの見出しが作ったものの種類を見ていません");
+  assert.match(draw, /record\(page\.pageType\)\.name/, "プレビューの見出しが名前を出していません");
 });

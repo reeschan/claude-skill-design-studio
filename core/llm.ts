@@ -16,9 +16,9 @@ import type { Brief, Direction, FontMood, MotionLevel, MotionSample, PageType, S
 // claude CLI の既定のモデルと、種類ごとのタイムアウト (方向性 180 秒・ページ 600 秒)
 const LLM_MODEL = "sonnet";
 const DIRECTIONS_TIMEOUT_MS = 180000;
-const PAGE_TIMEOUT_MS = 600000;
-// 出力が不正なときの再試行は 1 回まで
-const MAX_ATTEMPTS = 2;
+export const PAGE_TIMEOUT_MS = 600000;
+// 出力が不正なときの再試行は 1 回まで (ページと部品で同じ)
+export const MAX_ATTEMPTS = 2;
 // エラーに写す LLM の出力の長さ
 const MAX_ERROR_CHARS = 300;
 // core/page-html.ts の CSP と同じ読み込み先
@@ -316,7 +316,13 @@ const DIRECTIONS_SCHEMA: object = {
   },
 };
 
-const PAGE_SCHEMA: object = { type: "object", additionalProperties: false, required: ["html"], properties: { html: { type: "string" } } };
+// ページと部品で同じ構造化出力 (html 1 つ)
+export const PAGE_SCHEMA: object = {
+  type: "object",
+  additionalProperties: false,
+  required: ["html"],
+  properties: { html: { type: "string" } },
+};
 
 type Screenshot = { readDir: string; file: string; cleanup: () => void };
 
@@ -334,7 +340,7 @@ function prepareScreenshot(path: string): Screenshot {
 }
 
 // 依頼の 4 項目を <user_brief> の中に見出し付きで並べる。空の項目は (指定なし)
-function userBriefLines(brief: Brief): string[] {
+export function userBriefLines(brief: Brief): string[] {
   const item = (label: string, value: string): string[] => [`### ${label}`, value === "" ? "(指定なし)" : value, ""];
   return [
     "<user_brief>",
@@ -353,7 +359,7 @@ const MOTION_LABELS: Record<MotionLevel, string> = {
   animated: "見せる。動きの見本集から 2〜4 件を主役に使ってよい。",
 };
 
-type PromptPurpose = "directions" | "page";
+export type PromptPurpose = "directions" | "page" | "component";
 
 // 表現の節の面の行。面を指定していない (none) ときは空
 function surfaceLines(treatment: Treatment): string[] {
@@ -407,13 +413,14 @@ function sampleLines(treatment: Treatment): string[] {
 
 const DIRECTIONS_TREATMENT_NOTE = "- 表現に合う配色・形・字組みの案にしてください。表現 (面と動き) は 4 つの案で変えないでください。";
 const PAGE_TREATMENT_NOTE = "- この表現を、ページ全体の面と動きの土台にしてください。";
+const COMPONENT_TREATMENT_NOTE = "- この表現を、部品の面と動きの土台にしてください。";
 
 // プロンプトに差し込む「## 表現」の節。既定の表現なら空にする (方向性のプロンプトを 1 文字も変えない)
-function treatmentSection(treatment: Treatment | undefined, purpose: PromptPurpose): string[] {
+export function treatmentSection(treatment: Treatment | undefined, purpose: PromptPurpose): string[] {
   if (treatment === undefined || isDefaultTreatment(treatment)) return [];
   const lines = ["## 表現", ...surfaceLines(treatment), ...motionLines(treatment)];
-  if (purpose === "page" && treatment.motion === "animated") lines.push(...sampleLines(treatment));
-  lines.push(purpose === "directions" ? DIRECTIONS_TREATMENT_NOTE : PAGE_TREATMENT_NOTE);
+  if (purpose !== "directions" && treatment.motion === "animated") lines.push(...sampleLines(treatment));
+  lines.push(purpose === "directions" ? DIRECTIONS_TREATMENT_NOTE : purpose === "page" ? PAGE_TREATMENT_NOTE : COMPONENT_TREATMENT_NOTE);
   return [...lines, ""];
 }
 
@@ -536,10 +543,14 @@ function hasDataTheme(html: string, themeId: string): boolean {
   return (match?.[1] ?? match?.[2] ?? match?.[3]) === themeId;
 }
 
-type PageCandidate = { html: string | null; issues: string[] };
+export type PageCandidate = { html: string | null; issues: string[] };
 
-// 応答の html のテーマを差し替えてから検証する。通れば html、通らなければ理由
-function checkPageOutput(out: unknown, input: GeneratePageInput): PageCandidate {
+/** checkPageOutput に渡す、殻の点検に使う値。テーマの CSS と data-theme に入る id */
+export type CheckOutputInput = { cssForPage: string; themeId: string };
+
+// 応答の html のテーマを差し替えてから検証する。通れば html、通らなければ理由。
+// ページと部品で同じ点検を使う (issues の文言はページのときと変えない)
+export function checkPageOutput(out: unknown, input: CheckOutputInput): PageCandidate {
   if (!isRecord(out) || typeof out.html !== "string") return { html: null, issues: ["html が文字列ではありません"] };
   const html = replaceThemeStyle(out.html, input.cssForPage);
   if (html === null) return { html: null, issues: ['<style id="theme"> がありません'] };
@@ -547,9 +558,34 @@ function checkPageOutput(out: unknown, input: GeneratePageInput): PageCandidate 
   if (!hasPageCsp(html)) issues.push("CSP の meta がありません");
   const urls = findDisallowedUrls(html);
   if (urls.length > 0) issues.push(`許可していない URL があります: ${urls.join(", ")}`);
-  if (!hasDataTheme(html, input.direction.seed.id)) issues.push(`data-theme="${input.direction.seed.id}" ではありません`);
+  if (!hasDataTheme(html, input.themeId)) issues.push(`data-theme="${input.themeId}" ではありません`);
   if (!checkMotion(html).ok) issues.push("動きがあるのに prefers-reduced-motion の指定がありません");
   return { html, issues };
+}
+
+// 「## 参照のページ HTML の形」の節。ページと部品で同じ行を使う
+export function htmlShapeLines(direction: Direction, fontsUrl: string): string[] {
+  return [
+    "## 参照のページ HTML の形",
+    `- ルート要素: <html lang="ja" data-theme="${direction.seed.id}" data-mode="${direction.seed.baseMode}">`,
+    '- <head> の順: <meta charset="utf-8"> → 次の CSP の meta → viewport → <title> → preconnect (fonts.googleapis.com) → preconnect (fonts.gstatic.com、crossorigin) → fonts の <link> → Tailwind の <script> → テーマの <style>',
+    `- CSP の meta: <meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`,
+    `- fonts の <link> は href="${fontsUrl}" id="theme-fonts"。`,
+    `- Tailwind の <script> は src="${TAILWIND_URL}"。`,
+    '- テーマの <style> は <style type="text/tailwindcss" id="theme"> で、中身は空でよい (こちらで入れる)。',
+    "- インラインの <script> と on*= 属性は使わない (CSP で止まる)。動きは CSS だけで表す。",
+    "- 色・角丸・影・フォント・余白はテーマのユーティリティだけで指定する: bg-background text-foreground bg-card text-card-foreground bg-primary text-primary-foreground bg-secondary bg-muted text-muted-foreground border-border bg-accent text-accent-foreground bg-brand-accent ring-ring rounded-sm|md|lg shadow-md font-heading font-sans font-mono。色の直書き (#fff や bg-blue-500 など) はしない。",
+    "- テーマの <style> とは別に、自分で書く <style> (ふつうの CSS。テーマの style のあと) を置いてよい。そこでは @keyframes・@property・backdrop-filter・mask を書いてよい。",
+    "- 自分で書く <style> でも、色はテーマの CSS 変数 (var(--primary) など。--color-primary ではない) か、それを color-mix() で薄めたものだけにする。色の直書き (#fff や bg-blue-500 など) はしない。",
+    "- ユーティリティでは、透明度の付け方 (bg-card/60 など) と backdrop-blur-* を使ってよい。",
+    "- 動き (@keyframes・animation・transition・animate-*・transition*) を使うときは、@media (prefers-reduced-motion: reduce) か Tailwind の motion-safe:・motion-reduce: で、止めるか弱める指定を必ず置く。",
+    "- Chromium だけの機能 (sibling-index()・scroll-triggered animations・corner-shape・SVG フィルタの屈折) は、@supports で無いときの見た目を用意したときだけ使う。",
+    "- 画像は使わない。グラデーションとインラインの SVG で表す。",
+    "- 外部から読み込んでよいのは Tailwind の browser 版と Google Fonts だけ。mailto:・tel: のリンクと、同じページ内の参照 (#top など) は置いてよい。",
+    "- 文章は日本語。",
+    "- ありがちなテンプレートを避け、主題に合う大胆な見出しとレイアウトにする。余白とリズムに意図を持たせる。",
+    "",
+  ];
 }
 
 function pagePrompt(input: GeneratePageInput): string {
@@ -570,25 +606,7 @@ function pagePrompt(input: GeneratePageInput): string {
       `- 配置は layouts.${pageType.family} = 「${layout}」を出発点にしてよいですが、骨組みより作り込んでください。`,
       "",
       ...treatmentSection(input.treatment, "page"),
-      "## 参照のページ HTML の形",
-      `- ルート要素: <html lang="ja" data-theme="${direction.seed.id}" data-mode="${direction.seed.baseMode}">`,
-      '- <head> の順: <meta charset="utf-8"> → 次の CSP の meta → viewport → <title> → preconnect (fonts.googleapis.com) → preconnect (fonts.gstatic.com、crossorigin) → fonts の <link> → Tailwind の <script> → テーマの <style>',
-      `- CSP の meta: <meta http-equiv="Content-Security-Policy" content="${PAGE_CSP}">`,
-      `- fonts の <link> は href="${input.fontsUrl}" id="theme-fonts"。`,
-      `- Tailwind の <script> は src="${TAILWIND_URL}"。`,
-      '- テーマの <style> は <style type="text/tailwindcss" id="theme"> で、中身は空でよい (こちらで入れる)。',
-      "- インラインの <script> と on*= 属性は使わない (CSP で止まる)。動きは CSS だけで表す。",
-      "- 色・角丸・影・フォント・余白はテーマのユーティリティだけで指定する: bg-background text-foreground bg-card text-card-foreground bg-primary text-primary-foreground bg-secondary bg-muted text-muted-foreground border-border bg-accent text-accent-foreground bg-brand-accent ring-ring rounded-sm|md|lg shadow-md font-heading font-sans font-mono。色の直書き (#fff や bg-blue-500 など) はしない。",
-      "- テーマの <style> とは別に、自分で書く <style> (ふつうの CSS。テーマの style のあと) を置いてよい。そこでは @keyframes・@property・backdrop-filter・mask を書いてよい。",
-      "- 自分で書く <style> でも、色はテーマの CSS 変数 (var(--primary) など。--color-primary ではない) か、それを color-mix() で薄めたものだけにする。色の直書き (#fff や bg-blue-500 など) はしない。",
-      "- ユーティリティでは、透明度の付け方 (bg-card/60 など) と backdrop-blur-* を使ってよい。",
-      "- 動き (@keyframes・animation・transition・animate-*・transition*) を使うときは、@media (prefers-reduced-motion: reduce) か Tailwind の motion-safe:・motion-reduce: で、止めるか弱める指定を必ず置く。",
-      "- Chromium だけの機能 (sibling-index()・scroll-triggered animations・corner-shape・SVG フィルタの屈折) は、@supports で無いときの見た目を用意したときだけ使う。",
-      "- 画像は使わない。グラデーションとインラインの SVG で表す。",
-      "- 外部から読み込んでよいのは Tailwind の browser 版と Google Fonts だけ。mailto:・tel: のリンクと、同じページ内の参照 (#top など) は置いてよい。",
-      "- 文章は日本語。",
-      "- ありがちなテンプレートを避け、主題に合う大胆な見出しとレイアウトにする。余白とリズムに意図を持たせる。",
-      "",
+      ...htmlShapeLines(direction, input.fontsUrl),
       '## テーマ (style id="theme" に入る CSS。こちらで入れるので、あなたは書かなくてよい。使える色・角丸・余白はこの定義にある)',
       input.cssForPage,
       "",
@@ -604,7 +622,7 @@ export async function generatePage(input: GeneratePageInput, env: NodeJS.Process
   let last = "";
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const out = await runClaude({ prompt, schema: PAGE_SCHEMA, timeoutMs: PAGE_TIMEOUT_MS }, env);
-    const candidate = checkPageOutput(out, input);
+    const candidate = checkPageOutput(out, { cssForPage: input.cssForPage, themeId: input.direction.seed.id });
     if (candidate.html !== null && candidate.issues.length === 0) return candidate.html;
     last = candidate.issues.join(" / ");
   }

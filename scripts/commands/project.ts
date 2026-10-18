@@ -5,7 +5,7 @@ import { CliExit, EXIT_INPUT, usage } from "../../core/cli-exit.ts";
 import { readJsonFile } from "../../core/json-file.ts";
 import { candidateOf, validatePageType } from "../../core/page-type.ts";
 import { listProjectsWithBroken, projectDir, readProject, saveProject } from "../../core/project.ts";
-import type { PageType, Project } from "../../core/types.ts";
+import type { ComponentTarget, PageType, Project } from "../../core/types.ts";
 
 const errorMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
@@ -45,9 +45,24 @@ type RawSaveArgs = {
   themeCss: string | undefined;
   pageName: string | undefined;
   family: string | undefined;
+  component: string | undefined;
+  componentSheet: boolean | undefined;
   html: string | undefined;
 };
-type SaveArgs = { project: string; themeCss: string | undefined; page: { pageType: PageType; html: string } | undefined };
+type SaveArgs = {
+  project: string;
+  themeCss: string | undefined;
+  page: { pageType: PageType; html: string } | undefined;
+  component: { target: ComponentTarget; html: string } | undefined;
+};
+
+// 作るものの指定 (--page-name / --component / --component-sheet のどれか 1 つ) と、その --html
+type PageMake = { kind: "page"; pageName: string; family: string | undefined; html: string };
+type ComponentMake = { kind: "component"; name: string; html: string };
+type ComponentSheetMake = { kind: "component-sheet"; html: string };
+type MakeSpec = PageMake | ComponentMake | ComponentSheetMake;
+
+const HTML_NEEDS_MAKE = "--html は --page-name / --component / --component-sheet のどれか 1 つといっしょに指定してください";
 
 // save の --flag を読む。知らない引数・値の欠けは usage
 function readSaveArgs(args: string[]): RawSaveArgs {
@@ -61,6 +76,8 @@ function readSaveArgs(args: string[]): RawSaveArgs {
         "theme-css": { type: "string" },
         "page-name": { type: "string" },
         family: { type: "string" },
+        component: { type: "string" },
+        "component-sheet": { type: "boolean" },
         html: { type: "string" },
       },
     });
@@ -69,6 +86,8 @@ function readSaveArgs(args: string[]): RawSaveArgs {
       themeCss: parsed.values["theme-css"],
       pageName: parsed.values["page-name"],
       family: parsed.values.family,
+      component: parsed.values.component,
+      componentSheet: parsed.values["component-sheet"],
       html: parsed.values.html,
     };
   } catch (e) {
@@ -76,16 +95,52 @@ function readSaveArgs(args: string[]): RawSaveArgs {
   }
 }
 
-// --page-name と --html は両方そろっているときだけページにする。--family は --page-name といっしょに使う
+// 付いた作るものの指定の名前 (2 つ以上を usage にするのに使う)
+function makeKindsOf(raw: RawSaveArgs): string[] {
+  const kinds: string[] = [];
+  if (raw.pageName !== undefined) kinds.push("--page-name");
+  if (raw.component !== undefined) kinds.push("--component");
+  if (raw.componentSheet === true) kinds.push("--component-sheet");
+  return kinds;
+}
+
+// 作るものの指定には --html が要る
+function requireHtml(html: string | undefined): string {
+  if (html === undefined) throw usage(HTML_NEEDS_MAKE);
+  return html;
+}
+
+// 作るものの指定を読む。どれか 1 つまでで、--html がそろっていることを確かめる
+function makeOf(raw: RawSaveArgs): MakeSpec | undefined {
+  const kinds = makeKindsOf(raw);
+  if (kinds.length > 1) throw usage(`${kinds.join(" と ")} は同時に指定できません`);
+  if (raw.family !== undefined && raw.pageName === undefined) throw usage("--family は --page-name といっしょに指定してください");
+  if (raw.pageName !== undefined) return { kind: "page", pageName: raw.pageName, family: raw.family, html: requireHtml(raw.html) };
+  if (raw.component !== undefined) return { kind: "component", name: raw.component, html: requireHtml(raw.html) };
+  if (raw.componentSheet === true) return { kind: "component-sheet", html: requireHtml(raw.html) };
+  if (raw.html !== undefined) throw usage(HTML_NEEDS_MAKE);
+  return undefined;
+}
+
+// ページの保存の指定。--page-name [--family] と --html
+function pageOf(make: PageMake): { pageType: PageType; html: string } {
+  return { pageType: parsePageType(make.pageName, make.family), html: make.html };
+}
+
+// 部品の側 (部品帳・部品) の保存の指定。名前の検証は saveProject (core) が行う
+function componentOf(make: ComponentMake | ComponentSheetMake): { target: ComponentTarget; html: string } {
+  const target: ComponentTarget = make.kind === "component" ? { kind: "component", name: make.name } : { kind: "component-sheet" };
+  return { target, html: make.html };
+}
+
+// 作るものの指定を保存の引数に直す。--family は --page-name といっしょのときだけ使う
 function saveArgsOf(raw: RawSaveArgs): SaveArgs {
-  const { project, themeCss, pageName, family, html } = raw;
+  const { project, themeCss } = raw;
   if (project === undefined) throw usage("--project <file> を指定してください");
-  if (pageName === undefined && html === undefined) {
-    if (family !== undefined) throw usage("--family は --page-name といっしょに指定してください");
-    return { project, themeCss, page: undefined };
-  }
-  if (pageName === undefined || html === undefined) throw usage("--page-name と --html は両方いっしょに指定してください");
-  return { project, themeCss, page: { pageType: parsePageType(pageName, family), html } };
+  const make = makeOf(raw);
+  if (make === undefined) return { project, themeCss, page: undefined, component: undefined };
+  if (make.kind === "page") return { project, themeCss, page: pageOf(make), component: undefined };
+  return { project, themeCss, page: undefined, component: componentOf(make) };
 }
 
 // save の応答。dir は projectDir で組み立てる
@@ -93,7 +148,9 @@ function saveResult(args: string[], env: NodeJS.ProcessEnv): { project: Project;
   const opts = saveArgsOf(readSaveArgs(args));
   const themeCss = opts.themeCss === undefined ? undefined : readTextFile(opts.themeCss, "theme-css");
   const page = opts.page === undefined ? undefined : { pageType: opts.page.pageType, html: readTextFile(opts.page.html, "html") };
-  const project = saveProject(env, { project: readJsonFile(opts.project, "project"), themeCss, page });
+  const component =
+    opts.component === undefined ? undefined : { target: opts.component.target, html: readTextFile(opts.component.html, "html") };
+  const project = saveProject(env, { project: readJsonFile(opts.project, "project"), themeCss, page, component });
   return { project, dir: projectDir(env, project.id) };
 }
 
