@@ -47,7 +47,7 @@ export const centered: Skeleton = ({ copy }) => {
     )
     .join("\n");
   return `${nav(copy)}
-<section class="p-12 text-center">
+<section data-hero class="p-12 text-center">
   <p class="text-sm text-muted-foreground">${escapeHtml(copy.tagline)}</p>
   <h1 class="mt-4 font-heading text-4xl">${escapeHtml(copy.headline)}</h1>
   <p class="mx-auto mt-4 max-w-2xl text-muted-foreground">${escapeHtml(copy.lead)}</p>
@@ -74,7 +74,7 @@ export const split: Skeleton = ({ copy }) => {
     })
     .join("\n");
   return `${nav(copy)}
-<section class="mx-auto grid max-w-5xl items-center gap-8 p-12 md:grid-cols-2">
+<section data-hero class="mx-auto grid max-w-5xl items-center gap-8 p-12 md:grid-cols-2">
   <div>
     <p class="text-sm text-muted-foreground">${escapeHtml(copy.tagline)}</p>
     <h1 class="mt-4 font-heading text-4xl">${escapeHtml(copy.headline)}</h1>
@@ -108,7 +108,7 @@ export const fullbleed: Skeleton = ({ copy }) => {
     )
     .join("\n");
   return `${nav(copy)}
-<section class="bg-linear-to-br from-primary to-accent p-16 text-primary-foreground">
+<section data-hero class="bg-linear-to-br from-primary to-accent p-16 text-primary-foreground">
   <div class="mx-auto max-w-4xl">
     <p class="font-mono text-sm">${escapeHtml(copy.tagline)}</p>
     <h1 class="mt-4 font-heading text-5xl">${escapeHtml(copy.headline)}</h1>

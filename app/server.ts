@@ -11,6 +11,7 @@
 //   GET  /api/install-plan                    → {plan} (導入はしない)
 //   GET  /api/styles                          → {styles}
 //   GET  /api/treatments                      → {surfaces, motions}
+//   GET  /api/sketches                        → {sketches, functions, constants}
 //   GET  /api/motions/<id>/preview            → 動きの見本 1 件の HTML
 //   GET  /api/themes/<styleId>                → {themeId, cssForPage, fontsUrl} (結果はメモリに保持)
 //   GET  /api/gallery                         → {items: [{styleId, pageType, url}], surfaceSheets: [{surface, name, url}]}
@@ -18,7 +19,9 @@
 //   GET  /gallery/<styleId>/<pageType>.html   → 見本の HTML
 //   POST /api/directions  {brief, pageType, screenshot?, treatment?} → {directions, family}
 //   POST /api/mix         {directions, points, fineTune?} → {mixed, direction, weights, snapped}
-//   POST /api/render      {direction, family, mode?, treatment?} → {html, themeId, layout, surface, checks, failed}
+//   POST /api/render      {direction, family, mode?, treatment?} → {html, themeId, layout, surface, checks, failed, palette}
+//   POST /api/sketch      {direction, brief, previous?} → {code} (背景スケッチを LLM に書かせる)
+//   POST /api/background/apply {html, background: BackgroundApply | null} → {html} (背景を差し込む・取り除く)
 //   POST /api/page        {brief, direction, pageType, treatment?} → {html}
 //   POST /api/generate    {brief, direction, make, treatment?} → {make, html} (design-guide のときは designGuide も)
 //   POST /api/tokens      {direction}         → {tailwind, json, css}
@@ -35,6 +38,7 @@ import http from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyBackground, validateBackgroundApply } from "../core/background.ts";
 import { validateBrief } from "../core/brief.ts";
 import { listCatalog, setEnabled } from "../core/catalog.ts";
 import { CliExit, EXIT_ACTION, EXIT_EXTERNAL, EXIT_INPUT } from "../core/cli-exit.ts";
@@ -54,6 +58,8 @@ import { hasPageCsp } from "../core/page-html.ts";
 import { candidateOf, validatePageType } from "../core/page-type.ts";
 import { galleryDir, styleGuideDir } from "../core/paths.ts";
 import { designGuideDir, listProjects, readComponent, readDesignGuideFile, readPage, readProject, saveProject } from "../core/project.ts";
+import { generateSketch } from "../core/sketch-llm.ts";
+import { loadSketchApi, loadSketchSamples } from "../core/sketches.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
 import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
 import { findMotion, findSurface, loadSurfaces, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
@@ -448,6 +454,12 @@ function serveTreatments(ctx: RouteContext): void {
   sendJson(ctx.res, 200, treatmentListing());
 }
 
+// 背景スケッチの見本と、LLM に渡す自前の関数・定数の一覧
+function serveSketches(ctx: RouteContext): void {
+  const api = loadSketchApi();
+  sendJson(ctx.res, 200, { sketches: loadSketchSamples(), functions: api.functions, constants: api.constants });
+}
+
 // 動きの見本 1 件を、見本帳の minimal のテーマで 1 ファイルの HTML にする
 async function serveMotionPreview(ctx: RouteContext): Promise<void> {
   const sample = findMotion(ctx.params[0] ?? "");
@@ -700,6 +712,32 @@ async function postTokens(ctx: RouteContext): Promise<void> {
   sendJson(ctx.res, 200, await tokensOf(direction.seed, ctx.env));
 }
 
+// 背景スケッチの書き直しの入力 (前回の式と、1 フレーム試したときの誤り)
+type PreviousSketch = { code: string; error: string };
+
+function previousSketchOf(value: unknown): PreviousSketch | undefined {
+  if (value === undefined || value === null) return undefined;
+  const previous = recordOf(value, "previous");
+  return { code: bodyString(previous.code, "previous.code"), error: bodyString(previous.error, "previous.error") };
+}
+
+// 方向性と依頼から背景スケッチの式を書かせる。LLM の失敗は reportError が今までの生成 API と同じ形で返す
+async function postSketch(ctx: RouteContext): Promise<void> {
+  const direction = validateDirection(ctx.body.direction);
+  const brief = validateBrief(ctx.body.brief);
+  const previous = previousSketchOf(ctx.body.previous);
+  const code = await generateSketch({ directionName: direction.name, directionRationale: direction.rationale, brief, previous }, ctx.env);
+  sendJson(ctx.res, 200, { code });
+}
+
+// 焼き込んだ画像をページに差し込む。背景が null か省略なら、取り除いた html を返す
+function postBackgroundApply(ctx: RouteContext): void {
+  const html = bodyString(ctx.body.html, "html");
+  const requested = ctx.body.background;
+  const background = requested === undefined || requested === null ? null : validateBackgroundApply(requested);
+  sendJson(ctx.res, 200, { html: applyBackground(html, background) });
+}
+
 // 版 2 の入力から、今の回の案 (編集があれば編集後) を取り出す。案の検証はここでする
 function currentDirectionsOf(project: Record<string, unknown>): Direction[] {
   const rounds = project.rounds;
@@ -785,6 +823,7 @@ const ROUTES: Route[] = [
   { method: "GET", pattern: /^\/api\/install-plan$/, limit: BODY_LIMIT, handle: serveInstallPlan },
   { method: "GET", pattern: /^\/api\/styles$/, limit: BODY_LIMIT, handle: serveStyles },
   { method: "GET", pattern: /^\/api\/treatments$/, limit: BODY_LIMIT, handle: serveTreatments },
+  { method: "GET", pattern: /^\/api\/sketches$/, limit: BODY_LIMIT, handle: serveSketches },
   { method: "GET", pattern: /^\/api\/motions\/([a-z][a-z0-9-]*)\/preview$/, limit: BODY_LIMIT, handle: serveMotionPreview },
   { method: "GET", pattern: /^\/api\/themes\/([^/]+)$/, limit: BODY_LIMIT, handle: serveTheme },
   { method: "GET", pattern: /^\/api\/gallery$/, limit: BODY_LIMIT, handle: serveGallery },
@@ -802,6 +841,8 @@ const ROUTES: Route[] = [
   { method: "POST", pattern: /^\/api\/page$/, limit: BODY_LIMIT, handle: postPage },
   { method: "POST", pattern: /^\/api\/generate$/, limit: BODY_LIMIT, handle: postGenerate },
   { method: "POST", pattern: /^\/api\/tokens$/, limit: BODY_LIMIT, handle: postTokens },
+  { method: "POST", pattern: /^\/api\/sketch$/, limit: BODY_LIMIT, handle: postSketch },
+  { method: "POST", pattern: /^\/api\/background\/apply$/, limit: DIRECTIONS_LIMIT, handle: postBackgroundApply },
   { method: "POST", pattern: /^\/api\/projects$/, limit: BODY_LIMIT, handle: postProjects },
 ];
 

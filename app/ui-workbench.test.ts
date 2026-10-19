@@ -6,8 +6,15 @@ import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-// 作業台の本文 (PBI-010 で右のパネルと保存を分け、PBI-008 で表現の部品を分けた)。テストは 4 つを合わせて読む
-const WORKBENCH_FILES = ["ui-workbench.js", "ui-workbench-panels.js", "ui-workbench-project.js", "ui-workbench-treatment.js"] as const;
+// 作業台の本文 (PBI-010 で右のパネルと保存を分け、PBI-008 で表現の部品、PBI-009 で背景スケッチの部品を分けた)。
+// テストは 5 つを合わせて読む
+const WORKBENCH_FILES = [
+  "ui-workbench.js",
+  "ui-workbench-panels.js",
+  "ui-workbench-project.js",
+  "ui-workbench-treatment.js",
+  "ui-workbench-background.js",
+] as const;
 
 function sourceOf(name: string): string {
   const file = fileURLToPath(new URL(name, import.meta.url));
@@ -336,4 +343,49 @@ void test("32. 開き直したデザインガイドは部品帳と文書を読�
   assert.match(functionBodyOf(project, "readGuideFileOrNull"), /status === 404/, "404 を古い style-guide として扱っていません");
   assert.match(functionBodyOf(project, "guideOfFiles"), /outdated \? "outdated" : "ok"/, "outdated の判定がありません");
   assert.ok(functionBodyOf(project, "restoreDesignGuide").includes('"design-guide"'), "開き直しがデザインガイドを一覧に戻していません");
+});
+
+void test("33. 作業台は背景スケッチの部品を右の列に置き、/api/background/apply で差し込む", () => {
+  // 部品 (PBI-008) は /api/background/apply ではなく、ページへの差し込みは作業台が行う (contract.md の 6 節)
+  const workbench = sourceOf("ui-workbench.js");
+  assert.match(
+    workbench,
+    /import \{ createBackgroundPanel \} from "\.\/ui-workbench-background\.js"/,
+    "背景スケッチの部品を import していません",
+  );
+  assert.match(functionBodyOf(workbench, "buildSidePanels"), /createBackgroundPanel\(/, "右の列に背景スケッチの部品を置いていません");
+  assert.ok(functionBodyOf(workbench, "panelContext").includes("onBackgroundChange"), "部品に onBackgroundChange を渡していません");
+  assert.ok(workbench.includes("/api/background/apply"), "背景の差し込みに /api/background/apply を使っていません");
+  const apply = functionBodyOf(workbench, "applyBackgroundTo");
+  assert.match(apply, /backgroundApplyOf\(\)/, "差し込む背景を部品から読んでいません");
+  assert.match(apply, /JSON\.stringify\(body\)/, "差し込みの本文を送っていません");
+});
+
+void test("34. 骨組みのプレビューと作ったページは、背景を差し込んでから srcdoc に入れる", () => {
+  // 焼き込んだ画像を当てるのは srcdoc に入れる前。ページの html は差し込み直したものを state.page.html に戻す (58)
+  const workbench = sourceOf("ui-workbench.js");
+  const skeleton = functionBodyOf(workbench, "paintSkeleton");
+  assert.match(skeleton, /applyBackgroundTo\(/, "骨組みに背景を差し込んでいません");
+  assert.match(skeleton, /\.srcdoc = /, "差し込んだ骨組みを srcdoc に入れていません");
+  assert.match(functionBodyOf(workbench, "paintFrame"), /paintSkeleton\(/, "骨組みの描画が背景の差し込みを通っていません");
+  const page = functionBodyOf(workbench, "drawPagePreview");
+  assert.match(page, /applyBackgroundTo\(/, "作ったページに背景を差し込んでいません");
+  assert.match(page, /\.srcdoc = /, "差し込んだページを srcdoc に入れていません");
+  assert.match(page, /page\.html/, "ページの html を差し込み直していません");
+});
+
+void test("35. /api/render の応答の palette を背景スケッチの部品の setPalette に渡す", () => {
+  // テーマの色が変わったら焼き直す (53)。palette は /api/render の応答にだけ入っている (contract.md の 5 節)
+  const draw = functionBodyOf(sourceOf("ui-workbench.js"), "drawFrame");
+  assert.match(draw, /setPalette\(/, "応答の palette を部品に渡していません");
+  assert.match(draw, /palette/, "応答の palette を読んでいません");
+});
+
+void test("36. 保存は背景スケッチを送り、開き直しは project.background を部品に戻す", () => {
+  // 保存の本文の project に background を入れ、開き直しで部品に戻す (44)
+  const save = functionBodyOf(sourceOf("ui-workbench-project.js"), "projectForSave");
+  assert.match(save, /background:/, "保存の本文に background がありません");
+  const apply = functionBodyOf(sourceOf("ui-workbench.js"), "applyProject");
+  assert.match(apply, /project\.background/, "開き直しで project.background を読んでいません");
+  assert.match(apply, /setBackground\(/, "開き直しで背景を部品に戻していません");
 });

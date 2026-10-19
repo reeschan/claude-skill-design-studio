@@ -9,7 +9,7 @@ import { isAbsolute, join } from "node:path";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { checkMotion, hasPageCsp, pageHtml as makePageHtml } from "../core/page-html.ts";
+import { checkMotion, findDisallowedUrls, hasPageCsp, pageHtml as makePageHtml } from "../core/page-html.ts";
 import { pageKeyOf } from "../core/page-type.ts";
 import { LAYOUTS, PAGE_TYPE_CANDIDATES } from "../core/types.ts";
 
@@ -1262,4 +1262,124 @@ void test("35. デザインガイドは component と同時に送れず、files 
   assert.equal(missing.status, 400, missing.text);
   assert.equal(get(missing.json, "error"), "input");
   assert.equal((await fetchPath("/api/projects/test-project-design-guide-missing")).status, 404);
+});
+
+// 背景の差し込みに使う WebP の data URL (中身は短い base64 でよい)
+const SKETCH_IMAGE = "data:image/webp;base64,UklGRiQAAABXRUJQ";
+
+// 文字列 needle が text に何回現れるか
+function countOccurrences(text: string, needle: string): number {
+  return text.split(needle).length - 1;
+}
+
+void test("36. GET /api/sketches が見本 5 件と自前の関数・定数の一覧を返す", async () => {
+  const r = await fetchPath("/api/sketches");
+  assert.equal(r.status, 200, r.text);
+  const sketches = arr(get(r.json, "sketches"));
+  assert.equal(sketches.length, 5, r.text);
+
+  // 見本は data/sketches.json と同じ (id・name・description・code を持つ)
+  const samples: unknown = JSON.parse(readFileSync(join(REPO_ROOT, "data", "sketches.json"), "utf8"));
+  assert.deepEqual(sketches, get(samples, "sketches"));
+  for (const sketch of sketches) {
+    assert.ok(str(get(sketch, "id")));
+    assert.ok(str(get(sketch, "name")));
+    assert.ok(str(get(sketch, "description")));
+    assert.ok(str(get(sketch, "code")));
+  }
+
+  // 関数と定数は data/sketch-api.json と同じ
+  const api: unknown = JSON.parse(readFileSync(join(REPO_ROOT, "data", "sketch-api.json"), "utf8"));
+  assert.deepEqual(get(r.json, "functions"), get(api, "functions"));
+  assert.deepEqual(get(r.json, "constants"), get(api, "constants"));
+});
+
+void test("37. POST /api/sketch が偽の LLM で式を返し、依頼が無ければ 400", async () => {
+  const direction = rec(await mixForTest());
+  const r = await post("/api/sketch", { direction, brief: { what: "静かな水面のような背景" } });
+  assert.equal(r.status, 200, r.text);
+  const code = str(get(r.json, "code"));
+  assert.ok(code.length > 0, "code が空です");
+
+  // LLM には方向性の名前と、使える関数の一覧が渡る
+  const prompt = lastMockPrompt();
+  assert.ok(prompt.includes(str(get(direction, "name"))), "方向性の名前がプロンプトにありません");
+  assert.ok(prompt.includes("## 使える関数と定数"), "使える関数の節がプロンプトにありません");
+
+  // brief が無ければ 400
+  const missing = await post("/api/sketch", { direction });
+  assert.equal(missing.status, 400, missing.text);
+  assert.equal(get(missing.json, "error"), "input");
+
+  // previous を付けると、前回の式とエラーがプロンプトに入る
+  const retried = await post("/api/sketch", {
+    direction,
+    brief: { what: "静かな水面のような背景" },
+    previous: { code: "noise4D(1)", error: "noise4D は使えません" },
+  });
+  assert.equal(retried.status, 200, retried.text);
+  assert.ok(lastMockPrompt().includes("## 前回の式"), "前回の式の節がプロンプトにありません");
+});
+
+void test("38. POST /api/background/apply が背景を差し込み、null で取り除く", async () => {
+  const page = makePageHtml({
+    title: "背景つきのページ",
+    themeId: "bg-test",
+    mode: "light",
+    cssForPage: "",
+    fontsUrl: "https://fonts.googleapis.com/css2?family=Inter",
+    body: "<main data-hero><h1>背景つきのページ</h1></main>",
+  });
+  const apply = { image: SKETCH_IMAGE, placement: "page", motion: "still" };
+  const first = await post("/api/background/apply", { html: page, background: apply });
+  assert.equal(first.status, 200, first.text);
+  const html = str(get(first.json, "html"));
+  assert.equal(countOccurrences(html, 'id="background-sketch"'), 1, html.slice(0, 500));
+  assert.equal(hasPageCsp(html), true);
+  assert.deepEqual(findDisallowedUrls(html), []);
+  assert.ok(html.includes(SKETCH_IMAGE), "画像の data URL が入っていません");
+
+  // もう一度送っても 1 つ
+  const again = await post("/api/background/apply", { html, background: apply });
+  assert.equal(again.status, 200, again.text);
+  assert.equal(countOccurrences(str(get(again.json, "html")), 'id="background-sketch"'), 1);
+
+  // background: null で取り除かれる
+  const removed = await post("/api/background/apply", { html, background: null });
+  assert.equal(removed.status, 200, removed.text);
+  const removedHtml = str(get(removed.json, "html"));
+  assert.equal(countOccurrences(removedHtml, 'id="background-sketch"'), 0);
+  assert.equal(hasPageCsp(removedHtml), true);
+
+  // png の data URL は 400
+  const png = await post("/api/background/apply", {
+    html: page,
+    background: { image: "data:image/png;base64,iVBORw0KGgo=", placement: "page", motion: "still" },
+  });
+  assert.equal(png.status, 400, png.text);
+  assert.equal(get(png.json, "error"), "input");
+
+  // CSP の meta が無い html は 400
+  const noCsp = page.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\n/, "");
+  assert.equal(hasPageCsp(noCsp), false);
+  const rejected = await post("/api/background/apply", { html: noCsp, background: apply });
+  assert.equal(rejected.status, 400, rejected.text);
+  assert.equal(get(rejected.json, "error"), "input");
+});
+
+void test("39. POST /api/render の応答に色付けの 3 色 (palette) がある", async () => {
+  const direction = rec(await mixForTest());
+  const r = await post("/api/render", { direction, family: "settings", mode: "dark" });
+  assert.equal(r.status, 200, r.text);
+  const palette = rec(get(r.json, "palette"));
+  for (const key of ["background", "primary", "accent"]) {
+    const rgb = arr(get(palette, key));
+    assert.equal(rgb.length, 3, `${key}: ${JSON.stringify(rgb)}`);
+    for (const channel of rgb) {
+      assert.ok(
+        typeof channel === "number" && Number.isInteger(channel) && channel >= 0 && channel <= 255,
+        `${key}: ${JSON.stringify(rgb)}`,
+      );
+    }
+  }
 });

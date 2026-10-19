@@ -63,7 +63,20 @@ function wrappedPageDocument(html) {
 }
 
 export function createProjectPanel(ctx) {
-  const { el, text, record, errorMessage, requestJson, requestText, setNote, startElapsed, JSON_HEADERS, state, nextSession } = ctx;
+  const {
+    el,
+    text,
+    record,
+    errorMessage,
+    requestJson,
+    requestText,
+    setNote,
+    startElapsed,
+    JSON_HEADERS,
+    state,
+    nextSession,
+    backgroundOf,
+  } = ctx;
   const ui = {
     button: null,
     retry: null,
@@ -527,7 +540,7 @@ export function createProjectPanel(ctx) {
     return "";
   }
 
-  // 版 3 のプロジェクト (依頼・回・点・微調整・表現)。作ったもの (items) はサーバーが足す
+  // 版 3 のプロジェクト (依頼・回・点・微調整・表現・背景スケッチ)。作ったもの (items) はサーバーが足す
   function projectForSave(brief, pageType) {
     return {
       version: 3,
@@ -535,6 +548,7 @@ export function createProjectPanel(ctx) {
       brief,
       pageType,
       treatment: state.treatment,
+      background: backgroundOf(),
       rounds: state.rounds,
       roundIndex: state.roundIndex,
       points: state.points,

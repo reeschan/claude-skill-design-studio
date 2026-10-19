@@ -147,9 +147,33 @@ export type Project = {
   points: MixPoints;
   fineTune: FineTune;
   items: SavedItem[];
+  background: BackgroundSketch | null; // 背景スケッチはプロジェクトに 1 つまで。無ければ null
   createdAt: string;
   updatedAt: string;
 };
+
+// 背景スケッチの入手先・当てる場所・動き (この並びで固定)
+export const SKETCH_SOURCES = ["sample", "paste", "llm"] as const;
+export type SketchSource = (typeof SKETCH_SOURCES)[number];
+export const SKETCH_PLACEMENTS = ["hero", "page"] as const;
+export type SketchPlacement = (typeof SKETCH_PLACEMENTS)[number];
+export const SKETCH_MOTIONS = ["still", "slow"] as const;
+export type SketchMotion = (typeof SKETCH_MOTIONS)[number];
+// 背景スケッチ。プロジェクトに 1 つまで。sampleId は source が sample のときだけ文字列、ほかは null
+export type BackgroundSketch = {
+  source: SketchSource;
+  sampleId: string | null;
+  code: string;
+  placement: SketchPlacement;
+  motion: SketchMotion;
+};
+// 色付けに使うテーマの 3 色 (sRGB の 0〜255 の整数)
+export type Rgb = [number, number, number];
+export type SketchPalette = { background: Rgb; primary: Rgb; accent: Rgb };
+// 焼き込んだ画像を当てる指定
+export type BackgroundApply = { image: string; placement: SketchPlacement; motion: SketchMotion };
+// 同梱の見本のスケッチ。code は自前の関数だけで書いた 1〜8000 文字の式
+export type SketchSample = { id: string; name: string; description: string; code: string };
 
 // 面の台帳の 1 件
 export type SurfaceEntry = {
