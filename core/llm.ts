@@ -573,6 +573,7 @@ export function htmlShapeLines(direction: Direction, fontsUrl: string): string[]
     `- fonts の <link> は href="${fontsUrl}" id="theme-fonts"。`,
     `- Tailwind の <script> は src="${TAILWIND_URL}"。`,
     '- テーマの <style> は <style type="text/tailwindcss" id="theme"> で、中身は空でよい (こちらで入れる)。',
+    "- ページの最初の主役の区画 (ヒーロー) の要素に data-hero 属性を 1 つだけ付ける。ヒーローが無い画面 (ダッシュボード・設定など) では付けない。",
     "- インラインの <script> と on*= 属性は使わない (CSP で止まる)。動きは CSS だけで表す。",
     "- 色・角丸・影・フォント・余白はテーマのユーティリティだけで指定する: bg-background text-foreground bg-card text-card-foreground bg-primary text-primary-foreground bg-secondary bg-muted text-muted-foreground border-border bg-accent text-accent-foreground bg-brand-accent ring-ring rounded-sm|md|lg shadow-md font-heading font-sans font-mono。色の直書き (#fff や bg-blue-500 など) はしない。",
     "- テーマの <style> とは別に、自分で書く <style> (ふつうの CSS。テーマの style のあと) を置いてよい。そこでは @keyframes・@property・backdrop-filter・mask を書いてよい。",

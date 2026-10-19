@@ -32,10 +32,13 @@ function schema() {
 const parsedSchema = schema();
 const properties = typeof parsedSchema === "object" && parsedSchema !== null ? (parsedSchema.properties ?? {}) : {};
 const hasHtmlSchema = typeof properties === "object" && properties !== null && Object.hasOwn(properties, "html");
+const hasSketchSchema = typeof properties === "object" && properties !== null && Object.hasOwn(properties, "sketch");
 
 // プロンプトの 2 行目の「作るもの:」の行で、部品帳・部品を見分ける。
-// ページと方向性は今までどおり --json-schema の形 (properties.html) で見分ける
+// ページと方向性は今までどおり --json-schema の形 (properties.html) で見分ける。
+// 背景スケッチは --json-schema の properties.sketch で見分ける
 function kindOf() {
+  if (hasSketchSchema) return "sketch";
   if (/^作るもの: design-guide$/m.test(stdin)) return "design-guide";
   if (/^作るもの: component-sheet$/m.test(stdin)) return "component-sheet";
   if (/^作るもの: component$/m.test(stdin)) return "component";
@@ -421,10 +424,23 @@ function designGuideOutput() {
   return designGuideValues();
 }
 
+// 背景スケッチの式。自前の関数だけで無彩色で描く (core/sketch-llm.ts の検証と、エンジンの step を通る)
+const GOOD_SKETCH = `t=0;draw=()=>{createCanvas(1600,900);background(12).stroke(255,70);for(t+=0.01,i=0;i<240;i++){a=i*TWO_PI/240;r=280+140*sin(a*3+t*2);point(800+cos(a)*r,450+sin(a)*r*0.5625)}}`;
+
+// 自前に無い関数 (noise4D) を呼ぶ式。1 フレーム目に unknown-name で止まる
+const BROKEN_SKETCH = `t=0;draw=()=>{createCanvas(1600,900);background(12);noise4D(t+=0.01)}`;
+
+// prompt に MOCK_BROKEN_SKETCH があり、かつ書き直し (「前回の式」) でなければ壊れた式を返す
+function sketchCode() {
+  return stdin.includes("MOCK_BROKEN_SKETCH") && !stdin.includes("前回の式") ? BROKEN_SKETCH : GOOD_SKETCH;
+}
+
 const htmlOutput = (html) => ({ is_error: false, structured_output: { html } });
 
 if (mode === "error") {
   out({ is_error: true, result: "boom" });
+} else if (kind === "sketch") {
+  out({ is_error: false, structured_output: { sketch: sketchCode() } });
 } else if (kind === "directions") {
   out({ is_error: false, structured_output: directionsOutput() });
 } else if (kind === "design-guide") {

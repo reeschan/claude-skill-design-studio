@@ -3,6 +3,7 @@
 // 外部入力の検証は style-guide の core/explicit.ts に倣って手で書く
 import { createHash } from "node:crypto";
 import { renderSkeleton } from "../skeletons/index.ts";
+import { sketchPaletteOf } from "./background.ts";
 import { CliExit, EXIT_EXTERNAL, EXIT_INPUT } from "./cli-exit.ts";
 import { validateDirection } from "./styles.ts";
 import { loadSurfaces } from "./treatment.ts";
@@ -22,6 +23,7 @@ import type {
   Seed,
   ShadowKind,
   SkeletonFamily,
+  SketchPalette,
   SurfaceEntry,
 } from "./types.ts";
 
@@ -570,6 +572,7 @@ export type RenderDirectionResult = {
   surface: string;
   checks: Record<BaseMode, CheckCounts>;
   failed: number;
+  palette: SketchPalette;
 };
 
 // style-guide の summary から種の id のものを選ぶ。無ければ先頭。それも無ければ外部の失敗
@@ -613,5 +616,13 @@ export async function renderDirection(input: RenderDirectionInput, env: NodeJS.P
     title: `${direction.name}の${titleNameOf(family)}`,
     ...(surface.css === "" ? {} : { surfaceCss: surface.css }),
   });
-  return { html, themeId: direction.seed.id, layout, surface: surface.id, checks: summary.checks, failed: theme.failed };
+  return {
+    html,
+    themeId: direction.seed.id,
+    layout,
+    surface: surface.id,
+    checks: summary.checks,
+    failed: theme.failed,
+    palette: sketchPaletteOf(theme.css, mode),
+  };
 }

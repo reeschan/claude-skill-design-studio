@@ -35,6 +35,11 @@ function render(family: SkeletonFamily, layout: string, mode: BaseMode): string 
   });
 }
 
+// data-hero 属性 (値なし) の数を数える
+function countDataHero(html: string): number {
+  return html.match(/\bdata-hero(?=[\s>])/g)?.length ?? 0;
+}
+
 void test("21 枚 (7 種類 × 3 型) が light と dark のどちらでも描ける", () => {
   let count = 0;
   for (const family of SKELETON_FAMILIES) {
@@ -52,4 +57,24 @@ void test("21 枚 (7 種類 × 3 型) が light と dark のどちらでも描�
     }
   }
   assert.equal(count, 42, "21 枚 × 2 モード");
+});
+
+void test("LP の 3 つの配置の型は、light と dark のどちらでも data-hero をちょうど 1 つ持つ", () => {
+  for (const layout of LAYOUTS.lp) {
+    for (const mode of MODES) {
+      const label = `lp/${layout}[${mode}]`;
+      const html = render("lp", layout, mode);
+      assert.equal(countDataHero(html), 1, `${label}: data-hero はちょうど 1 つ`);
+      assert.match(html, /<section\b[^>]*\sdata-hero(?=[\s>])/, `${label}: ヒーローの <section> に付く`);
+    }
+  }
+});
+
+void test("ダッシュボードの骨組み 3 種には data-hero が無い", () => {
+  for (const layout of LAYOUTS.dashboard) {
+    for (const mode of MODES) {
+      const label = `dashboard/${layout}[${mode}]`;
+      assert.equal(countDataHero(render("dashboard", layout, mode)), 0, `${label}: data-hero を含まない`);
+    }
+  }
 });

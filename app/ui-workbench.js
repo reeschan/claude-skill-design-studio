@@ -1,8 +1,9 @@
 // 作業台の画面 (1 画面の 3 列)。左に依頼のフォームと案の一覧 (回の切り替え・編集・原案に戻す)、
 // 中央に端末を切り替えられるライブプレビュー (骨組み / ページ)、右に調整のパネル
-//   (パッド・微調整・コントラスト・トークン・ページ・保存。PBI-010 で下の 2 つのファイルに分けた)。
+//   (パッド・微調整・コントラスト・トークン・背景スケッチ・ページ・保存。PBI-010 で下の 2 つのファイルに分けた)。
 // 見本帳の「これに近いもので作る」から studio:start-from-style を受けたら、そのスタイルを原案 1 つの回にして始める。
-// API: GET /api/meta /api/styles /api/projects /api/treatments、POST /api/directions /api/mix /api/render /api/tokens /api/generate /api/projects
+// API: GET /api/meta /api/styles /api/projects /api/treatments、POST /api/directions /api/mix /api/render /api/background/apply /api/tokens /api/generate /api/projects
+import { createBackgroundPanel } from "./ui-workbench-background.js";
 import { createPanels } from "./ui-workbench-panels.js";
 import { createProjectPanel } from "./ui-workbench-project.js";
 import { createTreatmentPanel } from "./ui-workbench-treatment.js";
@@ -143,6 +144,15 @@ let projectPanel = null;
 
 // 依頼のフォームの表現 (app/ui-workbench-treatment.js)
 let treatmentPanel = null;
+
+// 右の列の背景スケッチ (app/ui-workbench-background.js)
+let backgroundPanel = null;
+
+// 直近に描いた骨組みの html (背景を差し込む前。背景が変わったらこれに差し込み直す)
+let skeletonHtml = "";
+
+// 背景の差し込みの世代。新しい差し込みが始まったら、古い応答は srcdoc に入れない
+let backgroundToken = 0;
 
 const frameObserver = new ResizeObserver(() => {
   sizeFrame();
@@ -1127,11 +1137,15 @@ function showPage(page) {
   if (state.tuned === null) schedulePreview();
 }
 
-function drawPagePreview() {
+// 作ったページに背景を差し込み直して中央の枠に出す (作ったページを作り直さない。58)
+async function drawPagePreview() {
   const page = state.page;
   if (page === null) return;
+  const applied = await applyBackgroundTo(text(page.html));
+  if (applied === null || state.page !== page || state.previewMode !== "page") return;
+  rememberPageHtml(page, applied);
   state.frameBox.hidden = false;
-  state.frame.srcdoc = page.html;
+  state.frame.srcdoc = applied;
   frameStatus(`いまの${kindLabelOf(page.kind)}: ${text(record(page.pageType).name)}`, false);
   sizeFrame();
 }
@@ -1207,11 +1221,13 @@ async function mixRound(round, token, show) {
 async function drawFrame(direction, token, show) {
   const payload = await requestRender(direction, token, show);
   if (payload === null) return;
+  // テーマの色が変わったら、背景スケッチをその色で焼き直す (53)
+  if (backgroundPanel !== null) backgroundPanel.setPalette(record(payload).palette);
   if (panels !== null) panels.onRender(payload); // コントラストの判定
   if (!show) return;
   // 待っている間にページへ切り替わっていたら、骨組みでページを上書きしない
   if (state.previewMode === "page" && state.page !== null) return;
-  paintFrame(payload, direction);
+  await paintFrame(payload, direction, token);
 }
 
 // /api/render を呼ぶ。失敗したら (骨組みを出しているときだけ) 枠の状態に出し、null を返す
@@ -1231,17 +1247,83 @@ async function requestRender(direction, token, show) {
   }
 }
 
-// 骨組みの HTML を中央の枠に出す
-function paintFrame(payload, direction) {
+// 骨組みの HTML を中央の枠に出す。背景を差し込む前に古い世代になったら出さない
+async function paintFrame(payload, direction, token) {
   const html = text(payload.html);
   if (html === "") {
     frameStatus("骨組みが返りませんでした。案を出し直してください。", true);
     return;
   }
+  skeletonHtml = html;
+  if (await paintSkeleton(html, token)) frameStatus(`いまの混ぜ方の案: ${text(direction.name)}`, false);
+}
+
+// 骨組みの html に背景を差し込んで枠に入れる。token を渡したときは、まだ今の絵のときだけ出す
+async function paintSkeleton(html, token) {
+  const applied = await applyBackgroundTo(html);
+  if (applied === null) return false;
+  if (token !== undefined && state.previewToken !== token) return false;
+  if (state.previewMode === "page" && state.page !== null) return false;
   state.frameBox.hidden = false;
-  state.frame.srcdoc = html;
-  frameStatus(`いまの混ぜ方の案: ${text(direction.name)}`, false);
+  state.frame.srcdoc = applied;
   sizeFrame();
+  return true;
+}
+
+// 保存に送る背景スケッチ (部品の current().sketch)
+function backgroundOf() {
+  return backgroundPanel === null ? null : backgroundPanel.current().sketch;
+}
+
+// 部品が持っている焼き込んだ画像から、差し込みの指定を作る。
+// 外しているときは null (取り除く)、焼き込みを待っているときは undefined (いまの html をそのまま使う)
+function backgroundApplyOf() {
+  if (backgroundPanel === null) return null;
+  const current = backgroundPanel.current();
+  if (current.sketch === null) return null;
+  if (current.image === null) return undefined;
+  return { image: current.image, placement: current.sketch.placement, motion: current.sketch.motion };
+}
+
+// 背景を差し込む (外していれば取り除く)。新しい差し込みが始まっていたら null を返す
+async function applyBackgroundTo(html) {
+  const background = backgroundApplyOf();
+  if (background === undefined) return html;
+  backgroundToken += 1;
+  const token = backgroundToken;
+  const body = { html, background };
+  try {
+    const payload = record(
+      await requestJson("/api/background/apply", { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(body) }),
+    );
+    if (token !== backgroundToken) return null;
+    const applied = text(payload.html);
+    return applied === "" ? html : applied;
+  } catch (error) {
+    if (token !== backgroundToken) return null;
+    frameStatus(`背景を差し込めませんでした: ${errorMessage(error)}`, true);
+    return html;
+  }
+}
+
+// 部品の背景が変わったら、いま出しているもの (骨組みかページ) に差し込み直す (58)
+function onBackgroundChange() {
+  if (state.previewMode === "page" && state.page !== null) {
+    void drawPagePreview();
+    return;
+  }
+  if (skeletonHtml !== "") void paintSkeleton(skeletonHtml);
+}
+
+// 差し込んだページの html を一覧 (保存の元) にも写す。変わったら保存し直せるよう印を付ける
+function rememberPageHtml(page, html) {
+  if (page.html === html) return;
+  page.html = html;
+  const name = text(record(page.pageType).name);
+  const entry = state.pageList.find((item) => item.kind === page.kind && item.name === name);
+  if (entry === undefined || entry.html === html) return;
+  entry.html = html;
+  entry.dirty = true;
 }
 
 // ---------------------------------------------------------------- 右の列 (パッド・微調整・コントラスト・トークン、ページ・保存)
@@ -1266,6 +1348,8 @@ function panelContext() {
     currentRound,
     effectiveDirections,
     collectBrief,
+    backgroundOf,
+    onBackgroundChange,
     pageTypeName,
     fieldOf,
     fontPairs,
@@ -1279,8 +1363,21 @@ function buildSidePanels(root) {
   const context = panelContext();
   panels = createPanels(context);
   panels.build(root);
+  // 背景スケッチは右の列の調整 (パッド・微調整・コントラスト・トークン) のあと、ページ・保存の前に置く
+  const backgroundSection = buildBackgroundSection();
+  backgroundPanel = createBackgroundPanel(context);
+  backgroundPanel.build(backgroundSection);
+  root.append(backgroundSection);
   projectPanel = createProjectPanel(context);
   projectPanel.build(root);
+}
+
+function buildBackgroundSection() {
+  const section = el("section", "wb-section");
+  section.dataset.panel = "background";
+  section.append(el("h3", null, "背景スケッチ"));
+  section.append(el("p", "wb-note", "見本か式から選ぶと、焼き込んだ画像を骨組みとページの後ろに敷きます。"));
+  return section;
 }
 
 // ---------------------------------------------------------------- 保存したプロジェクトを戻す
@@ -1356,6 +1453,9 @@ function applyProject(raw) {
   if (treatmentPanel !== null) treatmentPanel.setTreatment(state.treatment);
   state.pageList = pageEntriesOf(project.items);
   state.page = null;
+  skeletonHtml = "";
+  // 保存した背景スケッチを部品に戻す (44)。焼き込みが終わると、いま出しているものに差し込み直される
+  if (backgroundPanel !== null) backgroundPanel.setBackground(project.background);
   state.projectId = text(project.id);
   state.mixed = null;
   state.tuned = null;

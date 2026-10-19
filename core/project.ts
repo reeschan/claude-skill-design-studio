@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import type { Dirent } from "node:fs";
 import { join } from "node:path";
+import { validateBackgroundSketch } from "./background.ts";
 import { validateBrief } from "./brief.ts";
 import { CliExit, EXIT_INPUT } from "./cli-exit.ts";
 import {
@@ -126,6 +127,7 @@ function sharedContentOf(raw: Record<string, unknown>): SharedContent {
     roundIndex: validateRoundIndex(raw.roundIndex, rounds.length),
     points: validatePoints(raw.points),
     fineTune: validateFineTune(raw.fineTune),
+    background: validateBackgroundSketch(raw.background),
   };
 }
 
@@ -261,6 +263,7 @@ function upgradedContent(raw: Record<string, unknown>): ProjectContent {
     points: pointsA(),
     fineTune: {},
     items: oldPagesOf(raw.pages),
+    background: null,
   };
 }
 

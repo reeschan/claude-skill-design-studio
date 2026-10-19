@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { LlmError, generateDirections, generatePage, llmAvailable } from "./llm.ts";
+import { LlmError, generateDirections, generatePage, htmlShapeLines, llmAvailable } from "./llm.ts";
 import type { FontPair, GeneratePageInput } from "./llm.ts";
 import { checkMotion, findDisallowedUrls, hasPageCsp } from "./page-html.ts";
 import { loadStyles, validateDirection } from "./styles.ts";
@@ -466,6 +466,17 @@ void test("llmAvailable はモックで true、存在しないコマンドで fa
   } finally {
     cleanup();
   }
+});
+
+void test("htmlShapeLines は、ヒーローの要素に data-hero を 1 つだけ付ける行を含む", () => {
+  const lines = htmlShapeLines(MINIMAL, FONTS_URL);
+  const heroLines = lines.filter((line) => line.includes("data-hero"));
+  assert.equal(heroLines.length, 1, "data-hero を含む行は 1 行");
+  const heroLine = heroLines[0];
+  assert.ok(heroLine !== undefined, "data-hero の行がある");
+  assert.ok(heroLine.includes("ヒーロー"), "ヒーローの区画に付ける旨");
+  assert.ok(heroLine.includes("1 つだけ"), "1 つだけ付ける旨");
+  assert.ok(heroLine.includes("付けない"), "ヒーローが無い画面では付けない旨");
 });
 
 void test("スクリーンショットを渡すと、コピーした 1 ファイルだけを読める指定が引数に入る", async () => {

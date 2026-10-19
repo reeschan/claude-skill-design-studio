@@ -96,6 +96,7 @@ function projectJsonV3(id: string, overrides: Record<string, unknown> = {}): Rec
     points: POINTS_A,
     fineTune: {},
     items: [],
+    background: null,
     ...overrides,
   };
 }
