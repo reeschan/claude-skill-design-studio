@@ -31,6 +31,8 @@
 
 ![作業台でページを作った状態。作ったページがプレビューに出る](docs/images/workbench-page.png)
 
+**作業台 (背景スケッチ)**: 右の列の「背景スケッチ」で、ページの背景に模様を敷けます。同梱の見本 5 つ (水面の波紋・流れる線・格子の揺らぎ・渦・等高線) から選ぶか、p5 風の式を貼るか、LLM に書かせます。式はブラウザの中 (sandbox の iframe の Worker) で動かし、テーマの色で焼き込んだ画像を、骨組みのプレビューと作ったページの後ろに敷きます。当てる場所 (ヒーローだけ / ページ全体) と動き (止める / ゆっくり動かす) を選べ、テーマの色を変えると焼き直します。
+
 **見本ページ**: 見本帳の和モダン × LP。外部の画像に頼らず、CSS と SVG だけで描いています。
 
 ![和モダンの LP の見本ページ](docs/images/sample-page.png)
@@ -42,6 +44,7 @@
 - テーマは style-guide と共通の `theme.css` / `theme.json`。ほかの作業でも使い回せる
 - できるページは 1 ファイルの HTML。外部の画像に頼らず、ダブルクリックで開ける
 - ページだけでなく、部品帳 (決まった 10 個の部品を 1 枚に並べたもの) と部品 (10 個から選ぶか自由な名前で 1 つ) も作れる
+- 作業台では、ページの背景に模様 (背景スケッチ) を敷ける。式は焼き込んだ画像としてページに埋め込むので、ページは 1 ファイルのまま
 - 点検・仕上げのスキル (アクセシビリティ、講評、文言、動きなど) を台帳から選んで呼べる
 - 同梱アプリ (台帳・見本帳・作業台) は手元の PC だけで動く。API キーは要らない
 
@@ -99,11 +102,11 @@ node ~/.claude/skills/design-studio/scripts/studio.ts design-guide --style minim
 
 ## できあがるもの
 
-- **ページ**: 1 ファイルの HTML。外部から読み込むのは Tailwind v4 のブラウザ版と Google Fonts だけで、画像は CSS と SVG で表します
+- **ページ**: 1 ファイルの HTML。外部から読み込むのは Tailwind v4 のブラウザ版と Google Fonts だけで、画像は CSS と SVG で表します。背景スケッチを付けたときは、焼き込んだ WebP (600KB まで) を data URL で埋め込みます
 - **部品帳**: 10 個の部品 (ボタン・入力欄・カード・ヘッダーのナビ・タブ・バッジ/タグ・モーダル・トースト・表・料金カード) を 1 枚に並べた 1 ファイルの HTML
 - **部品**: 部品帳の 10 個から選ぶか自由な名前で作る、1 つの部品の 1 ファイルの HTML
 - **テーマ**: style-guide が作る `theme.css` (Tailwind v4 の変数) と `theme.json`
-- **プロジェクト**: `~/.claude/design-studio/projects/<id>/` に、依頼・方向性・テーマ・ページ・部品帳・部品を保存します
+- **プロジェクト**: `~/.claude/design-studio/projects/<id>/` に、依頼・方向性・テーマ・ページ・部品帳・部品・背景スケッチ (式と当てる場所・動き) を保存します
 
 ## 開発
 
@@ -125,11 +128,11 @@ fnm exec --using=26 node app/server.ts --port 8790 --no-browser
 
 構成:
 
-- `app/`: ローカルの Web アプリ (サーバーと画面)
-- `core/`: 台帳・導入・方向性・テーマの橋渡し・ページの殻・プロジェクト・LLM 呼び出し (純粋な処理)
+- `app/`: ローカルの Web アプリ (サーバーと画面)。背景スケッチのエンジン (`sketch-engine.js`) と、それを iframe の中で動かす host (`sketch-host.js`) を含む
+- `core/`: 台帳・導入・方向性・テーマの橋渡し・ページの殻・プロジェクト・LLM 呼び出し・背景スケッチの差し込み (純粋な処理)
 - `skeletons/`: 骨組みの種類 × 配置の型の骨組み
 - `scripts/`: CLI (`studio.ts` と `scripts/commands/`)、自己インストール (`install-self.ts`)
-- `data/`: 台帳 (`catalog.json`) とスタイル (`styles.json`)
+- `data/`: 台帳 (`catalog.json`)・スタイル (`styles.json`)・背景スケッチの見本 (`sketches.json`) と使える関数の一覧 (`sketch-api.json`)
 - `gallery/`: 見本ページ
 - `docs/`: アーキテクチャ図 (`docs/architecture/`)・画面のキャプチャ (`docs/images/`)・仕様 (`docs/specs/design-studio.md`)・設計判断 (`docs/adr/`)・ページのレシピ (`docs/page-recipe.md`)
 
