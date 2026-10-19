@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ja" data-theme="minimal" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ミニマル × Material — 部品帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&amp;family=Noto+Sans+JP:wght@400;700&amp;family=Source+Code+Pro:wght@400&amp;display=swap" id="theme-fonts">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13"></script>
+<style type="text/tailwindcss" id="theme">
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-secondary: var(--secondary);
+  --color-primary: var(--primary);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-card-foreground: var(--card-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
+  --radius-sm: calc(var(--theme-radius) * 0.5);
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.5);
+  --spacing: calc(0.25rem * var(--theme-spacing-scale));
+  --shadow-md: var(--theme-shadow);
+  --font-sans: var(--theme-font-body);
+  --font-heading: var(--theme-font-heading);
+  --font-mono: var(--theme-font-mono);
+}
+
+/* ミニマル — 余白の広い、静かで飾らない道具のような印象 */
+[data-theme="minimal"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.005 250.0);
+  --foreground: oklch(0.240 0.005 250.0);
+  --card: oklch(1.000 0.000 250.0);
+  --muted: oklch(0.955 0.005 250.0);
+  --muted-foreground: oklch(0.520 0.005 250.0);
+  --border: oklch(0.900 0.005 250.0);
+  --input: oklch(0.900 0.005 250.0);
+  --secondary: oklch(0.940 0.005 250.0);
+  --primary: oklch(0.550 0.040 250.0);
+  --ring: oklch(0.620 0.040 250.0);
+  --accent: oklch(0.950 0.012 250.0);
+  --accent-foreground: oklch(0.350 0.030 250.0);
+  --brand-accent: oklch(0.550 0.040 250.0);
+  --destructive: oklch(0.550 0.198 25.0);
+  --success: oklch(0.500 0.138 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.240 0.005 250.0);
+  --secondary-foreground: oklch(0.240 0.005 250.0);
+  --primary-foreground: oklch(0.985 0.005 250.0);
+  --destructive-foreground: oklch(0.985 0.005 250.0);
+  --success-foreground: oklch(0.985 0.005 250.0);
+  --warning-foreground: oklch(0.180 0.005 250.0);
+  --brand-accent-foreground: oklch(0.985 0.005 250.0);
+  --theme-radius: 4px;
+  --theme-spacing-scale: 1.2;
+  --theme-shadow: 0 0 #0000;
+  --theme-font-heading: "Montserrat", sans-serif;
+  --theme-font-body: "Noto Sans JP", sans-serif;
+  --theme-font-mono: "Source Code Pro", monospace;
+}
+[data-theme="minimal"][data-mode="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.160 0.005 250.0);
+  --foreground: oklch(0.940 0.005 250.0);
+  --card: oklch(0.200 0.005 250.0);
+  --muted: oklch(0.250 0.005 250.0);
+  --muted-foreground: oklch(0.660 0.005 250.0);
+  --border: oklch(0.300 0.005 250.0);
+  --input: oklch(0.300 0.005 250.0);
+  --secondary: oklch(0.270 0.005 250.0);
+  --primary: oklch(0.700 0.038 250.0);
+  --ring: oklch(0.620 0.040 250.0);
+  --accent: oklch(0.280 0.012 250.0);
+  --accent-foreground: oklch(0.850 0.030 250.0);
+  --brand-accent: oklch(0.700 0.038 250.0);
+  --destructive: oklch(0.620 0.200 25.0);
+  --success: oklch(0.650 0.148 150.0);
+  --warning: oklch(0.750 0.136 75.0);
+  --card-foreground: oklch(0.940 0.005 250.0);
+  --secondary-foreground: oklch(0.940 0.005 250.0);
+  --primary-foreground: oklch(0.180 0.005 250.0);
+  --destructive-foreground: oklch(0.180 0.005 250.0);
+  --success-foreground: oklch(0.180 0.005 250.0);
+  --warning-foreground: oklch(0.180 0.005 250.0);
+  --brand-accent-foreground: oklch(0.180 0.005 250.0);
+}
+
+</style>
+<style id="surface">
+/* 影の段を 3 つに分け、状態は前景色の薄い層で表す */
+:where(header, nav, footer) {
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+:where(.bg-card, article, aside) {
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--foreground) 7%, transparent),
+    0 4px 12px color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+:where(button) {
+  border-radius: 0.875rem;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent),
+    0 2px 6px color-mix(in oklab, var(--foreground) 7%, transparent);
+}
+:where(.bg-primary) {
+  border-radius: 0.875rem;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--primary) 28%, transparent),
+    0 6px 16px color-mix(in oklab, var(--primary) 24%, transparent);
+}
+:where(a, button, .bg-card):hover {
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--foreground) 5%, transparent),
+    color-mix(in oklab, var(--foreground) 5%, transparent)
+  );
+}
+:where(a, button, .bg-card):active {
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--foreground) 9%, transparent),
+    color-mix(in oklab, var(--foreground) 9%, transparent)
+  );
+}
+</style>
+</head>
+<body class="bg-background font-sans text-foreground">
+<header class="border-b border-border">
+  <nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 p-4" aria-label="主要なナビゲーション">
+    <a href="#top" class="flex items-center gap-3">
+      <span class="flex size-9 items-center justify-center rounded-md bg-primary font-heading text-primary-foreground">余</span>
+      <span class="font-heading text-base">余白商事 部品帳</span>
+    </a>
+    <div class="flex flex-wrap items-center gap-1 text-sm">
+      <a href="#top" class="rounded-md bg-accent px-3 py-2 text-accent-foreground">部品一覧</a>
+      <a href="#table" class="rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">表</a>
+      <a href="#pricing" class="rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">料金</a>
+    </div>
+  </nav>
+</header>
+<main id="top" class="mx-auto max-w-5xl px-5 pb-16 pt-10 sm:px-8">
+  <p class="font-mono text-xs tracking-widest text-muted-foreground">MINIMAL / COMPONENT SHEET</p>
+  <h1 class="mt-3 font-heading text-3xl sm:text-4xl">面の見比べ用の部品帳 (ミニマル × Material)</h1>
+  <p class="mt-4 max-w-2xl text-muted-foreground">同じ依頼・同じ部品・同じ文言と見本データのまま、面の作り方だけを変えた 4 枚のうちの 1 枚です。状態は止まった見本と触れる見本の 2 段で並べています。</p>
+  <dl class="mt-8 grid gap-3 text-sm sm:grid-cols-3">
+    <div class="border border-border bg-card p-4">
+      <dt class="text-muted-foreground">スタイル</dt>
+      <dd class="mt-1 font-heading">ミニマル (light)</dd>
+    </div>
+    <div class="border border-border bg-card p-4">
+      <dt class="text-muted-foreground">面</dt>
+      <dd class="mt-1 font-heading">Material</dd>
+    </div>
+    <div class="border border-border bg-card p-4">
+      <dt class="text-muted-foreground">動き</dt>
+      <dd class="mt-1 font-heading">なし</dd>
+    </div>
+  </dl>
+  <nav aria-label="部品の目次" class="mt-8 bg-muted p-5">
+    <h2 class="font-heading text-sm">部品の目次</h2>
+    <ol class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+      <li><a href="#buttons" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">1. ボタン</a></li>
+      <li><a href="#inputs" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">2. 入力欄</a></li>
+      <li><a href="#card" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">3. カード</a></li>
+      <li><a href="#nav" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">4. ヘッダーのナビ</a></li>
+      <li><a href="#tabs" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">5. タブ</a></li>
+      <li><a href="#badge" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">6. バッジ/タグ</a></li>
+      <li><a href="#modal" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">7. モーダル</a></li>
+      <li><a href="#toast" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">8. トースト</a></li>
+      <li><a href="#table" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">9. 表</a></li>
+      <li><a href="#pricing" class="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">10. 料金カード</a></li>
+    </ol>
+  </nav>
+
+  <section id="buttons" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">ボタン</h2>
+      <p class="font-mono text-xs text-muted-foreground">BUTTON</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">画面の主な操作を 1 つに絞って示します。押下とフォーカスは、色の濃さと輪郭だけで表します。</p>
+    <h3 class="mt-6 font-heading text-sm text-muted-foreground">止まった見本</h3>
+    <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div>
+        <button type="button" class="w-full bg-primary px-4 py-3 text-sm text-primary-foreground">保存する</button>
+        <p class="mt-2 text-xs text-muted-foreground">通常</p>
+      </div>
+      <div>
+        <button type="button" class="w-full bg-primary/85 px-4 py-3 text-sm text-primary-foreground">保存する</button>
+        <p class="mt-2 text-xs text-muted-foreground">ホバー</p>
+      </div>
+      <div>
+        <button type="button" class="w-full bg-primary/70 px-4 py-3 text-sm text-primary-foreground">保存する</button>
+        <p class="mt-2 text-xs text-muted-foreground">押下</p>
+      </div>
+      <div>
+        <button type="button" class="w-full bg-primary px-4 py-3 text-sm text-primary-foreground outline-2 outline-offset-2 outline-ring">保存する</button>
+        <p class="mt-2 text-xs text-muted-foreground">フォーカス</p>
+      </div>
+      <div>
+        <button type="button" disabled class="w-full bg-muted px-4 py-3 text-sm text-muted-foreground">保存する</button>
+        <p class="mt-2 text-xs text-muted-foreground">無効</p>
+      </div>
+    </div>
+    <h3 class="mt-8 font-heading text-sm text-muted-foreground">大きさと種類</h3>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      <button type="button" class="bg-primary px-3 py-2 text-xs text-primary-foreground">S 保存</button>
+      <button type="button" class="bg-primary px-4 py-3 text-sm text-primary-foreground">M 保存</button>
+      <button type="button" class="bg-primary px-5 py-4 text-base text-primary-foreground">L 保存</button>
+      <button type="button" class="bg-secondary px-4 py-3 text-sm text-secondary-foreground">複製する</button>
+      <button type="button" class="bg-destructive px-4 py-3 text-sm text-destructive-foreground">削除する</button>
+      <a href="#top" class="px-4 py-3 text-sm text-primary underline underline-offset-4">変更履歴を見る</a>
+    </div>
+    <h3 class="mt-8 font-heading text-sm text-muted-foreground">触れる見本</h3>
+    <div class="mt-3 flex flex-wrap gap-3 border border-dashed border-border p-4">
+      <button type="button" class="bg-primary px-4 py-3 text-sm text-primary-foreground hover:bg-primary/85 active:bg-primary/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">保存する</button>
+      <button type="button" class="bg-secondary px-4 py-3 text-sm text-secondary-foreground hover:bg-muted active:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">複製する</button>
+      <button type="button" disabled class="bg-muted px-4 py-3 text-sm text-muted-foreground">アーカイブする</button>
+    </div>
+  </section>
+
+  <section id="inputs" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">入力欄</h2>
+      <p class="font-mono text-xs text-muted-foreground">INPUT</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">テキスト・選択・チェック・スイッチを、業務の入力に必要な粒度でそろえます。</p>
+    <div class="mt-6 grid gap-5 lg:grid-cols-2">
+      <div>
+        <label for="sheet-name" class="text-sm">取引先名</label>
+        <input id="sheet-name" type="text" value="余白商事株式会社" class="mt-2 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <p class="mt-2 text-xs text-muted-foreground">全角 40 文字まで。法人格は省略できます。</p>
+      </div>
+      <div>
+        <label for="sheet-closing" class="text-sm">請求の締め日</label>
+        <select id="sheet-closing" class="mt-2 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+          <option>毎月末日</option>
+          <option>毎月 20 日</option>
+          <option>毎週金曜日</option>
+        </select>
+        <p class="mt-2 text-xs text-muted-foreground">締め日の 3 日前に担当者へ知らせます。</p>
+      </div>
+      <div>
+        <label for="sheet-search" class="text-sm">取引先を検索</label>
+        <input id="sheet-search" type="search" value="あおぞら" class="mt-2 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <p class="mt-2 text-xs text-destructive">「あおぞら」に一致する取引先は見つかりませんでした。</p>
+      </div>
+      <div>
+        <label for="sheet-note" class="text-sm">備考</label>
+        <textarea id="sheet-note" rows="3" class="mt-2 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">毎月末日で締め、翌月 15 日に口座へ振り込みます。</textarea>
+        <p class="mt-2 text-xs text-muted-foreground">送信した内容は、取引先の履歴にも残ります。</p>
+      </div>
+    </div>
+    <h3 class="mt-8 font-heading text-sm text-muted-foreground">選択・チェック・スイッチ</h3>
+    <div class="mt-3 grid gap-4 bg-muted p-5 sm:grid-cols-2">
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" checked class="size-4 accent-primary"> 締め日の前日にメールで知らせる</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="size-4 accent-primary"> 入金の確認も担当者へ知らせる</label>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="sheet-interval" checked class="size-4 accent-primary"> 毎日まとめて送る</label>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="sheet-interval" class="size-4 accent-primary"> 毎週月曜日にまとめて送る</label>
+      <label class="flex items-center gap-3 text-sm">
+        <span class="relative inline-flex h-6 w-11 items-center rounded-full border border-border bg-muted">
+          <input type="checkbox" checked class="peer sr-only">
+          <span class="absolute inset-0 rounded-full peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"></span>
+          <span class="relative ml-0.5 size-5 rounded-full bg-card peer-checked:translate-x-5"></span>
+        </span>
+        <span>締め日が近づいたら知らせる</span>
+      </label>
+      <label class="flex items-center gap-3 text-sm">
+        <span class="relative inline-flex h-6 w-11 items-center rounded-full border border-border bg-muted">
+          <input type="checkbox" class="peer sr-only">
+          <span class="absolute inset-0 rounded-full peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"></span>
+          <span class="relative ml-0.5 size-5 rounded-full bg-card peer-checked:translate-x-5"></span>
+        </span>
+        <span>週次のまとめを受け取らない</span>
+      </label>
+    </div>
+  </section>
+
+  <section id="card" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">カード</h2>
+      <p class="font-mono text-xs text-muted-foreground">CARD</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">一覧から 1 件を選ぶときの面です。題・状態・要点・次の操作を、この順で置きます。</p>
+    <div class="mt-6 grid gap-5 bg-muted p-5 md:grid-cols-2">
+      <article class="bg-card p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-mono text-xs text-muted-foreground">請求書 #2048</p>
+            <h3 class="mt-2 font-heading text-lg">9 月分のご請求</h3>
+          </div>
+          <span class="rounded-sm bg-accent px-2 py-1 text-xs text-accent-foreground">未払い</span>
+        </div>
+        <p class="mt-3 text-sm text-muted-foreground">お支払いの期限は 10 月 15 日です。振込先は登録済みの口座をご利用ください。</p>
+        <dl class="mt-4 flex items-baseline justify-between border-t border-border pt-4 text-sm">
+          <dt class="text-muted-foreground">ご請求額</dt>
+          <dd class="font-heading text-xl">¥132,000</dd>
+        </dl>
+        <a href="#top" class="mt-4 inline-block rounded-md text-sm text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">内訳を見る</a>
+      </article>
+      <article class="bg-card p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-mono text-xs text-muted-foreground">取引先 #012</p>
+            <h3 class="mt-2 font-heading text-lg">あおぞら物流株式会社</h3>
+          </div>
+          <span class="rounded-sm bg-success/15 px-2 py-1 text-xs text-success">取引中</span>
+        </div>
+        <p class="mt-3 text-sm text-muted-foreground">担当は佐藤さん。締め日は毎月 20 日で、連絡はメールを希望されています。</p>
+        <dl class="mt-4 grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm">
+          <div>
+            <dt class="text-muted-foreground">今月の請求</dt>
+            <dd class="mt-1 font-mono">¥84,500</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">未払い</dt>
+            <dd class="mt-1 font-mono">1 件</dd>
+          </div>
+        </dl>
+        <a href="#top" class="mt-4 inline-block rounded-md text-sm text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">取引先を開く</a>
+      </article>
+    </div>
+  </section>
+
+  <section id="nav" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">ヘッダーのナビ</h2>
+      <p class="font-mono text-xs text-muted-foreground">NAV</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">今いる場所を面で示し、ほかの行き先は文字だけで控えめに置きます。</p>
+    <h3 class="mt-6 font-heading text-sm text-muted-foreground">止まった見本</h3>
+    <div class="mt-3 grid gap-4 bg-muted p-5 lg:grid-cols-2">
+      <div class="bg-background p-4">
+        <nav class="flex flex-wrap items-center justify-between gap-3" aria-label="止まった見本のナビ">
+          <span class="font-heading text-sm">余白商事</span>
+          <div class="flex flex-wrap gap-1 text-xs">
+            <span class="rounded-sm bg-accent px-2 py-1 text-accent-foreground">ホーム</span>
+            <span class="rounded-sm px-2 py-1 text-muted-foreground">取引先</span>
+            <span class="rounded-sm px-2 py-1 text-muted-foreground">請求書</span>
+          </div>
+        </nav>
+        <p class="mt-3 text-xs text-muted-foreground">現在のページを面で示す</p>
+      </div>
+      <div class="bg-background p-4">
+        <nav class="flex flex-wrap items-center justify-between gap-3" aria-label="状態を固定したナビ">
+          <span class="font-heading text-sm">余白商事</span>
+          <div class="flex flex-wrap gap-1 text-xs">
+            <span class="rounded-sm bg-muted px-2 py-1 text-foreground">ホーム</span>
+            <span class="rounded-sm outline-2 outline-offset-2 outline-ring px-2 py-1 text-foreground">取引先</span>
+            <span class="rounded-sm px-2 py-1 text-muted-foreground">請求書</span>
+          </div>
+        </nav>
+        <p class="mt-3 text-xs text-muted-foreground">ホバーとフォーカスの見た目を固定</p>
+      </div>
+    </div>
+    <h3 class="mt-8 font-heading text-sm text-muted-foreground">触れる見本</h3>
+    <nav class="mt-3 flex flex-wrap items-center justify-between gap-3 border border-dashed border-border p-4" aria-label="触れる見本のナビ">
+      <span class="font-heading text-sm">余白商事</span>
+      <div class="flex flex-wrap gap-1 text-xs">
+        <a href="#nav" class="rounded-md bg-accent px-2 py-1 text-accent-foreground">ホーム</a>
+        <a href="#nav" class="rounded-md px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">取引先</a>
+        <a href="#nav" class="rounded-md px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">請求書</a>
+      </div>
+    </nav>
+  </section>
+
+  <section id="tabs" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">タブ</h2>
+      <p class="font-mono text-xs text-muted-foreground">TABS</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">同じ画面の中で、見たい一覧だけを切り替えます。件数はタブの文字に添えます。</p>
+    <h3 class="mt-6 font-heading text-sm text-muted-foreground">止まった見本</h3>
+    <div class="mt-3 bg-muted p-5">
+      <div role="tablist" aria-label="止まった見本のタブ" class="flex flex-wrap gap-1 bg-background px-2 pt-2">
+        <span role="tab" aria-selected="true" class="border-b-2 border-primary px-4 py-2 text-sm text-foreground">すべて (24)</span>
+        <span role="tab" aria-selected="false" class="border-b-2 border-transparent px-4 py-2 text-sm text-muted-foreground">未払い (3)</span>
+        <span role="tab" aria-selected="false" class="border-b-2 border-transparent bg-muted px-4 py-2 text-sm text-foreground">下書き (2)</span>
+        <span role="tab" aria-selected="false" class="border-b-2 border-dashed border-ring px-4 py-2 text-sm text-foreground">フォーカス中</span>
+      </div>
+      <div class="bg-background px-5 py-4 text-sm text-muted-foreground">「すべて」を選んだ状態。24 通の請求書を発行日の新しい順に並べています。</div>
+    </div>
+    <h3 class="mt-8 font-heading text-sm text-muted-foreground">触れる見本</h3>
+    <div role="tablist" aria-label="触れる見本のタブ" class="mt-3 flex flex-wrap gap-1 border border-dashed border-border px-2 pt-2">
+      <button type="button" role="tab" aria-selected="true" class="border-b-2 border-primary px-4 py-2 text-sm text-foreground">すべて (24)</button>
+      <button type="button" role="tab" aria-selected="false" class="border-b-2 border-transparent px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">未払い (3)</button>
+      <button type="button" role="tab" aria-selected="false" class="border-b-2 border-transparent px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">下書き (2)</button>
+    </div>
+  </section>
+
+  <section id="badge" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">バッジ/タグ</h2>
+      <p class="font-mono text-xs text-muted-foreground">BADGE / TAG</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">状態は色の濃さだけで示し、文字は小さくても読める濃さにします。</p>
+    <div class="mt-6 flex flex-wrap items-center gap-2 bg-muted p-5">
+      <span class="rounded-sm bg-secondary px-2 py-1 text-xs text-secondary-foreground">下書き</span>
+      <span class="rounded-sm bg-accent px-2 py-1 text-xs text-accent-foreground">確認中</span>
+      <span class="rounded-sm bg-primary px-2 py-1 text-xs text-primary-foreground">公開中</span>
+      <span class="rounded-sm bg-success/15 px-2 py-1 text-xs text-success">入金済み</span>
+      <span class="rounded-sm bg-warning/20 px-2 py-1 text-xs text-warning">期限間近</span>
+      <span class="rounded-sm bg-destructive/10 px-2 py-1 text-xs text-destructive">要対応</span>
+      <span class="rounded-sm border border-border px-2 py-1 text-xs text-muted-foreground">アーカイブ</span>
+    </div>
+    <h3 class="mt-8 font-heading text-sm text-muted-foreground">外せるタグ</h3>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <span class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1 text-xs">経理 <span aria-hidden="true" class="text-muted-foreground">×</span></span>
+      <span class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1 text-xs">毎月 <span aria-hidden="true" class="text-muted-foreground">×</span></span>
+      <span class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1 text-xs">要確認 <span aria-hidden="true" class="text-muted-foreground">×</span></span>
+      <button type="button" class="rounded-md border border-dashed border-border px-3 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">タグを足す</button>
+    </div>
+  </section>
+
+  <section id="modal" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">モーダル</h2>
+      <p class="font-mono text-xs text-muted-foreground">MODAL</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">取り返しのつかない操作の前に、一度だけ確認します。開いた状態を枠の中に置いています。</p>
+    <div class="mt-6 bg-muted p-6">
+      <div class="mx-auto max-w-md bg-card p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="font-heading text-lg">この請求書を削除しますか</h3>
+            <p class="mt-2 text-sm text-muted-foreground">削除すると元に戻せません。控えが必要なときは、先に PDF を保存してください。</p>
+          </div>
+          <span class="text-muted-foreground" aria-hidden="true">×</span>
+        </div>
+        <dl class="mt-4 border-t border-border pt-4 text-sm">
+          <div class="flex justify-between gap-3">
+            <dt class="text-muted-foreground">請求書番号</dt>
+            <dd class="font-mono">INV-2048</dd>
+          </div>
+          <div class="mt-2 flex justify-between gap-3">
+            <dt class="text-muted-foreground">ご請求額</dt>
+            <dd class="font-mono">¥132,000</dd>
+          </div>
+        </dl>
+        <div class="mt-6 flex flex-wrap justify-end gap-3">
+          <button type="button" class="bg-secondary px-4 py-2 text-sm text-secondary-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">やめる</button>
+          <button type="button" class="bg-destructive px-4 py-2 text-sm text-destructive-foreground hover:bg-destructive/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">削除する</button>
+        </div>
+      </div>
+      <p class="mt-3 text-center text-xs text-muted-foreground">画面全体には被せず、見本の枠の中に収めています</p>
+    </div>
+  </section>
+
+  <section id="toast" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">トースト</h2>
+      <p class="font-mono text-xs text-muted-foreground">TOAST</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">操作の結果を短く知らせます。何が起きたかと、次にできることを 1 文ずつ置きます。</p>
+    <div class="mt-6 grid gap-3 bg-muted p-6 lg:grid-cols-2">
+      <div class="flex items-start gap-3 border-l-4 border-l-success bg-card p-4">
+        <span aria-hidden="true" class="mt-0.5 flex size-5 items-center justify-center rounded-full bg-success text-xs text-success-foreground">✓</span>
+        <div>
+          <p class="font-heading text-sm">請求書を保存しました</p>
+          <p class="mt-1 text-xs text-muted-foreground">下書き #2048 に保存しました。送信はまだ行っていません。</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 border-l-4 border-l-warning bg-card p-4">
+        <span aria-hidden="true" class="mt-0.5 flex size-5 items-center justify-center rounded-full bg-warning text-xs text-warning-foreground">!</span>
+        <div>
+          <p class="font-heading text-sm">締め日が近づいています</p>
+          <p class="mt-1 text-xs text-muted-foreground">あと 3 日で 9 月の締め日です。未払いの 3 件を確認してください。</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 border-l-4 border-l-destructive bg-card p-4">
+        <span aria-hidden="true" class="mt-0.5 flex size-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">×</span>
+        <div>
+          <p class="font-heading text-sm">送信できませんでした</p>
+          <p class="mt-1 text-xs text-muted-foreground">通信が途切れました。時間をおいて、もう一度お試しください。</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 border-l-4 border-l-border bg-card p-4">
+        <span aria-hidden="true" class="mt-0.5 flex size-5 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">i</span>
+        <div>
+          <p class="font-heading text-sm">下書きを自動で保存しました</p>
+          <p class="mt-1 text-xs text-muted-foreground">最終保存は 14:32 です。閉じても内容は残ります。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="table" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">表</h2>
+      <p class="font-mono text-xs text-muted-foreground">TABLE</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">数値は右にそろえ、状態はバッジで示します。行はホバーで薄く色を付けます。</p>
+    <div class="mt-6 overflow-x-auto border border-border bg-card">
+      <table class="w-full border-collapse text-left text-sm">
+        <caption class="sr-only">直近の請求書の一覧</caption>
+        <thead class="bg-muted text-xs text-muted-foreground">
+          <tr>
+            <th scope="col" class="p-3 font-normal">請求書番号</th>
+            <th scope="col" class="p-3 font-normal">取引先</th>
+            <th scope="col" class="p-3 font-normal">発行日</th>
+            <th scope="col" class="p-3 text-right font-normal">金額</th>
+            <th scope="col" class="p-3 font-normal">状態</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          <tr class="hover:bg-muted/60">
+            <td class="p-3 font-mono text-xs">INV-2048</td>
+            <td class="p-3">余白商事株式会社</td>
+            <td class="p-3 text-muted-foreground">2026-09-01</td>
+            <td class="p-3 text-right font-mono">¥132,000</td>
+            <td class="p-3"><span class="rounded-sm bg-accent px-2 py-1 text-xs text-accent-foreground">未払い</span></td>
+          </tr>
+          <tr class="hover:bg-muted/60">
+            <td class="p-3 font-mono text-xs">INV-2047</td>
+            <td class="p-3">あおぞら物流株式会社</td>
+            <td class="p-3 text-muted-foreground">2026-09-01</td>
+            <td class="p-3 text-right font-mono">¥84,500</td>
+            <td class="p-3"><span class="rounded-sm bg-success/15 px-2 py-1 text-xs text-success">入金済み</span></td>
+          </tr>
+          <tr class="hover:bg-muted/60">
+            <td class="p-3 font-mono text-xs">INV-2046</td>
+            <td class="p-3">こもれび出版株式会社</td>
+            <td class="p-3 text-muted-foreground">2026-08-28</td>
+            <td class="p-3 text-right font-mono">¥57,200</td>
+            <td class="p-3"><span class="rounded-sm bg-warning/20 px-2 py-1 text-xs text-warning">期限間近</span></td>
+          </tr>
+          <tr class="hover:bg-muted/60">
+            <td class="p-3 font-mono text-xs">INV-2045</td>
+            <td class="p-3">みなと製作所</td>
+            <td class="p-3 text-muted-foreground">2026-08-25</td>
+            <td class="p-3 text-right font-mono">¥19,800</td>
+            <td class="p-3"><span class="rounded-sm bg-secondary px-2 py-1 text-xs text-secondary-foreground">下書き</span></td>
+          </tr>
+          <tr class="hover:bg-muted/60">
+            <td class="p-3 font-mono text-xs">INV-2044</td>
+            <td class="p-3">ひかり農園</td>
+            <td class="p-3 text-muted-foreground">2026-08-20</td>
+            <td class="p-3 text-right font-mono">¥46,000</td>
+            <td class="p-3"><span class="rounded-sm bg-destructive/10 px-2 py-1 text-xs text-destructive">要対応</span></td>
+          </tr>
+        </tbody>
+        <tfoot class="border-t border-border bg-muted/60 text-xs text-muted-foreground">
+          <tr>
+            <td class="p-3" colspan="3">5 件の合計</td>
+            <td class="p-3 text-right font-mono">¥339,500</td>
+            <td class="p-3">未払い 1 件</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section id="pricing" class="mt-12 border-t border-border pt-8">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-heading text-2xl">料金カード</h2>
+      <p class="font-mono text-xs text-muted-foreground">PRICING CARD</p>
+    </div>
+    <p class="mt-2 max-w-2xl text-sm text-muted-foreground">3 つのプランを横に並べ、いちばん選ばれているものだけ面と文字で強めます。</p>
+    <div class="mt-6 grid gap-5 bg-muted p-5 md:grid-cols-3">
+      <article class="bg-card p-6">
+        <h3 class="font-heading text-lg">スモール</h3>
+        <p class="mt-2 text-sm text-muted-foreground">ひとりで使う小さなチーム向け。</p>
+        <p class="mt-4 font-heading text-3xl">¥980<span class="text-sm text-muted-foreground"> / 月</span></p>
+        <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+          <li>利用者 3 人まで</li>
+          <li>請求書 月 30 通まで</li>
+          <li>メールでの問い合わせ</li>
+        </ul>
+        <button type="button" class="mt-6 w-full bg-secondary px-4 py-3 text-sm text-secondary-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">このプランを選ぶ</button>
+      </article>
+      <article class="bg-card p-6">
+        <p class="text-xs text-primary">いちばん選ばれています</p>
+        <h3 class="mt-2 font-heading text-lg">スタンダード</h3>
+        <p class="mt-2 text-sm text-muted-foreground">日々の請求と入金を 1 か所で見る向け。</p>
+        <p class="mt-4 font-heading text-3xl">¥2,400<span class="text-sm text-muted-foreground"> / 月</span></p>
+        <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+          <li>利用者 10 人まで</li>
+          <li>請求書 月 200 通まで</li>
+          <li>入金の消し込みと催促</li>
+          <li>電話での問い合わせ</li>
+        </ul>
+        <button type="button" class="mt-6 w-full bg-primary px-4 py-3 text-sm text-primary-foreground hover:bg-primary/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">このプランを選ぶ</button>
+      </article>
+      <article class="bg-card p-6">
+        <h3 class="font-heading text-lg">チーム</h3>
+        <p class="mt-2 text-sm text-muted-foreground">部署をまたいで経理をまとめる向け。</p>
+        <p class="mt-4 font-heading text-3xl">¥7,800<span class="text-sm text-muted-foreground"> / 月</span></p>
+        <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+          <li>利用者 30 人まで</li>
+          <li>請求書 月 1,000 通まで</li>
+          <li>承認の流れと権限の分離</li>
+          <li>担当者による導入の支援</li>
+        </ul>
+        <button type="button" class="mt-6 w-full bg-secondary px-4 py-3 text-sm text-secondary-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">このプランを選ぶ</button>
+      </article>
+    </div>
+    <p class="mt-4 text-xs text-muted-foreground">料金は税抜きです。どのプランも 14 日間は無料で試せます。</p>
+  </section>
+</main>
+<footer class="border-t border-border bg-muted">
+  <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 p-6 text-sm text-muted-foreground">
+    <p>余白商事株式会社 / 部品帳 (ミニマル × Material)</p>
+    <a href="#top" class="font-mono rounded-md px-2 py-1 hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">ページの先頭へ</a>
+  </div>
+</footer>
+</body>
+</html>
