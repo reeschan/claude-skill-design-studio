@@ -13,7 +13,8 @@
 //   GET  /api/treatments                      → {surfaces, motions}
 //   GET  /api/motions/<id>/preview            → 動きの見本 1 件の HTML
 //   GET  /api/themes/<styleId>                → {themeId, cssForPage, fontsUrl} (結果はメモリに保持)
-//   GET  /api/gallery                         → {items: [{styleId, pageType, url}]}
+//   GET  /api/gallery                         → {items: [{styleId, pageType, url}], surfaceSheets: [{surface, name, url}]}
+//   GET  /gallery/surfaces/<面の id>.html     → 面ごとの部品帳の HTML
 //   GET  /gallery/<styleId>/<pageType>.html   → 見本の HTML
 //   POST /api/directions  {brief, pageType, screenshot?, treatment?} → {directions, family}
 //   POST /api/mix         {directions, points, fineTune?} → {mixed, direction, weights, snapped}
@@ -55,7 +56,7 @@ import { galleryDir, styleGuideDir } from "../core/paths.ts";
 import { designGuideDir, listProjects, readComponent, readDesignGuideFile, readPage, readProject, saveProject } from "../core/project.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
 import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
-import { findMotion, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
+import { findMotion, findSurface, loadSurfaces, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
 import { LAYOUTS, PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "../core/types.ts";
 import type {
   BaseMode,
@@ -465,6 +466,7 @@ async function serveMotionPreview(ctx: RouteContext): Promise<void> {
 }
 
 type GalleryItem = { styleId: string; pageType: SkeletonFamily; url: string };
+type SurfaceSheetItem = { surface: string; name: string; url: string };
 
 // 一時の置き場 (DESIGN_STUDIO_GALLERY_DIR) に実際にある見本だけを返す
 function galleryItems(env: NodeJS.ProcessEnv): GalleryItem[] {
@@ -480,7 +482,25 @@ function galleryItems(env: NodeJS.ProcessEnv): GalleryItem[] {
 }
 
 function serveGallery(ctx: RouteContext): void {
-  sendJson(ctx.res, 200, { items: galleryItems(ctx.env) });
+  sendJson(ctx.res, 200, { items: galleryItems(ctx.env), surfaceSheets: surfaceSheetItems(ctx.env) });
+}
+
+// 面ごとの部品帳。面の台帳の順に、一時の置き場に実際にある HTML だけを返す
+function surfaceSheetItems(env: NodeJS.ProcessEnv): SurfaceSheetItem[] {
+  const dir = join(galleryDir(env), "surfaces");
+  const items: SurfaceSheetItem[] = [];
+  for (const surface of loadSurfaces()) {
+    if (!existsSync(join(dir, `${surface.id}.html`))) continue;
+    items.push({ surface: surface.id, name: surface.name, url: `/gallery/surfaces/${surface.id}.html` });
+  }
+  return items;
+}
+
+// 面ごとの部品帳 1 枚。台帳に無い id と、ファイルが無い id は 404
+function serveSurfaceSheet(ctx: RouteContext): void {
+  const surface = findSurface(ctx.params[0] ?? "");
+  if (surface === undefined) throw notFound();
+  serveFile(ctx.res, join(galleryDir(ctx.env), "surfaces", `${surface.id}.html`), HTML_TYPE);
 }
 
 function serveGalleryPage(ctx: RouteContext): void {
@@ -768,6 +788,7 @@ const ROUTES: Route[] = [
   { method: "GET", pattern: /^\/api\/motions\/([a-z][a-z0-9-]*)\/preview$/, limit: BODY_LIMIT, handle: serveMotionPreview },
   { method: "GET", pattern: /^\/api\/themes\/([^/]+)$/, limit: BODY_LIMIT, handle: serveTheme },
   { method: "GET", pattern: /^\/api\/gallery$/, limit: BODY_LIMIT, handle: serveGallery },
+  { method: "GET", pattern: /^\/gallery\/surfaces\/([a-z][a-z0-9-]*)\.html$/, limit: BODY_LIMIT, handle: serveSurfaceSheet },
   { method: "GET", pattern: /^\/gallery\/([^/]+)\/([^/]+)\.html$/, limit: BODY_LIMIT, handle: serveGalleryPage },
   { method: "GET", pattern: /^\/api\/projects$/, limit: BODY_LIMIT, handle: serveProjects },
   { method: "GET", pattern: /^\/api\/projects\/([^/]+)\/pages\/([^/]+)$/, limit: BODY_LIMIT, handle: serveProjectPage },
