@@ -23,7 +23,7 @@ const SCREENS: [string, string][] = [
 // 画面ごとの JS と、その中で使う API のパス・イベント
 const SCRIPTS: [string, string[]][] = [
   ["ui-catalog", ["/api/catalog", "/api/catalog/enabled", "/api/install-plan"]],
-  ["ui-gallery", ["/api/styles", "/api/gallery", "/api/themes/", "studio:start-from-style"]],
+  ["ui-gallery", ["/api/styles", "/api/gallery", "/api/themes/", "/api/treatments", "/api/motions/", "studio:start-from-style"]],
   ["ui-workbench", ["studio:start-from-style"]],
 ];
 

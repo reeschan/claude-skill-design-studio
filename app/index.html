@@ -695,6 +695,161 @@
         font-size: 13.5px;
       }
 
+      /* 見本帳の中の切り替え (スタイル × 画面の種類 / 表現) */
+
+      .gallery-tabs {
+        display: inline-flex;
+        gap: 4px;
+        margin: 0 0 16px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--panel);
+      }
+
+      .gallery-tab {
+        font: inherit;
+        font-size: 13.5px;
+        padding: 5px 14px;
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          color 0.15s,
+          background-color 0.15s;
+      }
+
+      .gallery-tab:hover {
+        color: var(--fg);
+        background: var(--surface);
+      }
+
+      .gallery-tab[aria-selected="true"] {
+        background: var(--accent-soft);
+        color: var(--accent-soft-fg);
+        font-weight: 700;
+      }
+
+      .gallery-panel[hidden] {
+        display: none;
+      }
+
+      /* 見本帳の「表現」: 面ごとの部品帳と動きの見本 */
+
+      .expression-section {
+        margin: 0 0 28px;
+      }
+
+      .expression-section + .expression-section {
+        margin-top: 34px;
+      }
+
+      .expression-title {
+        margin: 0 0 4px;
+        font-size: 19px;
+        font-weight: 700;
+      }
+
+      .expression-lead {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 13.5px;
+      }
+
+      .surface-strip {
+        display: flex;
+        gap: 12px;
+        padding-bottom: 8px;
+        overflow-x: auto;
+      }
+
+      .surface-item {
+        flex: 0 0 320px;
+        min-width: 0;
+      }
+
+      /* 今の .thumb と同じ 0.25 倍。部品帳は縦に長いので、マスを高くして iframe も縦に伸ばす */
+      .surface-thumb {
+        height: 300px;
+      }
+
+      .surface-thumb iframe {
+        height: 1200px;
+      }
+
+      .surface-name {
+        margin: 8px 0 2px;
+        font-size: 15px;
+      }
+
+      .surface-desc {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      .motion-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px;
+      }
+
+      .motion-card {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .motion-card-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .motion-card-head .badges {
+        margin: 0;
+      }
+
+      .motion-name {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .motion-desc {
+        margin: 0;
+        font-size: 13.5px;
+      }
+
+      .motion-meta {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      .motion-frame {
+        display: block;
+        width: 100%;
+        height: clamp(220px, 40vh, 360px);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        background: var(--bg);
+      }
+
+      /* スクロールに連動する見本は、iframe の中をスクロールして試せる高さにする */
+      .motion-frame-scroll {
+        height: clamp(320px, 56vh, 520px);
+      }
+
       .overlay {
         position: fixed;
         inset: 0;
