@@ -123,8 +123,17 @@ before(async () => {
   const gallery = join(dir, "gallery");
   mkdirSync(join(gallery, "pop"), { recursive: true });
   mkdirSync(join(gallery, "nope"), { recursive: true });
+  mkdirSync(join(gallery, "surfaces"), { recursive: true });
   writeFileSync(join(gallery, "pop", "lp.html"), '<!doctype html>\n<html lang="ja"><body>pop の LP</body></html>\n', "utf8");
   writeFileSync(join(gallery, "nope", "lp.html"), '<!doctype html>\n<html lang="ja"><body>知らないスタイル</body></html>\n', "utf8");
+  // 面ごとの部品帳。nope は台帳に無い id、material は台帳にあるがファイルを置かない
+  writeFileSync(join(gallery, "surfaces", "glass.html"), '<!doctype html>\n<html lang="ja"><body>glass の部品帳</body></html>\n', "utf8");
+  writeFileSync(join(gallery, "surfaces", "none.html"), '<!doctype html>\n<html lang="ja"><body>none の部品帳</body></html>\n', "utf8");
+  writeFileSync(
+    join(gallery, "surfaces", "nope.html"),
+    '<!doctype html>\n<html lang="ja"><body>台帳に無い面の部品帳</body></html>\n',
+    "utf8",
+  );
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     DESIGN_STUDIO_HOME: join(dir, "home"),
@@ -369,11 +378,18 @@ void test("5. GET /api/styles が 7 件、GET /api/themes/pop が cssForPage を
   assert.equal((await fetchPath("/api/themes/nope")).status, 404);
 });
 
-void test("6. GET /api/gallery が一時の置き場にある見本だけを返す", async () => {
+void test("6. GET /api/gallery が一時の置き場にある見本と面ごとの部品帳だけを返す", async () => {
   const r = await fetchPath("/api/gallery");
   assert.equal(r.status, 200);
   const items = arr(get(r.json, "items"));
   assert.deepEqual(items, [{ styleId: "pop", pageType: "lp", url: "/gallery/pop/lp.html" }]);
+
+  // 面ごとの部品帳は台帳の順に、台帳にあってファイルがあるものだけ
+  const sheets = arr(get(r.json, "surfaceSheets"));
+  assert.deepEqual(sheets, [
+    { surface: "none", name: "指定しない", url: "/gallery/surfaces/none.html" },
+    { surface: "glass", name: "Glass", url: "/gallery/surfaces/glass.html" },
+  ]);
 
   const html = await fetchPath("/gallery/pop/lp.html");
   assert.equal(html.status, 200);
@@ -383,6 +399,18 @@ void test("6. GET /api/gallery が一時の置き場にある見本だけを返�
   assert.equal((await fetchPath("/gallery/pop/blog.html")).status, 404);
   assert.equal((await fetchPath("/gallery/nope/lp.html")).status, 404);
   assert.equal((await fetchPath("/gallery/pop/xxx.html")).status, 404);
+});
+
+void test("6b. GET /gallery/surfaces/<面の id>.html が置いた部品帳を返す", async () => {
+  const glass = await fetchPath("/gallery/surfaces/glass.html");
+  assert.equal(glass.status, 200, glass.text);
+  assert.match(glass.type, /^text\/html; charset=utf-8/);
+  assert.match(glass.text, /glass の部品帳/);
+
+  // ファイルが無い id・台帳に無い id・id の形が違う (大文字) は 404
+  assert.equal((await fetchPath("/gallery/surfaces/material.html")).status, 404);
+  assert.equal((await fetchPath("/gallery/surfaces/nope.html")).status, 404);
+  assert.equal((await fetchPath("/gallery/surfaces/Glass.html")).status, 404);
 });
 
 void test("7. POST /api/directions が依頼から 4 案と family を返す", async () => {
