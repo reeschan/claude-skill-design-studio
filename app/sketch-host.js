@@ -1,10 +1,11 @@
 // 背景スケッチの host。sandbox="allow-scripts" だけの iframe の中で動く普通のスクリプト。
-// 親から init (sketch-engine.js の本文)・run・bake・stop を受け、Blob の module Worker で式を動かす。
+// 親から init (sketch-engine.js の本文)・run・bake・stop を受け、data: URL の module Worker で式を動かす。
 // ライブの Worker と焼き込みの Worker は別に持つ (焼いている間もライブは動かす)。
 // tick・frame が 2 秒来なければ Worker を terminate して親に時間切れを知らせる。時間切れのあとの
 // 次の依頼では Worker を作り直す。描いたフレームは canvas に写し、baked・error は親に渡す。
 const FRAME_TIMEOUT_MS = 2000;
 const TIMEOUT_MESSAGE = "1 フレームが 2 秒を超えました";
+const WORKER_ERROR_MESSAGE = "Worker を起動できませんでした";
 
 const canvas = document.querySelector("canvas");
 const bitmap = canvas === null ? null : canvas.getContext("bitmaprenderer");
@@ -55,9 +56,9 @@ function armTimer(slot) {
   }, FRAME_TIMEOUT_MS);
 }
 
+// opaque origin の iframe では Blob URL の module Worker が起動しない (Chromium)。data: URL で作る
 function createWorker() {
-  const blob = new Blob([engine], { type: "text/javascript" });
-  return new Worker(URL.createObjectURL(blob), { type: "module" });
+  return new Worker(`data:text/javascript;charset=utf-8,${encodeURIComponent(engine)}`, { type: "module" });
 }
 
 function ensureWorker(slot) {
@@ -67,6 +68,12 @@ function ensureWorker(slot) {
   worker.addEventListener("message", (event) => {
     if (slot.worker !== worker) return;
     onWorkerMessage(slot, dataOf(event.data));
+  });
+  // 起動や読み込みの失敗は message が来ないので、時間切れを待たずに知らせる
+  worker.addEventListener("error", (event) => {
+    if (slot.worker !== worker) return;
+    event.preventDefault();
+    fail(slot, { kind: "worker", name: null, message: event.message || WORKER_ERROR_MESSAGE });
   });
   return worker;
 }

@@ -69,10 +69,14 @@ void test("4. 親は event.source と iframe の contentWindow を比べてか�
   assert.match(PANEL, /event\.source !== [A-Za-z_$][\w$]*\.contentWindow/, "event.source と iframe の contentWindow を比べていません");
 });
 
-void test("5. host は Blob の module Worker を作り、2000ms の時間切れで terminate する", () => {
+// opaque origin の iframe では Blob URL の module Worker が起動しない (Chromium で確かめた)。data: URL で作る
+void test("5. host は data: URL の module Worker を作り、2000ms の時間切れで terminate する", () => {
   assert.match(HOST, /FRAME_TIMEOUT_MS = 2000/, "2 秒の時間切れの定数がありません");
-  assert.ok(HOST.includes("new Blob("), "Worker を Blob から作っていません");
-  assert.match(HOST, /type:\s*"module"/, "Worker を module として作っていません");
+  const create = functionBodyOf(HOST, "createWorker");
+  assert.ok(create.includes("data:text/javascript"), "Worker を data: URL から作っていません");
+  assert.ok(create.includes("encodeURIComponent(engine)"), "エンジンの本文を data: URL に符号化していません");
+  assert.ok(!HOST.includes("new Blob(") && !HOST.includes("createObjectURL"), "Blob URL の Worker が残っています");
+  assert.match(create, /type:\s*"module"/, "Worker を module として作っていません");
   const timeout = functionBodyOf(HOST, "armTimer");
   assert.match(timeout, /setTimeout\(/, "時間切れの時計がありません");
   assert.match(timeout, /kind: "timeout"/, "時間切れの合図がありません");
@@ -123,4 +127,11 @@ void test("10. 部品は host の ready で initialized を戻し、init を送�
   assert.ok(handler.includes('"ready"'), "ready を受けていません");
   assert.ok(handler.includes("initialized = false"), "ready で initialized を戻していません");
   assert.ok(handler.includes("sendInit()"), "ready で init を送り直していません");
+});
+
+void test("11. host は Worker の error を fail につなぐ (起動に失敗しても時間切れに隠さない)", () => {
+  const ensure = functionBodyOf(HOST, "ensureWorker");
+  assert.ok(ensure.includes('addEventListener("error"'), "Worker の error を聞いていません");
+  assert.ok(ensure.includes("slot.worker !== worker"), "捨てた Worker の error を受けています");
+  assert.ok(ensure.includes("fail(slot"), "Worker の error を fail につないでいません");
 });

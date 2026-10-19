@@ -1,5 +1,5 @@
 // 背景スケッチのエンジン。p5.js のよく使う関数だけを自前で用意する。
-// ブラウザでは Blob の module Worker としてそのまま動き、node のテストからは import して使う。
+// ブラウザでは data: URL の module Worker としてそのまま動き、node のテストからは import して使う。
 // Worker として 1 ファイルで動かすため、このファイルに import は書かない。
 // node で import したときは何もしない (Worker の処理は WorkerGlobalScope があるときだけ動く)。
 
