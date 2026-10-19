@@ -78,6 +78,8 @@ design-studio でページ (1 ファイルの HTML) を作る手順。見本帳�
 
 見本帳の見本を作るときは、プロジェクトではなく `<スキル>/gallery/<styleId>/<family>.html` (骨組みの種類の名前) に置く。
 
+面ごとの部品帳は `<スキル>/gallery/surfaces/<面の id>.html` に置く (面の id は `data/surfaces.json` の `none`・`material`・`glass`・`solid`)。スタイルはミニマル (`data-theme="minimal"`・`data-mode="light"`) に固定し、動きは `none`、同じ依頼・同じ部品・同じ文言と見本データのまま面だけを変える。
+
 ## 6. 部品帳と部品を作る
 
 部品帳と部品も、ページと同じく 1 ファイルの HTML。ページと同じ殻 (3 節の形) をそのまま使い、CSS の決まりと「表現を効かせる」に従う。
