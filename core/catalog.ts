@@ -1,4 +1,4 @@
-// 台帳 (同梱 12 件 + 利用者の追加) の読み込み・検証と、導入状態・使う/使わないを重ねた一覧
+// 台帳 (同梱 13 件 + 利用者の追加) の読み込み・検証と、導入状態・使う/使わないを重ねた一覧
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

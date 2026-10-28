@@ -34,14 +34,14 @@ function asLocalEntry(view: Record<string, unknown>): Record<string, unknown> {
   return entry;
 }
 
-void test("何も入っていないときは 12 件で、すべて未導入・使う・同梱", () => {
+void test("何も入っていないときは 13 件で、すべて未導入・使う・同梱", () => {
   const { env, cleanup } = tempEnv();
   try {
     const res = runCli(["catalog"], env);
     assert.equal(res.code, 0);
     const list = entries(res.json);
-    assert.equal(list.length, 12);
-    assert.equal(new Set(list.map((entry) => entry.id)).size, 12);
+    assert.equal(list.length, 13);
+    assert.equal(new Set(list.map((entry) => entry.id)).size, 13);
     for (const entry of list) {
       assert.equal(entry.installed, false);
       assert.equal(entry.enabled, true);
@@ -128,7 +128,7 @@ void test("追加台帳は同じ id を上書きし、origin は local になる
     const res = runCli(["catalog"], env);
     assert.equal(res.code, 0);
     const list = entries(res.json);
-    assert.equal(list.length, 12);
+    assert.equal(list.length, 13);
     const entry = list.find((item) => item.id === "style-guide");
     assert.ok(entry !== undefined);
     assert.equal(entry.summary, "利用者が書いた説明");
@@ -210,7 +210,7 @@ void test("catalog --stage はその段階のものだけを返す", () => {
     const res = runCli(["catalog", "--stage", "review"], env);
     assert.equal(res.code, 0);
     const list = entries(res.json);
-    assert.equal(list.length, 5);
+    assert.equal(list.length, 6);
     for (const entry of list) assert.equal(entry.stage, "review");
   } finally {
     cleanup();

@@ -222,7 +222,7 @@ void test("plan は ids を省くと台帳の全件、--ids ではその id だ�
   const c = makeCase();
   try {
     const all = planOf(runCli(["install", "--plan"], c.env).json);
-    assert.equal(all.length, 12 + 3);
+    assert.equal(all.length, 13 + 3);
     const ids = all.map((item) => item.id);
     for (const id of ["fake-skill", "fake-root", "fake-bad"]) assert.ok(ids.includes(id), id);
     const one = planOf(runCli(["install", "--plan", "--ids", "fake-skill"], c.env).json);

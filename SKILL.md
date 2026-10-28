@@ -73,7 +73,7 @@ description: 曖昧な依頼から Web ページの見た目 (配色・フォン
 1. `node <スキル>/scripts/studio.ts catalog` を引く。
 2. 段階 (review / polish) と役割ごとに、使う (`enabled`) かつ導入済みの既定のスキルを呼ぶ: Call the Skill tool with "<id>"。
 3. 既定が使えなければ候補を提案する。未導入なら `install` の計画を示し、承認を得てから入れる。
-4. react-doctor は React プロジェクトがあるときだけ呼び、`invokeFlags` を付ける (`--no-telemetry`)。12-principles-of-animation は動きのあるページだけに使う。
+4. `invokeFlags` があるスキルは、それを引数に付けて呼ぶ (impeccable は `critique`、react-doctor は `--no-telemetry`)。react-doctor は React プロジェクトがあるときだけ呼ぶ。12-principles-of-animation は動きのあるページだけに使う。impeccable の shape・craft (方向性・ページづくり) には振り分けない。方向性は design-studio が受け持つ。
 5. 仕上げは、利用者が望んだときと、点検で指摘が出たときに回す。
 
 ## 台帳を見せる
