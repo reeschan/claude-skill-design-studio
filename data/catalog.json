@@ -78,12 +78,37 @@
     "invokeFlags": []
   },
   {
+    "id": "impeccable",
+    "name": "impeccable",
+    "stage": "review",
+    "role": "critique",
+    "roleLabel": "見た目と使いやすさ",
+    "isDefault": true,
+    "source": { "type": "plugin", "plugin": "impeccable", "marketplace": "impeccable" },
+    "prerequisites": [
+      { "label": "impeccable のマーケットプレイス", "command": "/plugin marketplace add pbakaus/impeccable" },
+      { "label": "impeccable プラグイン", "command": "/plugin install impeccable@impeccable" }
+    ],
+    "target": "any",
+    "license": "Apache-2.0",
+    "summary": "AI が作りがちな見た目 (Inter ばかり・紫のグラデーション・カードの入れ子など) を 62 の検出ルールと講評で洗い出し、階層・余白・配色・文言の直しを提案する。critique のほかに audit・polish など 24 のコマンドを持つ。",
+    "exampleRequest": "作ったページの見た目と使いやすさを講評して",
+    "exampleOutput": "検出: 4 件 (gradient-text 1 / nested-cards 2 / gray-on-color 1)\n講評: 主役の見出しが弱く、CTA が 2 つ同じ強さで並ぶ\n| 指摘 | 重要度 | 提案 |\n| カードの中にカード | 高 | 内側の枠を外し、余白で区切る |",
+    "notes": [
+      "/impeccable critique で呼ぶ。audit (a11y・性能・レスポンシブ) や polish (仕上げ) も同じスキルで使える",
+      "プラグインは、UI のファイルを編集するたびに検出を走らせるフックも入れる",
+      "新しいデザインの案出しでは impeccable.style の API に問い合わせ、匿名の利用データを送る (IMPECCABLE_NO_TELEMETRY=1 で止める)。講評では使わない",
+      "方向性の段階は design-studio が受け持つので、impeccable の shape・craft には振り分けない"
+    ],
+    "invokeFlags": ["critique"]
+  },
+  {
     "id": "design-critique",
     "name": "design-critique",
     "stage": "review",
     "role": "critique",
     "roleLabel": "見た目と使いやすさ",
-    "isDefault": true,
+    "isDefault": false,
     "source": { "type": "plugin", "plugin": "design", "marketplace": "claude.ai" },
     "prerequisites": [],
     "target": "any",

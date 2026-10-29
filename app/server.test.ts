@@ -327,11 +327,11 @@ void test("2. GET /api/meta が style-guide・LLM・画面の種類・配置・�
   assert.equal(get(fontPairs[0], "japanese"), true);
 });
 
-void test("3. GET /api/catalog が 12 件、POST /api/catalog/enabled が反映される", async () => {
+void test("3. GET /api/catalog が 13 件、POST /api/catalog/enabled が反映される", async () => {
   const before = await fetchPath("/api/catalog");
   assert.equal(before.status, 200);
   const entries = arr(get(before.json, "entries"));
-  assert.equal(entries.length, 12, before.text);
+  assert.equal(entries.length, 13, before.text);
   const target = entries.find((entry) => get(entry, "id") === "react-doctor");
   assert.equal(get(target, "enabled"), true);
 
@@ -355,7 +355,7 @@ void test("4. GET /api/install-plan が計画を返し、スキル置き場に�
   const r = await fetchPath("/api/install-plan");
   assert.equal(r.status, 200);
   const plan = arr(get(r.json, "plan"));
-  assert.equal(plan.length, 12, r.text);
+  assert.equal(plan.length, 13, r.text);
   assert.ok(plan.every((item) => typeof get(item, "action") === "string"));
   assert.equal(existsSync(join(dir, "skills")), false);
 });

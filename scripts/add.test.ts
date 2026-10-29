@@ -158,7 +158,7 @@ void test("--stage と --role で書くと、catalog に origin local で出る"
     assert.equal(localEntries(c.dir).length, 1);
 
     const list = catalogEntries(c.env);
-    assert.equal(list.length, 13); // 同梱の 12 件 + 足した 1 件
+    assert.equal(list.length, 14); // 同梱の 13 件 + 足した 1 件
     const view = list.find((item) => item.id === "tidy-forms");
     assert.ok(view !== undefined);
     assert.equal(view.origin, "local");
@@ -186,7 +186,7 @@ void test("同じ id をもう一度足すと置き換わり、件数は増え�
     assert.equal(entryOf(again.json).stage, "polish");
     assert.equal(localEntries(c.dir).length, 1);
     const list = catalogEntries(c.env);
-    assert.equal(list.length, 13);
+    assert.equal(list.length, 14);
     const view = list.find((item) => item.id === "tidy-forms");
     assert.ok(view !== undefined);
     assert.equal(view.stage, "polish");
