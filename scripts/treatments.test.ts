@@ -64,14 +64,17 @@ function idsOf(value: unknown, label: string): string[] {
   return value.map((item, index) => textOf(record(item, `${label}[${index}]`).id, `${label}[${index}].id`));
 }
 
-void test("treatments は面 4 件と動きの見本 12 件を返す", () => {
+void test("treatments は面 4 件と、既存 12 件に辞書の効果を足した見本を返す", () => {
   const { env, cleanup } = tempEnv();
   try {
     const res = runCli(["treatments"], env);
     assert.equal(res.code, 0, res.stderr);
     const body = payload(res.json);
+    const ids = idsOf(body.motions, "motions");
     assert.deepEqual(idsOf(body.surfaces, "surfaces"), ["none", "material", "glass", "solid"]);
-    assert.deepEqual(idsOf(body.motions, "motions"), [...MOTION_IDS]);
+    assert.deepEqual(ids.slice(0, MOTION_IDS.length), [...MOTION_IDS]);
+    assert.ok(ids.includes("fade-up"));
+    assert.equal(ids.length, MOTION_IDS.length + 36);
   } finally {
     cleanup();
   }
@@ -88,16 +91,18 @@ void test("treatments extra は usage で終了コード 1", () => {
   }
 });
 
-void test("treatments motion は 12 件とも殻に入れた HTML を書き、check-page が ok になる", () => {
+void test("treatments motion は既存の見本と辞書の見本を殻に入れ、check-page が ok になる", () => {
   const { dir, env, cleanup } = tempEnv();
   try {
     const fake = fakeEnv(env);
     const listing = runCli(["treatments"], env);
     assert.equal(listing.code, 0, listing.stderr);
     const samples = motionsOf(listing.json);
-    assert.equal(samples.length, MOTION_IDS.length);
+    const ids = samples.map((sample) => textOf(sample.id, "motion.id"));
+    assert.deepEqual(ids.slice(0, MOTION_IDS.length), [...MOTION_IDS]);
+    const checkIds = new Set<string>([...MOTION_IDS, "fade-up", "parallax", "stacking-cards", "scroll-snap"]);
 
-    for (const sample of samples) {
+    for (const sample of samples.filter((item) => checkIds.has(textOf(item.id, "motion.id")))) {
       const id = textOf(sample.id, "motion.id");
       const css = textOf(sample.css, "motion.css");
       const file = join(dir, `${id}.html`);

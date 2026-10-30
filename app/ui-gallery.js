@@ -30,6 +30,9 @@ const state = {
   expressionLoaded: false,
   expressionLoading: false,
   motionFrames: [],
+  motions: [],
+  motionCards: [],
+  searchToken: 0,
 };
 
 // 動きの見本の HTML。2 回目からは読み直さない
@@ -98,6 +101,9 @@ function normalizeMotion(raw) {
     supportNote: text(motion.supportNote),
     continuous: motion.continuous === true,
     scrollLinked: motion.scrollLinked === true,
+    aliases: Array.isArray(motion.aliases) ? motion.aliases.map((item) => text(item)).filter((item) => item !== "") : [],
+    scene: text(motion.scene),
+    trigger: text(motion.trigger),
   };
 }
 
@@ -459,21 +465,57 @@ function supportLabel(support) {
   return support;
 }
 
+const TRIGGER_LABELS = {
+  "on-enter": "画面に入ったら",
+  "scroll-linked": "スクロール連動",
+  pinned: "画面に留めて",
+  velocity: "勢い",
+  navigation: "ページ内移動",
+};
+
 function motionBadgesOf(motion) {
   const badges = el("div", "badges");
   const support = supportLabel(motion.support);
+  const trigger = TRIGGER_LABELS[motion.trigger] ?? "";
   if (support !== "") badges.append(el("span", "badge", support));
+  if (trigger !== "") badges.append(el("span", "badge", trigger));
   if (motion.continuous) badges.append(el("span", "badge", "ずっと動く"));
   if (motion.scrollLinked) badges.append(el("span", "badge", "スクロール連動"));
   return badges;
 }
 
+function copyMotionId(button, id) {
+  const clipboard = navigator.clipboard;
+  if (clipboard === undefined) return;
+  const done = () => {
+    button.textContent = "コピーしました";
+    window.setTimeout(() => {
+      button.textContent = id;
+    }, 1200);
+  };
+  void clipboard.writeText(id).then(done, () => {});
+}
+
+function motionIdButton(id) {
+  const button = el("button", "motion-id", id);
+  button.type = "button";
+  button.title = "ID をコピー";
+  button.addEventListener("click", () => {
+    copyMotionId(button, id);
+  });
+  return button;
+}
+
 function motionCardOf(motion) {
   const card = el("article", "motion-card");
+  card.dataset.id = motion.id;
   const head = el("div", "motion-card-head");
-  head.append(el("h4", "motion-name", motion.name), motionBadgesOf(motion));
+  const title = el("div", "motion-card-head");
+  title.append(motionIdButton(motion.id), el("h4", "motion-name", motion.name));
+  head.append(title, motionBadgesOf(motion));
   card.append(head);
   if (motion.description !== "") card.append(el("p", "motion-desc", motion.description));
+  if (motion.aliases.length > 0) card.append(el("p", "motion-meta", `別名: ${motion.aliases.slice(0, 4).join("・")}`));
   if (motion.uses.length > 0) card.append(el("p", "motion-meta", `使いどころ: ${motion.uses.join("・")}`));
   if (motion.supportNote !== "") card.append(el("p", "motion-meta", motion.supportNote));
   const frame = document.createElement("iframe");
@@ -516,13 +558,16 @@ function restoreMotionPreviews() {
 
 function renderMotionCards(ui, motions) {
   state.motionFrames = [];
+  state.motions = motions;
   if (motions.length === 0) {
+    state.motionCards = [];
     ui.motionGrid.replaceChildren();
     setStatus(ui.motionStatus, "動きの見本はまだありません。", false);
     return;
   }
   setStatus(ui.motionStatus, "", false);
   ui.motionGrid.replaceChildren(...motions.map(motionCardOf));
+  state.motionCards = [...ui.motionGrid.querySelectorAll(".motion-card")];
   for (const entry of state.motionFrames) void fillMotionFrame(entry);
 }
 
@@ -550,18 +595,150 @@ function buildExpressionSections() {
   const motionGrid = el("div", "motion-grid");
   motionGrid.setAttribute("aria-label", "動きの見本");
   const motionStatus = el("p", "status");
+  const searchInput = el("input");
+  searchInput.type = "search";
+  searchInput.placeholder = "なんとなくの言葉で検索（例: 背景がゆっくり、順番にふわっと）";
+  searchInput.setAttribute("aria-label", "動きを言葉で検索");
+  const searchNote = el("p", "motion-search-note");
+  const search = el("div", "motion-search");
+  search.append(searchInput, searchNote);
   const motionSection = el("section", "expression-section");
   const motionTitle = el("h3", "expression-title", "動きの見本");
   motionTitle.id = "gallery-motion-title";
   motionSection.setAttribute("aria-labelledby", motionTitle.id);
   motionSection.append(
     motionTitle,
-    el("p", "expression-lead", "ミニマルのテーマで動かしている動きの見本です。カードの中で実際に動きます。"),
+    el("p", "expression-lead", "ミニマルのテーマで動かしている動きの見本です。カードの中で実際に動きます。言葉で絞れます。"),
+    search,
     motionStatus,
     motionGrid,
   );
+  const ui = { surfaceGrid, surfaceStatus, motionGrid, motionStatus, searchInput, searchNote, sections: [surfaceSection, motionSection] };
+  wireMotionSearch(ui);
+  return ui;
+}
 
-  return { surfaceGrid, surfaceStatus, motionGrid, motionStatus, sections: [surfaceSection, motionSection] };
+function normMotionQuery(value) {
+  return value
+    .toLowerCase()
+    .replace(/[\s、。,.!?！？「」()（）・]/g, "")
+    .replace(/だけ/g, "")
+    .replace(/[がのをはにでとも]/g, "");
+}
+
+function gramScore(query, alias) {
+  const grams = (value) => {
+    const found = new Set();
+    for (let index = 0; index < value.length - 1; index += 1) found.add(value.slice(index, index + 2));
+    return found;
+  };
+  const left = grams(query);
+  const right = grams(alias);
+  let shared = 0;
+  for (const gram of left) if (right.has(gram)) shared += 1;
+  if (shared === 0) return 0;
+  return (shared / Math.max(2, Math.min(left.size, right.size))) * 6;
+}
+
+function scoreAlias(query, alias) {
+  const nq = normMotionQuery(query);
+  const na = normMotionQuery(alias);
+  if (nq === "" || na === "") return 0;
+  if (nq.includes(na)) return 10 + na.length;
+  if (na.includes(nq) && nq.length >= 2) return 8 + nq.length;
+  return gramScore(nq, na);
+}
+
+function scoreMotion(query, motion) {
+  let best = 0;
+  let hit = motion.name;
+  for (const alias of [motion.id, motion.name, ...motion.aliases]) {
+    const score = scoreAlias(query, alias);
+    if (score > best) {
+      best = score;
+      hit = alias;
+    }
+  }
+  return { id: motion.id, score: best, hit };
+}
+
+function showMotionIds(ui, ids, note) {
+  const byId = new Map(state.motionCards.map((card) => [card.dataset.id ?? "", card]));
+  for (const card of state.motionCards) card.hidden = true;
+  for (const id of ids) {
+    const card = byId.get(id);
+    if (card === undefined) continue;
+    card.hidden = false;
+    ui.motionGrid.append(card);
+  }
+  ui.searchNote.textContent = note;
+}
+
+function restoreMotionCards(ui) {
+  for (const card of state.motionCards) card.hidden = false;
+  ui.motionGrid.replaceChildren(...state.motionCards);
+  ui.searchNote.textContent = "";
+}
+
+function localMotionNote(ranked) {
+  const strong = ranked.filter((item) => item.score >= 10);
+  if (ranked.length === 0) return "辞書に近い動きが見つかりませんでした";
+  if (strong.length === 0) return `近いもの: ${ranked.map((item) => item.id).join("、")}`;
+  return `正規化: ${strong.map((item) => `${item.id}（${item.hit}）`).join("、")}`;
+}
+
+function applyLocalMotionSearch(ui, query) {
+  if (query === "") {
+    restoreMotionCards(ui);
+    return;
+  }
+  const ranked = state.motions
+    .map((motion) => scoreMotion(query, motion))
+    .filter((item) => item.score >= 2.5)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8);
+  showMotionIds(
+    ui,
+    ranked.map((item) => item.id),
+    localMotionNote(ranked),
+  );
+}
+
+async function askMotionSearch(ui, query) {
+  const token = state.searchToken + 1;
+  state.searchToken = token;
+  let body = null;
+  try {
+    body = await requestJson("/api/motions/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: query }),
+    });
+  } catch {
+    return;
+  }
+  if (token !== state.searchToken || ui.searchInput.value.trim() !== query) return;
+  const payload = record(body);
+  if (payload.source !== "jev" || !Array.isArray(payload.results)) {
+    const note = text(payload.note);
+    if (note !== "") ui.searchNote.textContent = note;
+    return;
+  }
+  const ids = payload.results.map((item) => text(record(item).id)).filter((id) => id !== "");
+  showMotionIds(ui, ids, "Jev の採点で並べました");
+}
+
+function wireMotionSearch(ui) {
+  let timer = 0;
+  ui.searchInput.addEventListener("input", () => {
+    const query = ui.searchInput.value.trim();
+    applyLocalMotionSearch(ui, query);
+    window.clearTimeout(timer);
+    if (query === "") return;
+    timer = window.setTimeout(() => {
+      void askMotionSearch(ui, query);
+    }, 250);
+  });
 }
 
 function ensureExpressionUi() {

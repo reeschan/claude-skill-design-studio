@@ -39,7 +39,7 @@ description: 曖昧な依頼から Web ページの見た目 (配色・フォン
 ## 方向性の段階 (design-studio 自身が受け持つ)
 
 1. `node <スキル>/scripts/studio.ts styles` で、見本帳の 7 スタイルを出し、方向性の共通語として示す。
-2. 案を出す前に、表現 (面と動き) を聞く。`node <スキル>/scripts/studio.ts treatments` で、面 4 つ (指定しない・Material・Glass・Solid) と動き 3 つ (なし・控えめ・Animated) の名前と説明を出す。動きに Animated を選んだら、動きの見本の一覧も見せ、使いたいものがあれば聞く。見本は `node <スキル>/scripts/studio.ts treatments motion <id> --out <file>` で開いてもらう。何も指定されなければ、面・動きとも指定しない (今までどおり)。
+2. 案を出す前に、表現 (面と動き) を聞く。`node <スキル>/scripts/studio.ts treatments` で、面 4 つ (指定しない・Material・Glass・Solid) と動き 3 つ (なし・控えめ・Animated) の名前と説明を出す。動きに Animated を選んだら、ページ全体は動かさない。どのセクションの、どの要素かを 1 問聞く (例: ヒーローの背景だけ)。言い方はゆるくてよい。`node <スキル>/scripts/studio.ts normalize-motion --section <section> [--target <target>] "<言い方>"` で辞書の ID に正規化し、返った `entries` だけをその場所に効かせる。きっかけが混ざるときは entry が複数になる。見本は `node <スキル>/scripts/studio.ts treatments motion <id> --out <file>` で開いてもらう。辞書そのものは `node <スキル>/scripts/studio.ts motion-dictionary --markdown` で DESIGN.md の Motion 節として出せる。何も指定されなければ、面・動きとも指定しない (今までどおり)。
 3. 依頼から方向性の案を 4 つ、互いに違う向きで作る。案ごとに Direction の JSON を書く。形は `<スキル>/core/types.ts` の `Direction`、値の範囲は style-guide の `Seed` と同じにする。`seed.id` は `/^[a-z][a-z0-9-]*$/` に合う 20 字以内、`copy.items` は 3〜6 件、`copy` の文章は依頼から推し量った日本語にする。作業用のファイルはスクラッチパッドか一時ディレクトリに置く。
 4. 案ごとに `node <スキル>/scripts/studio.ts render-direction --direction <file> --family <lp|dashboard|blog|pricing|product|portfolio|settings> --out <file>` で骨組みを描き、そのパスを利用者に示してブラウザで開いてもらう。案の違い (テーマと配置) を実際の形で見てもらう。面を選んだときは `--surface <id>` を付けて、骨組みに面を重ねて見せる (骨組みには動きを入れない)。
 5. 4 つの軸 (色・フォント・形・配置) で混ぜたいときは、混ぜる度合いを軸ごとのパッド (4 隅に 4 案を置いた面) の点で選ぶ。`node <スキル>/scripts/studio.ts mix --directions <file> --points '{"color":{"x":0.2,"y":0.2},"font":{"x":1,"y":0},"shape":{"x":0.5,"y":0.5},"layout":{"x":1,"y":1}}'` で 1 つにまとめ、また `render-direction` で描く。点は 0〜1 の x, y で、隅は A=(0,0)・B=(1,0)・C=(0,1)・D=(1,1) に `--directions` の 1〜4 つ目の案が当たる (案が 4 件より少なければ、足りない隅は 1 つ目の案で埋まる)。点をある隅に近づけるほど、その案がその軸に強く効く。フォント・配置・ライト/ダーク・影のように混ぜられないものは、その軸で一番重い案のものにそろう (`snapped` に吸着に使った案の添字が出る)。混ぜた値の上に角丸・余白など一部だけ上書きする微調整は、`mix` に `--fine-tune '<JSON>'` を付け足す。
@@ -64,7 +64,7 @@ description: 曖昧な依頼から Web ページの見た目 (配色・フォン
 
 ページは `<スキル>/docs/page-recipe.md` の手順に従い、1 ファイルの HTML を作る。`check-page` の `ok` と `project save` まで済ませる。
 
-表現を選んでいるときは、`page-recipe` の「表現を効かせる」に従い、面と動き (動きの見本) を作るものに効かせる。指定が無ければ、面・動きとも指定しない (今までどおり)。
+表現を選んでいるときは、`page-recipe` の「表現を効かせる」に従い、面と動きを作るものに効かせる。Animated でもページ全体を書き換えず、`normalize-motion` の entry（`section` と任意の `target`）にだけ動きを書く。`motion-dictionary --markdown` の Motion 節を DESIGN.md に置くと、impeccable の `/impeccable animate <section>` が `reason` と `reduced_motion` を読める。指定が無ければ、面・動きとも指定しない (今までどおり)。
 
 完了条件: `check-page` が `ok` を返し、保存先のパスを利用者に伝えた。
 

@@ -13,6 +13,7 @@
 //   GET  /api/treatments                      → {surfaces, motions}
 //   GET  /api/sketches                        → {sketches, functions, constants}
 //   GET  /api/motions/<id>/preview            → 動きの見本 1 件の HTML
+//   POST /api/motions/search  {q}             → 別名検索。キーがあれば Jev で並べ直す
 //   GET  /api/themes/<styleId>                → {themeId, cssForPage, fontsUrl} (結果はメモリに保持)
 //   GET  /api/gallery                         → {items: [{styleId, pageType, url}], surfaceSheets: [{surface, name, url}]}
 //   GET  /gallery/surfaces/<面の id>.html     → 面ごとの部品帳の HTML
@@ -62,6 +63,7 @@ import { generateSketch } from "../core/sketch-llm.ts";
 import { loadSketchApi, loadSketchSamples } from "../core/sketches.ts";
 import { findStyle, loadStyles, validateDirection } from "../core/styles.ts";
 import { renderTheme, stripTailwindImport, tokensOf } from "../core/theme-bridge.ts";
+import { rankMotionSearch } from "../core/motion-rank.ts";
 import { findMotion, findSurface, loadSurfaces, motionSampleHtml, treatmentListing, validateTreatment } from "../core/treatment.ts";
 import { LAYOUTS, PAGE_TYPE_CANDIDATES, SKELETON_FAMILIES } from "../core/types.ts";
 import type {
@@ -477,6 +479,14 @@ async function serveMotionPreview(ctx: RouteContext): Promise<void> {
   sendRaw(ctx.res, 200, HTML_TYPE, html, false, { "Content-Security-Policy": PAGE_SANDBOX });
 }
 
+// 見本帳の検索。別名で絞り、TYPESAFE_API_KEY があるときだけ Jev で並べ直す。キーは応答に出さない
+async function serveMotionSearch(ctx: RouteContext): Promise<void> {
+  const query = ctx.body.q;
+  if (typeof query !== "string") throw inputError("q は文字列で指定してください");
+  if ([...query.trim()].length > 200) throw inputError("q は 200 文字までにしてください");
+  sendJson(ctx.res, 200, await rankMotionSearch(query, ctx.env));
+}
+
 type GalleryItem = { styleId: string; pageType: SkeletonFamily; url: string };
 type SurfaceSheetItem = { surface: string; name: string; url: string };
 
@@ -825,6 +835,7 @@ const ROUTES: Route[] = [
   { method: "GET", pattern: /^\/api\/treatments$/, limit: BODY_LIMIT, handle: serveTreatments },
   { method: "GET", pattern: /^\/api\/sketches$/, limit: BODY_LIMIT, handle: serveSketches },
   { method: "GET", pattern: /^\/api\/motions\/([a-z][a-z0-9-]*)\/preview$/, limit: BODY_LIMIT, handle: serveMotionPreview },
+  { method: "POST", pattern: /^\/api\/motions\/search$/, limit: BODY_LIMIT, handle: serveMotionSearch },
   { method: "GET", pattern: /^\/api\/themes\/([^/]+)$/, limit: BODY_LIMIT, handle: serveTheme },
   { method: "GET", pattern: /^\/api\/gallery$/, limit: BODY_LIMIT, handle: serveGallery },
   { method: "GET", pattern: /^\/gallery\/surfaces\/([a-z][a-z0-9-]*)\.html$/, limit: BODY_LIMIT, handle: serveSurfaceSheet },

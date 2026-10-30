@@ -61,8 +61,27 @@ design-studio でページ (1 ファイルの HTML) を作る手順。見本帳�
 表現 (面と動き) を指定されたときは、ページにも効かせる。指定が無ければ、面・動きとも指定しない (今までどおり)。
 
 - **面**: `node <スキル>/scripts/studio.ts treatments` で出る面の台帳から選んだ 1 件の `instructions` に従って面を作る。`name` と `description` も見て、カード・ボタン・ナビなどページ全体の面の作り方をそろえる。`none` なら面を指定しない。
-- **動き**: 動きの強さで線を引く。`none` は動かさない (フォーカスの表示だけ)。`subtle` はホバー・押下・開閉の短い `transition` だけ (0.3 秒くらいまで)。ずっと動き続けるもの・スクロールに連動するものは使わない。`animated` は動きの見本から 2〜4 件を主役に使ってよい (ずっと動くもの・スクロール連動も使える)。
-- **動きの見本**: `animated` のときは、利用者が指定した見本を必ず使う。足りなければ動きの見本集から足して 2〜4 件にする。指定が無ければ、依頼に合う 2〜4 件を見本集から選ぶ。見本の CSS は写さず、`technique` を元にテーマの色で書き直す。`support` が `fallback` の見本は、`@supports` で無いときの見た目を用意する。どの見本も `reducedMotion` のとおりに、止めるか弱める指定を置く。
+- **動き**: 動きの強さで線を引く。`none` は動かさない (フォーカスの表示だけ)。`subtle` はホバー・押下・開閉の短い `transition` だけ (0.3 秒くらいまで)。ずっと動き続けるもの・スクロールに連動するものは使わない。`animated` でもページ全体には広げない。利用者が指したセクション (と要素) だけに、動きの entry を 1 件ずつ効かせる。主役は 1 セクションあたり 1 つ、ページ全体でも 2〜4 件まで。
+- **動きの entry**: 言い方はゆるくてよい。`node <スキル>/scripts/studio.ts normalize-motion --section <section> [--target <target>] [--reason "<理由>"] "<言い方>"` で、辞書の ID に正規化した JSON を得る。形は次のとおり。きっかけが違うときは `target` ごとに複数件になる。`errors` が返ったら、その日本語に従って言い方を直す。辞書に無い ID は使わない。
+
+```json
+{
+  "section": "hero",
+  "target": "bg",
+  "trigger": "scroll-linked",
+  "effect": ["parallax"],
+  "impl": "css-sda",
+  "css_only": true,
+  "reason": "ヒーローの背景だけ、奥行きをゆっくり出したい",
+  "reduced_motion": "static",
+  "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+  "animated_properties": ["transform", "opacity"]
+}
+```
+
+- `trigger` は `on-enter` / `scroll-linked` / `pinned` / `velocity` / `navigation`。`effect` は辞書の ID を 1〜2 個。`reduced_motion` は `static` (最後の状態) / `opacity-only` (移動をやめ透明度だけ) / `native` (ふつうのスクロールに戻す)。`reason` が書けない動きは入れない。
+- **動きの見本**: entry の `effect` に入った見本を、その `section` (と `target`) にだけ使う。見本の CSS は写さず、`technique` を元にテーマの色で書き直す。`support` が `fallback` の見本は、`@supports` で無いときの見た目を用意する。どの見本も entry の `reduced_motion` と見本の `reducedMotion` のとおりに、止めるか弱める指定を置く。`css_only` が false の効果は、スクリプトの無いページでは最終の見た目 (reduced-motion と同じ) にする。
+- **DESIGN.md**: `node <スキル>/scripts/studio.ts motion-dictionary --markdown` が辞書の Motion 節を返す。正規化の結果を足すときは `normalize-motion --markdown`。この節を DESIGN.md に置くと、impeccable の `/impeccable animate <section>` が、entry の `reason` と `reduced_motion` を読んでそのセクションだけを動かせる。
 
 ## 4. 点検する
 

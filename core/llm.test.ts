@@ -379,7 +379,8 @@ void test("ページの動きが animated で見本の指定が無いときは�
     const motions = loadMotions();
     await generatePage(pageInput({ surface: "glass", motion: "animated", motionSamples: [] }), env);
     const prompt = recordedArgs(dir).prompt;
-    assert.equal(motions.length, 12, "動きの見本は 12 件");
+    assert.ok(motions.length > 12, "辞書の効果が足されていません");
+    assert.ok(motions.some((motion) => motion.id === "fade-up"));
     for (const motion of motions) {
       assert.ok(prompt.includes(motion.name), `候補の見本 ${motion.id} の名前がありません`);
     }

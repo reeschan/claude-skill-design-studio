@@ -184,11 +184,42 @@ export type SurfaceEntry = {
   css: string;
   examples: string[];
 };
+// 動きのきっかけ (辞書の trigger)。見本の id とは別の軸
+export const MOTION_TRIGGERS = ["on-enter", "scroll-linked", "pinned", "velocity", "navigation"] as const;
+export type MotionTriggerId = (typeof MOTION_TRIGGERS)[number];
+// reduced-motion のときの代替。見本の reducedMotion (文章) とは別に、entry が持つ固定値
+export const REDUCED_MOTION_KINDS = ["static", "opacity-only", "native"] as const;
+export type ReducedMotionKind = (typeof REDUCED_MOTION_KINDS)[number];
+// CSS だけで書けるか。css = 書ける / js = JavaScript が要る / either = どちらでも
+export const CSS_CAPABILITIES = ["css", "js", "either"] as const;
+export type CssCapability = (typeof CSS_CAPABILITIES)[number];
+// entry の実装方法
+export const MOTION_IMPLS = ["css", "css-sda", "motion", "gsap"] as const;
+export type MotionImpl = (typeof MOTION_IMPLS)[number];
+// 動かしてよいプロパティ
+export const MOTION_ANIMATED_PROPS = ["transform", "opacity", "filter"] as const;
+export type MotionAnimatedProp = (typeof MOTION_ANIMATED_PROPS)[number];
+
+// 正規化した動き 1 件。セクション (と任意の対象) にだけ効かせる。ページ全体には広げない
+export type MotionEntry = {
+  section: string;
+  target?: string;
+  trigger: MotionTriggerId;
+  effect: string[]; // 辞書の効果 ID。1〜2 件
+  impl: MotionImpl;
+  css_only: boolean;
+  reason: string;
+  reduced_motion: ReducedMotionKind;
+  easing: string;
+  animated_properties: MotionAnimatedProp[];
+};
+
 // 動きの見本の 1 件
 export type MotionSample = {
   id: string;
   name: string;
   description: string;
+  aliases: string[]; // 検索と正規化に使う呼び名。id 自体は含めなくてよい (読み込み側で足す)
   uses: string[]; // 使いどころ (ボタン・見出し・セクションなど)
   technique: string; // 技法 (1 文)
   css: string; // 見本の CSS。色はテーマの変数と color-mix() だけ。prefers-reduced-motion の扱いを必ず含む
@@ -199,4 +230,10 @@ export type MotionSample = {
   scrollLinked: boolean; // スクロールに連動するか
   reducedMotion: string; // reduced-motion のときにどうするか (1 文)
   references: string[]; // 参考にしたページの https の URL (1 件以上)
+  trigger?: MotionTriggerId; // 辞書の効果だけ。既定のきっかけ
+  category?: string; // 辞書の分類 (入場・見せ方など)
+  scene?: string; // 使う場面 (1 文)
+  prohibition?: string; // 禁止 (1 文)
+  reducedMotionKind?: ReducedMotionKind;
+  cssCapability?: CssCapability;
 };
