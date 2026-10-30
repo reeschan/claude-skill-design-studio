@@ -12,6 +12,8 @@ import * as project from "./commands/project.ts";
 import * as renderDirection from "./commands/render-direction.ts";
 import * as styles from "./commands/styles.ts";
 import * as theme from "./commands/theme.ts";
+import * as motionDictionary from "./commands/motion-dictionary.ts";
+import * as normalizeMotion from "./commands/normalize-motion.ts";
 import * as treatments from "./commands/treatments.ts";
 
 type Command = (args: string[], env: NodeJS.ProcessEnv) => Promise<unknown>;
@@ -28,6 +30,8 @@ const COMMANDS: Record<string, Command> = {
   "check-page": checkPage.run,
   project: project.run,
   treatments: treatments.run,
+  "normalize-motion": normalizeMotion.run,
+  "motion-dictionary": motionDictionary.run,
   "design-guide": designGuide.run,
 };
 

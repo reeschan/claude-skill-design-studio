@@ -88,12 +88,16 @@ CLI を直接使うこともできます。
 node ~/.claude/skills/design-studio/scripts/studio.ts styles
 node ~/.claude/skills/design-studio/scripts/studio.ts treatments
 node ~/.claude/skills/design-studio/scripts/studio.ts treatments motion spinning-border --out motion.html
+node ~/.claude/skills/design-studio/scripts/studio.ts normalize-motion --section hero --target bg "背景だけゆっくり動かしたい"
+node ~/.claude/skills/design-studio/scripts/studio.ts motion-dictionary --markdown
 node ~/.claude/skills/design-studio/scripts/studio.ts render-direction --direction direction.json --family lp --surface glass --out skeleton.html
 node ~/.claude/skills/design-studio/scripts/studio.ts design-guide --style minimal --sheet component-sheet.html --values values.json --out design-guide
 ```
 
-- `treatments`: 面 4 つと動きの見本 12 件の一覧
+- `treatments`: 面 4 つと動きの見本 (既存の 12 件と、スクロール辞書の効果) の一覧
 - `treatments motion <id> --out <file>`: 動きの見本 1 件を HTML に書く (省くと `html` を返す)
+- `normalize-motion --section <section> [--target <target>] "<言い方>"`: ゆるい日本語を、そのセクションだけの動き entry にする。きっかけが混ざるときは複数件。失敗は日本語のエラー
+- `motion-dictionary --markdown`: 辞書を DESIGN.md の Motion 節として返す (`/impeccable animate <section>` が読む形)
 - `render-direction --surface <id>`: 骨組みに面の CSS を重ねる (動きは入れない)
 - `design-guide`: 部品帳の HTML と値の JSON から、デザインガイドのフォルダ (`design-guide.md`・`style-guide.md`・`component-sheet.html`・`theme.css`・`theme.json`) を組み立てる。style-guide が古いときは部品帳とテーマだけを書き、更新を案内する
 

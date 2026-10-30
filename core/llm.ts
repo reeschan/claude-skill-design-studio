@@ -356,7 +356,8 @@ export function userBriefLines(brief: Brief): string[] {
 const MOTION_LABELS: Record<MotionLevel, string> = {
   none: "動かさない。フォーカスの表示だけを残す。",
   subtle: "控えめ。ホバー・押下・開閉の短い transition だけを使い、0.3 秒くらいまでにする。ずっと動くものとスクロール連動は使わない。",
-  animated: "見せる。動きの見本集から 2〜4 件を主役に使ってよい。",
+  animated:
+    "見せる。動きの見本はページ全体に広げず、指されたセクションや要素だけに 2〜4 件を効かせる。セクションが分からなければ主役の 1 つに限る。",
 };
 
 export type PromptPurpose = "directions" | "page" | "component";
@@ -401,7 +402,7 @@ function promptSample(sample: MotionSample, withHtml: boolean): PromptSample {
 }
 
 // animated のときの見本。指定があれば html 付きで「必ず使う」と伝え、
-// 無ければ 12 件すべてを候補として渡して 2〜4 件を選ばせる
+// 無ければ見本を候補として渡し、指されたセクションに 2〜4 件を選ばせる
 function sampleLines(treatment: Treatment): string[] {
   if (treatment.motionSamples.length === 0) {
     const candidates = loadMotions().map((sample) => promptSample(sample, false));
@@ -412,7 +413,7 @@ function sampleLines(treatment: Treatment): string[] {
 }
 
 const DIRECTIONS_TREATMENT_NOTE = "- 表現に合う配色・形・字組みの案にしてください。表現 (面と動き) は 4 つの案で変えないでください。";
-const PAGE_TREATMENT_NOTE = "- この表現を、ページ全体の面と動きの土台にしてください。";
+const PAGE_TREATMENT_NOTE = "- 面はこのページの土台にする。動きはページ全体を一度に書き換えず、指されたセクションや要素だけに効かせる。";
 const COMPONENT_TREATMENT_NOTE = "- この表現を、部品の面と動きの土台にしてください。";
 
 // プロンプトに差し込む「## 表現」の節。既定の表現なら空にする (方向性のプロンプトを 1 文字も変えない)

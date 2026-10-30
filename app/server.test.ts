@@ -743,7 +743,10 @@ void test("17. GET /api/treatments が面と動きの一覧、GET /api/motions/<
     surfaces.map((surface) => get(surface, "name")),
     ["指定しない", "Material", "Glass", "Solid"],
   );
-  assert.equal(motions.length, 12, listing.text);
+  assert.equal(motions.length, 48, listing.text);
+  const fadeUp = motions.find((motion) => get(motion, "id") === "fade-up");
+  assert.equal(get(fadeUp, "trigger"), "on-enter");
+  assert.ok(str(get(fadeUp, "css")).includes("prefers-reduced-motion"), "辞書の見本に reduced-motion の扱いがありません");
   const aurora = motions.find((motion) => get(motion, "id") === "aurora");
   assert.equal(get(aurora, "name"), "ゆっくり流れるオーロラの背景");
   assert.ok(str(get(aurora, "css")).includes("prefers-reduced-motion"), "動きの見本に reduced-motion の扱いがありません");
@@ -758,6 +761,36 @@ void test("17. GET /api/treatments が面と動きの一覧、GET /api/motions/<
 
   assert.equal((await fetchPath("/api/motions/no-such/preview")).status, 404);
   assert.equal((await fetchPath("/api/motions/aurora")).status, 404);
+
+  const search = await post("/api/motions/search", { q: "背景がゆっくり" });
+  assert.equal(search.status, 200, search.text);
+  assert.equal(get(search.json, "source"), "alias");
+  const results = arr(get(search.json, "results"));
+  assert.equal(get(results[0], "id"), "parallax");
+  assert.ok(!search.text.includes("TYPESAFE_API_KEY"));
+});
+
+void test("17b. 動きの検索は Jev の採点で並べ替え、失敗したら別名に戻る", async () => {
+  const mock = JSON.stringify({ "fade-up": 2.9, stagger: 0.2 });
+  const jevServer = await startServer({ ...serverEnv, DESIGN_STUDIO_JEV_MOCK: mock, TYPESAFE_API_KEY: "test-key-not-sent" });
+  try {
+    const ranked = await post("/api/motions/search", { q: "順番にふわっと" }, {}, jevServer.base);
+    assert.equal(ranked.status, 200, ranked.text);
+    assert.equal(get(ranked.json, "source"), "jev");
+    assert.equal(get(arr(get(ranked.json, "results"))[0], "id"), "fade-up");
+    assert.ok(!ranked.text.includes("test-key-not-sent"));
+  } finally {
+    await stopServer(jevServer.child);
+  }
+  const failServer = await startServer({ ...serverEnv, DESIGN_STUDIO_JEV_MOCK: "fail", TYPESAFE_API_KEY: "test-key-not-sent" });
+  try {
+    const fell = await post("/api/motions/search", { q: "背景がゆっくり" }, {}, failServer.base);
+    assert.equal(fell.status, 200, fell.text);
+    assert.equal(get(fell.json, "source"), "alias");
+    assert.ok(str(get(fell.json, "note")).includes("別名"));
+  } finally {
+    await stopServer(failServer.child);
+  }
 });
 
 void test("18. POST /api/directions と POST /api/page が treatment を LLM のプロンプトに通す", async () => {

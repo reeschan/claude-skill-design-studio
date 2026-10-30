@@ -17,7 +17,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/@property",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/conic-gradient",
         "https://learnwithjason.dev/blog/animated-css-gradient-border"
-      ]
+      ],
+      "aliases": ["回る光の枠", "光の枠", "spinning border"]
     },
     {
       "id": "shimmer-text",
@@ -36,7 +37,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/background-clip",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/linear-gradient",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
-      ]
+      ],
+      "aliases": ["光が流れる文字", "文字の光", "shimmer text"]
     },
     {
       "id": "scroll-reveal",
@@ -55,7 +57,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-driven_animations",
         "https://modern-css.com/whats-new/"
-      ]
+      ],
+      "aliases": ["スクロールで現れる", "scroll reveal"]
     },
     {
       "id": "reading-progress",
@@ -74,7 +77,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-driven_animations",
         "https://modern-css.com/whats-new/"
-      ]
+      ],
+      "aliases": ["記事の進みのバー", "reading progress"]
     },
     {
       "id": "entry-transition",
@@ -93,7 +97,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/@starting-style",
         "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/popover",
         "https://developer.chrome.com/blog/new-in-web-ui-io26"
-      ]
+      ],
+      "aliases": ["出てくるときの動き", "ポップオーバーの出現", "entry transition"]
     },
     {
       "id": "spring-press",
@@ -112,7 +117,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/linear",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/transition-timing-function",
         "https://developer.chrome.com/blog/new-in-web-ui-io26"
-      ]
+      ],
+      "aliases": ["ばねで押し込む", "ばね", "spring press"]
     },
     {
       "id": "stagger",
@@ -130,7 +136,8 @@
       "references": [
         "https://developer.chrome.com/blog/new-in-web-ui-io26",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation-delay"
-      ]
+      ],
+      "aliases": ["スタッガー", "順番に", "次々と", "一枚ずつ", "ずらして出す"]
     },
     {
       "id": "aurora",
@@ -149,7 +156,8 @@
         "https://developer.mozilla.org/en-US/docs/Web/CSS/@property",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/radial-gradient",
         "https://motionkit.io/blog/web-animation-trends-2026"
-      ]
+      ],
+      "aliases": ["ゆっくり流れるオーロラ", "オーロラ", "aurora"]
     },
     {
       "id": "skeleton-shimmer",
@@ -167,7 +175,8 @@
       "references": [
         "https://developer.mozilla.org/en-US/docs/Web/CSS/gradient/linear-gradient",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
-      ]
+      ],
+      "aliases": ["読み込み中のきらめき", "スケルトン", "skeleton"]
     },
     {
       "id": "line-draw",
@@ -185,7 +194,8 @@
       "references": [
         "https://developer.mozilla.org/en-US/docs/Web/CSS/stroke-dasharray",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/stroke-dashoffset"
-      ]
+      ],
+      "aliases": ["線が描かれる", "手書き風", "SVG ライン", "svg-line-draw", "線が描かれていく"]
     },
     {
       "id": "blob",
@@ -203,7 +213,8 @@
       "references": [
         "https://developer.mozilla.org/en-US/docs/Web/CSS/border-radius",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
-      ]
+      ],
+      "aliases": ["形が揺らぐ", "blob", "ブロブ"]
     },
     {
       "id": "marquee",
@@ -221,7 +232,8 @@
       "references": [
         "https://developer.mozilla.org/en-US/docs/Web/CSS/transform",
         "https://developer.mozilla.org/en-US/docs/Web/CSS/animation"
-      ]
+      ],
+      "aliases": ["流れ続ける帯", "マーキー", "marquee"]
     }
   ]
 }

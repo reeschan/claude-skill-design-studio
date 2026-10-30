@@ -5,6 +5,7 @@ import { CliExit, EXIT_INPUT } from "./cli-exit.ts";
 import { readJsonFile } from "./json-file.ts";
 import { pageHtml } from "./page-html.ts";
 import { MOTION_LEVELS } from "./types.ts";
+import { mergeMotionCatalog, loadMotionDictionary } from "./motion-dictionary.ts";
 import type { BaseMode, MotionLevel, MotionSample, SurfaceEntry, Treatment } from "./types.ts";
 
 // core/treatment.ts の 1 つ上 = リポジトリのルート
@@ -84,10 +85,13 @@ function motionOf(x: unknown, index: number): MotionSample {
   if (references.some((url) => !url.startsWith("https://"))) {
     throw inputError(`${label}.references は https の URL で指定してください`);
   }
+  const aliases = textList(x.aliases, `${label}.aliases`);
+  if (aliases.length === 0) throw inputError(`${label}.aliases は 1 件以上で指定してください`);
   return {
     id: idOf(x.id, `${label}.id`),
     name: text(x.name, `${label}.name`),
     description: text(x.description, `${label}.description`),
+    aliases,
     uses: textList(x.uses, `${label}.uses`),
     technique: text(x.technique, `${label}.technique`),
     css: text(x.css, `${label}.css`),
@@ -125,7 +129,7 @@ export function loadMotions(): MotionSample[] {
   }
   const motions = raw.motions.map((entry, index) => motionOf(entry, index));
   ensureUniqueIds(motions, "data/motions.json");
-  return motions;
+  return mergeMotionCatalog(motions, loadMotionDictionary());
 }
 
 /** id に一致する面。無ければ undefined */
